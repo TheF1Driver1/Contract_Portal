@@ -202,26 +202,3 @@ if st.button("Generar y Enviar Contrato"):
         # Download button
         #with open(output_path, "rb") as f:
             #st.download_button("⬇️ Descargar Contrato", f, file_name=dynamic_filename)
-
-'''
-        # Send email
-        if send_email:
-            if sender_email and sender_password and recipient_email:
-                try:
-                    msg = EmailMessage()
-                    msg['Subject'] = "Contrato Sabana Gardens"
-                    msg['From'] = sender_email
-                    msg['To'] = recipient_email
-                    msg.set_content("Adjunto encontrarás el contrato generado.")
-                    with open(output_path, "rb") as f:
-                        msg.add_attachment(f.read(), maintype="application", subtype="vnd.openxmlformats-officedocument.wordprocessingml.document", filename="CONTRATO_SABANA_GARDENS_filled.docx")
-
-                    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-                        smtp.login(sender_email, sender_password)
-                        smtp.send_message(msg)
-                    st.success(f"📧 Contrato enviado a {recipient_email}")
-                except Exception as e:
-                    st.error(f"❌ Error al enviar correo: {e}")
-            else:
-                st.warning("❌ Ingresa todos los campos de correo para enviar el contrato.")
-'''
