@@ -177,7 +177,7 @@ if st.button("Generar y Enviar Contrato"):
         }
 
         # --------------------------
-        # 1️⃣ Render DOCX once
+        # 1️⃣ Render DOCX
         # --------------------------
         doc = DocxTemplate(TEMPLATE_FILE)
 
@@ -191,20 +191,14 @@ if st.button("Generar y Enviar Contrato"):
         doc.render(context)
 
         # --------------------------
-        # 2️⃣ Save DOCX to disk
+        # 2️⃣ Save DOCX to memory for download & email
         # --------------------------
         dynamic_filename = f"CONTRATO_SABANA_GARDENS_{nombre_arrendatario.replace(' ', '_')}_{anio_comienzo_contrato}.docx"
-        output_path = os.path.join(folder_selected, dynamic_filename)
-        doc.save(output_path)
-        st.success(f"✅ Contrato generado en: {output_path}")
-
-        # --------------------------
-        # 3️⃣ Save DOCX to memory for download
-        # --------------------------
         docx_buffer = io.BytesIO()
         doc.save(docx_buffer)
         docx_buffer.seek(0)
 
+        # Download button for user (iPhone-friendly)
         st.download_button(
             label="⬇️ Descargar Contrato DOCX",
             data=docx_buffer,
@@ -213,7 +207,7 @@ if st.button("Generar y Enviar Contrato"):
         )
 
         # --------------------------
-        # 4️⃣ Send email (optional)
+        # 3️⃣ Send email (optional)
         # --------------------------
         if send_email and sender_email and sender_password and recipient_email:
             msg = EmailMessage()
