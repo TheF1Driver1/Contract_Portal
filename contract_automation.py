@@ -5,6 +5,7 @@ from io import BytesIO
 from docxtpl import DocxTemplate, InlineImage
 from docx.shared import Mm
 import os
+import io
 import smtplib, ssl
 from email.message import EmailMessage
 from docx2pdf import convert
@@ -175,62 +176,66 @@ if st.button("Generar y Enviar Contrato"):
             "firma_arrendatario": firma_arrendatario_img
         }
 
+        # --------------------------
+        # 1️⃣ Render DOCX once
+        # --------------------------
+        doc = DocxTemplate(TEMPLATE_FILE)
+
+        # Inline signatures if available
+        firma_arrendatario_img = InlineImage(doc, firma_arrendatario_img_io, width=Mm(40)) if firma_arrendatario_img_io else firma_arrendatario
+        firma_arrendador_img = InlineImage(doc, firma_arrendador_img_io, width=Mm(40)) if firma_arrendador_img_io else firma_arrendador
+
+        context["firma_arrendador"] = firma_arrendador_img
+        context["firma_arrendatario"] = firma_arrendatario_img
+
         doc.render(context)
+
+        # --------------------------
+        # 2️⃣ Save DOCX to disk
+        # --------------------------
+        dynamic_filename = f"CONTRATO_SABANA_GARDENS_{nombre_arrendatario.replace(' ', '_')}_{anio_comienzo_contrato}.docx"
+        output_path = os.path.join(folder_selected, dynamic_filename)
         doc.save(output_path)
         st.success(f"✅ Contrato generado en: {output_path}")
 
-        # Safely create a dynamic filename
-        arr_name_safe = context["nombre_arrendatario"].replace(" ", "_")
-        start_year = context["anio_comienzo_contrato"]
-        dynamic_filename = f"CONTRATO_SABANA_GARDENS_{arr_name_safe}_{start_year}.docx"
+        # --------------------------
+        # 3️⃣ Save DOCX to memory for download
+        # --------------------------
+        docx_buffer = io.BytesIO()
+        doc.save(docx_buffer)
+        docx_buffer.seek(0)
 
-        # Assuming output_path is your filled DOCX file
-        temp_pdf = os.path.splitext(output_path)[0] + ".pdf"  # same name, .pdf extension
+        st.download_button(
+            label="⬇️ Descargar Contrato DOCX",
+            data=docx_buffer,
+            file_name=dynamic_filename,
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
 
-        # Convert DOCX to PDF
-        convert(output_path, temp_pdf)
+        # --------------------------
+        # 4️⃣ Send email (optional)
+        # --------------------------
+        if send_email and sender_email and sender_password and recipient_email:
+            msg = EmailMessage()
+            msg['Subject'] = "Contrato Sabana Gardens"
+            msg['From'] = sender_email
+            msg['To'] = recipient_email
+            msg.set_content("Adjunto encontrarás el contrato generado.")
 
-        # Provide download for iPhone Files
-        with open(temp_pdf, "rb") as f:
-            st.download_button(
-                label="⬇️ Descargar Contrato PDF",
-                data=f,
-                file_name=os.path.basename(temp_pdf),
-                mime="application/pdf"
-    )
+            # Attach DOCX from memory
+            docx_buffer.seek(0)
+            msg.add_attachment(
+                docx_buffer.read(),
+                maintype="application",
+                subtype="vnd.openxmlformats-officedocument.wordprocessingml.document",
+                filename=dynamic_filename
+            )
 
-        # Download button
-        #with open(output_path, "rb") as f:
-            #st.download_button("⬇️ Descargar Contrato", f, file_name=dynamic_filename)
-
-
-        # Send email
-        if send_email:
-            if sender_email and sender_password and recipient_email:
-                import smtplib, ssl
-                from email.message import EmailMessage
-
-                msg = EmailMessage()
-                msg['Subject'] = "Contrato Sabana Gardens"
-                msg['From'] = sender_email
-                msg['To'] = recipient_email
-                msg.set_content("Adjunto encontrarás el contrato generado.")
-
-                # Attach DOCX
-                with open(output_path, "rb") as f:
-                    msg.add_attachment(
-                        f.read(),
-                        maintype="application",
-                        subtype="vnd.openxmlformats-officedocument.wordprocessingml.document",
-                        filename="CONTRATO_SABANA_GARDENS_filled.docx"
-                    )
-
-                # Send email via SSL
-                try:
-                    context = ssl.create_default_context()
-                    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-                        server.login(sender_email, sender_password)
-                        server.send_message(msg)
-                    st.success(f"📧 Contrato enviado a {recipient_email}")
-                except Exception as e:
-                    st.error(f"❌ Error al enviar correo: {e}")
+            try:
+                context_ssl = ssl.create_default_context()
+                with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context_ssl) as server:
+                    server.login(sender_email, sender_password)
+                    server.send_message(msg)
+                st.success(f"📧 Contrato enviado a {recipient_email}")
+            except Exception as e:
+                st.error(f"❌ Error al enviar correo: {e}")
