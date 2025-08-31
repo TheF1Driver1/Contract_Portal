@@ -1,7 +1,0 @@
-streamlit
-streamlit-drawable-canvas
-Pillow
-docxtpl
-numpy
-python-docx
-reportlab
