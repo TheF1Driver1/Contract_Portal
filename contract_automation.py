@@ -5,7 +5,7 @@ from io import BytesIO
 from docxtpl import DocxTemplate, InlineImage
 from docx.shared import Mm
 import os
-import smtplib
+import smtplib, ssl
 from email.message import EmailMessage
 from docx2pdf import convert
 import tempfile
@@ -202,3 +202,35 @@ if st.button("Generar y Enviar Contrato"):
         # Download button
         #with open(output_path, "rb") as f:
             #st.download_button("⬇️ Descargar Contrato", f, file_name=dynamic_filename)
+
+
+        # Send email
+        if send_email:
+            if sender_email and sender_password and recipient_email:
+                import smtplib, ssl
+                from email.message import EmailMessage
+
+                msg = EmailMessage()
+                msg['Subject'] = "Contrato Sabana Gardens"
+                msg['From'] = sender_email
+                msg['To'] = recipient_email
+                msg.set_content("Adjunto encontrarás el contrato generado.")
+
+                # Attach DOCX
+                with open(output_path, "rb") as f:
+                    msg.add_attachment(
+                        f.read(),
+                        maintype="application",
+                        subtype="vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        filename="CONTRATO_SABANA_GARDENS_filled.docx"
+                    )
+
+                # Send email via SSL
+                try:
+                    context = ssl.create_default_context()
+                    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+                        server.login(sender_email, sender_password)
+                        server.send_message(msg)
+                    st.success(f"📧 Contrato enviado a {recipient_email}")
+                except Exception as e:
+                    st.error(f"❌ Error al enviar correo: {e}")
