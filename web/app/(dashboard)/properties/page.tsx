@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, Plus } from "lucide-react";
 import type { Property } from "@/lib/types";
 import AddPropertyModal from "./AddPropertyModal";
+import PropertyMap from "@/components/PropertyMap";
 
 export default async function PropertiesPage() {
   const supabase = createClient();
@@ -21,6 +22,7 @@ export default async function PropertiesPage() {
     .order("name");
 
   const all = (properties ?? []) as Property[];
+  const mapped = all.filter(p => p.latitude && p.longitude) as (Property & { latitude: number; longitude: number })[];
 
   return (
     <div className="space-y-6">
@@ -31,6 +33,10 @@ export default async function PropertiesPage() {
         </div>
         <AddPropertyModal userId={user.id} />
       </div>
+
+      {all.length > 0 && (
+        <PropertyMap properties={mapped} allProperties={all} />
+      )}
 
       {all.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border py-16 text-center">

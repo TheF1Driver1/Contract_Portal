@@ -9,12 +9,12 @@ export async function POST(req: Request) {
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { contractId, email, phone } = await req.json();
+  const { contractId, landlordEmail, phone } = await req.json();
 
   // Verify ownership
   const { data: contract, error } = await supabase
     .from("contracts")
-    .select("*, tenant:tenants(full_name), property:properties(name)")
+    .select("*, tenant:tenants(full_name, email), property:properties(name)")
     .eq("id", contractId)
     .eq("owner_id", user.id)
     .single();
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const results: Record<string, unknown> = {};
 
   // === EMAIL via Resend ===
-  if (email && process.env.RESEND_API_KEY) {
+  if (landlordEmail && process.env.RESEND_API_KEY) {
     try {
       // Generate document
       const docRes = await fetch(`${appUrl}/api/generate`, {
@@ -50,19 +50,39 @@ export async function POST(req: Request) {
             ]
           : [];
 
-      await resend.emails.send({
-        from: process.env.FROM_EMAIL ?? "contracts@yourdomain.com",
-        to: email,
-        subject: `Lease Agreement — ${contract.property?.name}`,
-        html: `
-          <p>Hello ${contract.tenant?.full_name},</p>
-          <p>Please review and sign your lease agreement for <strong>${contract.property?.name}</strong>.</p>
-          <p><a href="${contractUrl}">View Contract</a></p>
-          <p>The contract is also attached to this email.</p>
-        `,
-        attachments,
-      });
+      const subject = `Lease Agreement — ${contract.property?.name}`;
+      const html = `
+        <p>Hello,</p>
+        <p>Please find attached the lease agreement for <strong>${contract.property?.name}</strong>.</p>
+        <p><a href="${contractUrl}">View Contract</a></p>
+      `;
 
+      const sends: Promise<unknown>[] = [];
+      sends.push(resend.emails.send({
+        from: process.env.FROM_EMAIL ?? "contracts@yourdomain.com",
+        to: landlordEmail,
+        subject,
+        html,
+        attachments,
+      }));
+
+      const tenantEmail = (contract.tenant as { full_name: string; email?: string } | null)?.email;
+      if (tenantEmail) {
+        sends.push(resend.emails.send({
+          from: process.env.FROM_EMAIL ?? "contracts@yourdomain.com",
+          to: tenantEmail,
+          subject,
+          html: `
+            <p>Hello ${(contract.tenant as { full_name: string })?.full_name},</p>
+            <p>Please review and sign your lease agreement for <strong>${contract.property?.name}</strong>.</p>
+            <p><a href="${contractUrl}">View Contract</a></p>
+            <p>The contract is also attached to this email.</p>
+          `,
+          attachments,
+        }));
+      }
+
+      await Promise.all(sends);
       results.email = "sent";
     } catch (e) {
       results.email = "failed: " + (e as Error).message;

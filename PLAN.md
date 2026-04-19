@@ -15,13 +15,13 @@ npm install -D @types/leaflet
 ## Feature Status
 | # | Feature | Status | Plan File |
 |---|---------|--------|-----------|
-| 1 | Dark Mode | ⬜ TODO | `PLANS/01-dark-mode.md` |
-| 2 | Mobile Responsive | ⬜ TODO | `PLANS/02-mobile.md` |
-| 3 | Email Enhancement | ⬜ TODO | `PLANS/03-email.md` |
-| 4 | DOCX Fix + PDF | ⬜ TODO | `PLANS/04-docx-pdf.md` |
-| 5 | Cashflow Graph | ⬜ TODO | `PLANS/05-cashflow.md` |
-| 6 | Property Map | ⬜ TODO | `PLANS/06-property-map.md` |
-| 7 | Market Feature | ⬜ TODO | `PLANS/07-market.md` |
+| 1 | Dark Mode | ✅ DONE | `PLANS/01-dark-mode.md` |
+| 2 | Mobile Responsive | ✅ DONE | `PLANS/02-mobile.md` |
+| 3 | Email Enhancement | ✅ DONE | `PLANS/03-email.md` |
+| 4 | DOCX Fix + PDF | ✅ DONE | `PLANS/04-docx-pdf.md` |
+| 5 | Cashflow Graph | ✅ DONE | `PLANS/05-cashflow.md` |
+| 6 | Property Map | ✅ DONE | `PLANS/06-property-map.md` |
+| 7 | Market Feature | ✅ DONE | `PLANS/07-market.md` |
 
 ## Two Supabase Instances
 | Project | ID | Schema |

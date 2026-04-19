@@ -36,6 +36,18 @@ export default function ContractActions({ contract }: { contract: Contract }) {
     }
   }
 
+  async function handleDownloadPDF() {
+    const { pdf } = await import('@react-pdf/renderer')
+    const { default: ContractPDF } = await import('@/components/ContractPDF')
+    const blob = await pdf(<ContractPDF contract={contract} />).toBlob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `contract_${contract.id}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   async function handleDelete() {
     if (!confirm("Delete this contract? This cannot be undone.")) return;
     await supabase.from("contracts").delete().eq("id", contract.id);
@@ -50,7 +62,11 @@ export default function ContractActions({ contract }: { contract: Contract }) {
         ) : (
           <Download className="mr-1.5 h-3.5 w-3.5" />
         )}
-        Download
+        DOCX
+      </Button>
+      <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+        <Download className="mr-1.5 h-3.5 w-3.5" />
+        PDF
       </Button>
       <Button
         variant="destructive"

@@ -11,7 +11,7 @@ export default async function NewContractPage() {
 
   if (!user) redirect("/login");
 
-  const [{ data: properties }, { data: tenants }] = await Promise.all([
+  const [{ data: properties }, { data: tenants }, { data: profile }] = await Promise.all([
     supabase
       .from("properties")
       .select("*")
@@ -22,7 +22,14 @@ export default async function NewContractPage() {
       .select("*")
       .eq("owner_id", user.id)
       .order("full_name"),
+    supabase
+      .from("profiles")
+      .select("email")
+      .eq("id", user.id)
+      .single(),
   ]);
+
+  const landlordEmail = (profile as { email?: string } | null)?.email ?? user.email ?? "";
 
   return (
     <div className="space-y-6">
@@ -48,6 +55,7 @@ export default async function NewContractPage() {
         properties={(properties ?? []) as Property[]}
         tenants={(tenants ?? []) as Tenant[]}
         userId={user.id}
+        landlordEmail={landlordEmail}
       />
     </div>
   );

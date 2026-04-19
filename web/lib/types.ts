@@ -20,6 +20,8 @@ export interface Property {
   zip: string | null;
   unit_count: number;
   created_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface Tenant {
@@ -86,6 +88,23 @@ export interface Contract {
   // Joined fields
   property?: Property;
   tenant?: Tenant;
+}
+
+export interface MarketProperty {
+  id: string;
+  price: number | null;
+  beds: number | null;
+  baths: number | null;
+  street: string | null;
+  city: string | null;
+  state: string | null;
+  zipcode: string | null;
+  latitude: number;
+  longitude: number;
+  img_src: string | null;
+  detail_url: string | null;
+  home_type: string | null;
+  home_status: string | null;
 }
 
 // Form values for contract builder

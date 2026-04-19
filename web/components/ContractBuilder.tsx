@@ -25,6 +25,7 @@ interface ContractBuilderProps {
   properties: Property[];
   tenants: Tenant[];
   userId: string;
+  landlordEmail: string;
 }
 
 const MONTHS = [
@@ -36,6 +37,7 @@ export default function ContractBuilder({
   properties,
   tenants,
   userId,
+  landlordEmail,
 }: ContractBuilderProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -43,6 +45,7 @@ export default function ContractBuilder({
   const [step, setStep] = useState(0);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [landlordEmailInput, setLandlordEmailInput] = useState(landlordEmail);
 
   const {
     register,
@@ -195,7 +198,7 @@ export default function ContractBuilder({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contractId,
-          email: data.send_email ? data.recipient_email : null,
+          landlordEmail: landlordEmailInput,
           phone: data.send_sms ? data.recipient_phone : null,
         }),
       });
@@ -211,12 +214,15 @@ export default function ContractBuilder({
   return (
     <div className="space-y-6">
       {/* Step indicator */}
-      <div className="flex gap-2">
+      <p className="md:hidden text-sm font-medium text-muted-foreground">
+        Step {step + 1} of {STEPS.length}: {STEPS[step]}
+      </p>
+      <div className="hidden md:flex gap-2">
         {STEPS.map((s, i) => (
           <button
             key={s}
             onClick={() => setStep(i)}
-            className={`flex-1 rounded-lg py-2 text-xs font-medium transition-colors ${
+            className={`flex-1 rounded-lg py-2 text-xs font-medium transition-colors min-h-[44px] ${
               i === step
                 ? "bg-primary text-white"
                 : i < step
@@ -517,7 +523,27 @@ export default function ContractBuilder({
                   ) : (
                     <Download className="mr-2 h-4 w-4" />
                   )}
-                  Download DOCX
+                  DOCX
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSubmit(async (data) => {
+                    const contractId = await saveDraft(data);
+                    const contract = { ...data, id: contractId, tenant: tenants.find(t => t.id === data.tenant_id), property: properties.find(p => p.id === data.property_id) };
+                    const { pdf } = await import('@react-pdf/renderer');
+                    const { default: ContractPDF } = await import('@/components/ContractPDF');
+                    const blob = await pdf(<ContractPDF contract={contract} />).toBlob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `contract_${contractId}.pdf`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  })}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
                 </Button>
                 <Button
                   type="button"
@@ -539,23 +565,29 @@ export default function ContractBuilder({
               <CardTitle>Send Contract</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 hover:bg-muted/50">
-                <input type="checkbox" className="mt-0.5 h-4 w-4" {...register("send_email")} />
-                <div>
-                  <p className="font-medium">Email</p>
-                  <p className="text-sm text-muted-foreground">Send PDF + DOCX as email attachment</p>
-                </div>
-              </label>
-              {values.send_email && (
-                <div className="space-y-2">
-                  <Label>Recipient Email</Label>
+              <div className="rounded-lg border p-4 space-y-3">
+                <p className="font-medium">Email</p>
+                <p className="text-sm text-muted-foreground">Sends DOCX attachment to both parties.</p>
+                <div className="space-y-1">
+                  <Label>Your copy</Label>
                   <Input
                     type="email"
-                    placeholder="tenant@example.com"
-                    {...register("recipient_email")}
+                    value={landlordEmailInput}
+                    onChange={(e) => setLandlordEmailInput(e.target.value)}
                   />
                 </div>
-              )}
+                <div className="space-y-1">
+                  <Label>Tenant copy</Label>
+                  {(() => {
+                    const selectedTenant = tenants.find((t) => t.id === values.tenant_id);
+                    return selectedTenant?.email ? (
+                      <p className="text-sm text-muted-foreground">Also sending to: {selectedTenant.email}</p>
+                    ) : (
+                      <p className="text-sm text-destructive">No email on file for this tenant</p>
+                    );
+                  })()}
+                </div>
+              </div>
 
               <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 hover:bg-muted/50">
                 <input type="checkbox" className="mt-0.5 h-4 w-4" {...register("send_sms")} />

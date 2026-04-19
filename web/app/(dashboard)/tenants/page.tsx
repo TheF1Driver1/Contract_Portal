@@ -38,37 +38,56 @@ export default async function TenantsPage() {
           <p className="text-sm text-muted-foreground">Add tenants to assign them to contracts.</p>
         </div>
       ) : (
-        <div className="rounded-xl border bg-white">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b text-left text-xs font-medium text-muted-foreground">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Phone</th>
-                <th className="px-4 py-3">License #</th>
-                <th className="px-4 py-3">Address</th>
-              </tr>
-            </thead>
-            <tbody>
-              {all.map((t) => (
-                <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                        {t.full_name.charAt(0).toUpperCase()}
-                      </div>
-                      <p className="text-sm font-medium">{t.full_name}</p>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{t.email ?? "—"}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{t.phone ?? "—"}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{t.license_number ?? "—"}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{t.current_address ?? "—"}</td>
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block rounded-xl border bg-card">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b text-left text-xs font-medium text-muted-foreground">
+                  <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Phone</th>
+                  <th className="px-4 py-3">License #</th>
+                  <th className="px-4 py-3">Address</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {all.map((t) => (
+                  <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                          {t.full_name.charAt(0).toUpperCase()}
+                        </div>
+                        <p className="text-sm font-medium">{t.full_name}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{t.email ?? "—"}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{t.phone ?? "—"}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{t.license_number ?? "—"}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{t.current_address ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {all.map((t) => (
+              <div key={t.id} className="bg-card rounded-lg p-4 border">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                    {t.full_name.charAt(0).toUpperCase()}
+                  </div>
+                  <p className="font-medium text-sm">{t.full_name}</p>
+                </div>
+                <p className="text-sm text-muted-foreground">{t.email ?? "—"}</p>
+                <p className="text-sm text-muted-foreground">{t.phone ?? "—"}</p>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

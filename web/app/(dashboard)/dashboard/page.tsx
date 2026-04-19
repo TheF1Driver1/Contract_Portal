@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
+import CashflowChart from "@/components/CashflowChart";
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -42,6 +43,24 @@ export default async function DashboardPage() {
   });
 
   const monthlyRevenue = activeContracts.reduce((sum, c) => sum + c.rent_amount, 0);
+
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    return {
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      label: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      income: 0,
+    };
+  });
+  activeContracts.forEach((c) => {
+    const start = c.lease_start.slice(0, 7);
+    const end = c.lease_end.slice(0, 7);
+    months.forEach((m) => {
+      if (m.key >= start && m.key <= end) m.income += c.rent_amount;
+    });
+  });
+  const cashflowData = months.map(({ label, income }) => ({ label, income }));
 
   const stats = [
     {
@@ -196,6 +215,14 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cashflow Chart */}
+      {cashflowData.some((m) => m.income > 0) && (
+        <div className="bg-card rounded-xl border p-4">
+          <h3 className="font-semibold mb-3">Monthly Income (6 months)</h3>
+          <CashflowChart data={cashflowData} />
+        </div>
+      )}
 
       {/* Drafts */}
       {draftContracts.length > 0 && (

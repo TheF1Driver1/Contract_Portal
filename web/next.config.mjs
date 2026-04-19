@@ -2,6 +2,9 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["docxtemplater", "pizzip"],
+    outputFileTracingIncludes: {
+      '/api/generate': ['./templates/**'],
+    },
   },
   images: {
     remotePatterns: [],
