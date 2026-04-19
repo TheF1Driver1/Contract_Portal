@@ -4,8 +4,9 @@
 - Next.js 14.2, React 18, TypeScript
 - Supabase JS v2, project `worpdncyiozjfbguxukb`
 - TailwindCSS + shadcn/ui + lucide-react
+- Zillow data in `rea.zillow_unique` (1454 rows, migrated 2026-04-19)
 
-## Install All Packages First
+## Packages Installed
 ```bash
 cd Contract_Portal/web
 npm install next-themes recharts @react-pdf/renderer leaflet react-leaflet
@@ -21,15 +22,20 @@ npm install -D @types/leaflet
 | 4 | DOCX Fix + PDF | ✅ DONE | `PLANS/04-docx-pdf.md` |
 | 5 | Cashflow Graph | ✅ DONE | `PLANS/05-cashflow.md` |
 | 6 | Property Map | ✅ DONE | `PLANS/06-property-map.md` |
-| 7 | Market Feature | ✅ DONE | `PLANS/07-market.md` |
+| 7 | Market Feature (map) | ✅ DONE | `PLANS/07-market.md` |
+| 8 | Market List View + Detail | ✅ DONE | `PLANS/08-market-list.md` |
+| 9 | Market Analytics Widget | ⬜ TODO | `PLANS/09-market-analytics.md` |
+| 10 | Saved Properties / Watchlist | ⬜ TODO | `PLANS/10-watchlist.md` |
+| 11 | Rent vs Market Comparison | ⬜ TODO | `PLANS/11-rent-vs-market.md` |
+| 12 | Scraper Scheduler (cron) | ⬜ TODO | `PLANS/12-scraper-cron.md` |
 
-## Two Supabase Instances
-| Project | ID | Schema |
-|---------|----|--------|
-| Real-Estate-Search-Automation | `qjqlnpaurdosaiydwvnd` | `REA` |
-| Contract_Portal | `worpdncyiozjfbguxukb` | `public` (+ `rea` after Feature 7) |
+## Supabase
+| Schema | Tables |
+|--------|--------|
+| `public` | contracts, tenants, properties, profiles |
+| `rea` | zillow_unique, zillow_historical |
 
-**Decision:** Feature 7 migrates Python writer to Contract_Portal's Supabase. Single DB.
+Both schemas in same project `worpdncyiozjfbguxukb`. Python scraper writes to `rea`.
 
 ## Instructions for Local LLM
 1. Read one PLANS/ file at a time
