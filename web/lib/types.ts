@@ -107,6 +107,23 @@ export interface MarketProperty {
   home_status: string | null;
 }
 
+export interface WatchlistItem {
+  id: string
+  owner_id: string
+  zillow_id: string
+  price: number | null
+  beds: number | null
+  baths: number | null
+  street: string | null
+  city: string | null
+  state: string | null
+  img_src: string | null
+  detail_url: string | null
+  home_type: string | null
+  home_status: string | null
+  saved_at: string
+}
+
 // Form values for contract builder
 export interface ContractFormValues {
   // Contract meta

@@ -24,10 +24,11 @@ npm install -D @types/leaflet
 | 6 | Property Map | ✅ DONE | `PLANS/06-property-map.md` |
 | 7 | Market Feature (map) | ✅ DONE | `PLANS/07-market.md` |
 | 8 | Market List View + Detail | ✅ DONE | `PLANS/08-market-list.md` |
-| 9 | Market Analytics Widget | ⬜ TODO | `PLANS/09-market-analytics.md` |
-| 10 | Saved Properties / Watchlist | ⬜ TODO | `PLANS/10-watchlist.md` |
-| 11 | Rent vs Market Comparison | ⬜ TODO | `PLANS/11-rent-vs-market.md` |
+| 9 | Market Analytics Widget | ✅ DONE | `PLANS/09-market-analytics.md` |
+| 10 | Saved Properties / Watchlist | ✅ DONE | `PLANS/10-watchlist.md` |
+| 11 | Rent vs Market Comparison | ✅ DONE | `PLANS/11-rent-vs-market.md` |
 | 12 | Scraper Scheduler (cron) | ⬜ TODO | `PLANS/12-scraper-cron.md` |
+| 13 | Apple-style UI Redesign (Stitch) | ✅ DONE | `PLANS/13-ui-redesign.md` |
 
 ## Supabase
 | Schema | Tables |
