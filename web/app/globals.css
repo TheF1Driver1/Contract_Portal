@@ -1,70 +1,324 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* ── Light mode: Stitch Apple palette ── */
+    --background: 240 33% 99%;         /* #f9f9fe */
+    --foreground: 213 17% 20%;         /* #2c333d */
+    --card: 0 0% 100%;                 /* #ffffff */
+    --card-foreground: 213 17% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --popover-foreground: 213 17% 20%;
+    --primary: 211 100% 50%;           /* #007AFF */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 228 25% 93%;          /* #ebeef7 */
+    --secondary-foreground: 213 17% 20%;
+    --muted: 230 20% 96%;              /* #f2f3fa */
+    --muted-foreground: 213 8% 38%;    /* #595f6a */
+    --accent: 228 25% 93%;
+    --accent-foreground: 213 17% 20%;
+    --destructive: 2 42% 43%;          /* #9f403d */
+    --destructive-foreground: 0 0% 100%;
+    --border: 216 26% 87%;
+    --input: 230 20% 96%;
+    --ring: 211 100% 50%;
     --radius: 0.75rem;
+
+    /* ── Semantic surface tokens ── */
+    --surface-base:       #f9f9fe;
+    --surface-container:  #ebeef7;
+    --surface-low:        #f2f3fa;
+    --surface-card:       #ffffff;
+    --surface-hover:      #e4e8f3;
+    --surface-row:        #f2f3fa;
+    --surface-row-hover:  #ebeef7;
+
+    /* ── Semantic text tokens ── */
+    --text-primary:   #2c333d;
+    --text-secondary: #595f6a;
+    --text-muted:     #acb2bf;
+
+    /* ── Sidebar ── */
+    --sidebar-bg:     #f9f9fe;
+    --sidebar-border: rgba(172, 178, 191, 0.15);
+    --nav-active-bg:  rgba(0, 122, 255, 0.10);
+    --nav-hover-bg:   #ebeef7;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --background: 220 22% 10%;         /* #141820 */
+    --foreground: 224 28% 92%;         /* #e4e8f4 */
+    --card: 220 22% 13%;               /* #1a2030 */
+    --card-foreground: 224 28% 92%;
+    --popover: 220 22% 13%;
+    --popover-foreground: 224 28% 92%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 18%;          /* #242a38 */
+    --secondary-foreground: 224 28% 92%;
+    --muted: 220 20% 16%;              /* #1e2535 */
+    --muted-foreground: 213 8% 62%;    /* #8b929e */
+    --accent: 220 20% 18%;
+    --accent-foreground: 224 28% 92%;
+    --destructive: 2 56% 55%;          /* #c45451 */
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 22%;
+    --input: 220 20% 16%;
+    --ring: 211 100% 50%;
+
+    /* ── Semantic surface tokens (dark) ── */
+    --surface-base:       #141820;
+    --surface-container:  #1e2535;
+    --surface-low:        #1a2030;
+    --surface-card:       #1f2638;
+    --surface-hover:      #29344a;
+    --surface-row:        #1e2535;
+    --surface-row-hover:  #293347;
+
+    /* ── Semantic text tokens (dark) ── */
+    --text-primary:   #e4e8f4;
+    --text-secondary: #8b929e;
+    --text-muted:     #5a6270;
+
+    /* ── Sidebar (dark) ── */
+    --sidebar-bg:     #141820;
+    --sidebar-border: rgba(90, 98, 112, 0.20);
+    --nav-active-bg:  rgba(0, 122, 255, 0.15);
+    --nav-hover-bg:   rgba(255, 255, 255, 0.06);
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    background: var(--surface-base);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+  ::selection {
+    background: rgba(0, 122, 255, 0.18);
+    color: var(--text-primary);
+  }
+}
+
+@layer components {
+  /* ── Glass morphism ── */
+  .glass {
+    background: color-mix(in srgb, var(--surface-card) 82%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* ── Surface cards (no borders — tonal layering only) ── */
+  .surface-card {
+    background: var(--surface-card);
+    border-radius: 1rem;
+    box-shadow: 0 12px 40px rgba(44, 51, 61, 0.06);
+    transition: background 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dark .surface-card {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  }
+
+  /* ── Tonal row (hover-capable via CSS, works in server components) ── */
+  .row-tonal {
+    background: var(--surface-row);
+    border-radius: 0.75rem;
+    transition: background 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .row-tonal:hover {
+    background: var(--surface-row-hover);
+  }
+
+  /* ── Icon container tonal ── */
+  .surface-container {
+    background: var(--surface-container);
+    border-radius: 1rem;
+  }
+
+  .surface-low {
+    background: var(--surface-low);
+    border-radius: 0.75rem;
+  }
+
+  /* ── Blue gradient CTA ── */
+  .btn-primary-gradient {
+    background: linear-gradient(135deg, #005bc2 0%, #007aff 100%);
+    color: white;
+    border-radius: 0.75rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.30);
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-primary-gradient:hover {
+    box-shadow: 0 6px 24px rgba(0, 122, 255, 0.40);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary-gradient:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  }
+
+  .btn-primary-gradient:disabled {
+    opacity: 0.60;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ── Status pills ── */
+  .pill-active {
+    background: rgba(0, 122, 255, 0.12);
+    color: #007aff;
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .dark .pill-active {
+    background: rgba(0, 122, 255, 0.20);
+    color: #4da3ff;
+  }
+
+  .pill-expired {
+    background: rgba(159, 64, 61, 0.10);
+    color: #9f403d;
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .dark .pill-expired {
+    background: rgba(196, 84, 81, 0.20);
+    color: #f08080;
+  }
+
+  .pill-draft {
+    background: rgba(89, 95, 106, 0.10);
+    color: #595f6a;
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .dark .pill-draft {
+    background: rgba(255, 255, 255, 0.08);
+    color: #8b929e;
+  }
+
+  .pill-sent {
+    background: rgba(0, 122, 255, 0.08);
+    color: #007aff;
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .dark .pill-sent {
+    background: rgba(0, 122, 255, 0.15);
+    color: #4da3ff;
+  }
+
+  /* ── Input tonal (no border style) ── */
+  .input-tonal {
+    background: var(--surface-low);
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    width: 100%;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: inherit;
+  }
+
+  .input-tonal:focus {
+    background: var(--surface-card);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.25);
+  }
+
+  .input-tonal::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* ── Animated gradient (login) ── */
+  .animated-gradient {
+    background: linear-gradient(-45deg, #005bc2, #007aff, #0050ab, #003d8f);
+    background-size: 400% 400%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  /* ── Text color helpers using CSS vars (dark-mode-safe) ── */
+  .text-primary { color: var(--text-primary); }
+  .text-secondary { color: var(--text-secondary); }
+  .text-muted { color: var(--text-muted); }
+
+  /* ── Sidebar nav ── */
+  .sidebar-bg { background: var(--sidebar-bg); }
+  .nav-active { background: var(--nav-active-bg); }
+  .nav-hover { transition: background 300ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .nav-hover:hover { background: var(--nav-hover-bg); }
+
+  /* ── Skeleton shimmer ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-container) 25%, var(--surface-low) 50%, var(--surface-container) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2.5s linear infinite;
+    border-radius: 0.75rem;
   }
 }
 
 /* Signature pad */
 .signature-canvas {
-  border: 1.5px solid hsl(var(--border));
-  border-radius: var(--radius);
+  background: var(--surface-low);
+  border-radius: 12px;
   cursor: crosshair;
   touch-action: none;
 }
+
+/* Stagger utilities */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.30s; }
