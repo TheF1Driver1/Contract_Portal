@@ -1,0 +1,29 @@
+# AI / IDE tool directories
+.agent/
+.github/
+.claude/
+.codebuddy/
+.codex/
+.continue/
+.cursor/
+.gemini/
+.kiro/
+.opencode/
+.qoder/
+.roo/
+.trae/
+.windsurf/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Node
+node_modules/
+.next/
+*.log
+
+# Env files (never commit)
+.env
+.env.local
+.env*.local
