@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Plus, Loader2, X } from "lucide-react";
@@ -45,14 +46,14 @@ export default function AddTenantModal({ userId }: { userId: string }) {
         Add Tenant
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
-          style={{ background: "rgba(0,0,0,0.40)" }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in"
+          style={{ background: "rgba(0,0,0,0.50)", backdropFilter: "blur(6px)" }}
           onClick={() => setOpen(false)}
         >
           <div
-            className="surface-card w-full max-w-md p-6 animate-scale-in"
+            className="surface-card w-full max-w-md p-6"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -164,7 +165,8 @@ export default function AddTenantModal({ userId }: { userId: string }) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
