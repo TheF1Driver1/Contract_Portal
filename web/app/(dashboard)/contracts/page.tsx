@@ -1,11 +1,18 @@
 import { createClient } from "@/lib/supabase-server";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Plus, FileText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+const STATUS_PILL: Record<string, string> = {
+  signed:  "pill-active",
+  draft:   "pill-draft",
+  sent:    "pill-sent",
+  expired: "pill-expired",
+};
+
+const STATUS_FILTERS = ["all", "draft", "sent", "signed", "expired"];
 
 export default async function ContractsPage({
   searchParams,
@@ -38,43 +45,64 @@ export default async function ContractsPage({
       )
     : all;
 
-  const STATUS_FILTERS = ["all", "draft", "sent", "signed", "expired"];
+  const activeStatus = searchParams.status ?? "all";
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Contracts</h1>
-          <p className="text-sm text-muted-foreground">{all.length} total</p>
+    <div className="space-y-8 animate-fade-in">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between">
+        <div className="animate-slide-up">
+          <p
+            className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Leases
+          </p>
+          <h1
+            className="text-4xl font-bold"
+            style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}
+          >
+            Contracts
+          </h1>
         </div>
-        <Button asChild>
-          <Link href="/contracts/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Contract
-          </Link>
-        </Button>
+        <Link
+          href="/contracts/new"
+          className="btn-primary-gradient flex items-center gap-2 animate-slide-up"
+          style={{ animationDelay: "0.05s", animationFillMode: "both" }}
+        >
+          <Plus className="h-4 w-4" />
+          New Contract
+        </Link>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
+      {/* ── Filters ── */}
+      <div
+        className="flex flex-wrap gap-3 animate-slide-up"
+        style={{ animationDelay: "0.08s", animationFillMode: "both" }}
+      >
         <form className="flex-1 min-w-[200px]">
-          <Input
+          <input
             name="q"
-            placeholder="Search by tenant or property..."
+            className="input-tonal"
+            placeholder="Search tenant or property…"
             defaultValue={searchParams.q ?? ""}
           />
         </form>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 flex-wrap">
           {STATUS_FILTERS.map((s) => (
             <Link
               key={s}
               href={s === "all" ? "/contracts" : `/contracts?status=${s}`}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                (searchParams.status ?? "all") === s
-                  ? "bg-primary text-white"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-all duration-200",
+                activeStatus === s
+                  ? s === "signed"  ? "pill-active"
+                  : s === "sent"    ? "pill-sent"
+                  : s === "expired" ? "pill-expired"
+                  : s === "draft"   ? "pill-draft"
+                  : "pill-active"
+                  : "btn-tonal"
+              )}
             >
               {s}
             </Link>
@@ -82,75 +110,70 @@ export default async function ContractsPage({
         </div>
       </div>
 
-      {/* Table */}
+      {/* ── List ── */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border py-16 text-center">
-          <FileText className="h-10 w-10 text-muted-foreground/40" />
-          <p className="font-medium">No contracts found</p>
-          <p className="text-sm text-muted-foreground">Create your first contract to get started.</p>
-          <Button asChild size="sm">
-            <Link href="/contracts/new">New Contract</Link>
-          </Button>
+        <div
+          className="surface-card p-12 flex flex-col items-center gap-4 text-center animate-slide-up"
+          style={{ animationDelay: "0.12s", animationFillMode: "both" }}
+        >
+          <div
+            className="flex h-14 w-14 items-center justify-center rounded-2xl"
+            style={{ background: "var(--surface-container)" }}
+          >
+            <FileText className="h-6 w-6" style={{ color: "var(--text-muted)" }} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+              No contracts found
+            </p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+              {searchParams.q || searchParams.status
+                ? "Try a different filter or search term"
+                : "Create your first lease contract to get started"}
+            </p>
+          </div>
+          <Link href="/contracts/new" className="btn-primary-gradient flex items-center gap-1.5">
+            <Plus className="h-3.5 w-3.5" />
+            New Contract
+          </Link>
         </div>
       ) : (
-        <>
-          {/* Desktop table */}
-          <div className="hidden md:block rounded-xl border bg-card">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b text-left text-xs font-medium text-muted-foreground">
-                  <th className="px-4 py-3">Tenant</th>
-                  <th className="px-4 py-3">Property</th>
-                  <th className="px-4 py-3">Rent</th>
-                  <th className="px-4 py-3">Start</th>
-                  <th className="px-4 py-3">End</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((c) => (
-                  <tr key={c.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <p className="text-sm font-medium">{c.tenant?.full_name ?? "—"}</p>
-                      <p className="text-xs text-muted-foreground">{c.tenant?.email}</p>
-                    </td>
-                    <td className="px-4 py-3 text-sm">{c.property?.name ?? "—"}</td>
-                    <td className="px-4 py-3 text-sm">{formatCurrency(c.rent_amount)}</td>
-                    <td className="px-4 py-3 text-sm">{formatDate(c.lease_start)}</td>
-                    <td className="px-4 py-3 text-sm">{formatDate(c.lease_end)}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={c.status as "draft" | "sent" | "signed" | "expired"}>
-                        {c.status}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/contracts/${c.id}`}>View</Link>
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div
+          className="surface-card p-2 animate-slide-up"
+          style={{ animationDelay: "0.12s", animationFillMode: "both" }}
+        >
+          {filtered.map((c, i) => (
+            <Link
+              key={c.id}
+              href={`/contracts/${c.id}`}
+              className="row-tonal flex items-center justify-between p-4 mx-1 my-1"
+              style={{ animationDelay: `${i * 0.03}s`, animationFillMode: "both" }}
+            >
+              {/* Left: tenant + property */}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+                  {c.tenant?.full_name ?? "Unknown Tenant"}
+                </p>
+                <p className="text-xs mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>
+                  {c.property?.name ?? "—"} · {formatCurrency(c.rent_amount)}/mo
+                </p>
+              </div>
 
-          {/* Mobile cards */}
-          <div className="md:hidden space-y-3">
-            {filtered.map((c) => (
-              <Link key={c.id} href={`/contracts/${c.id}`} className="block bg-card rounded-lg p-4 border">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium text-sm">{c.tenant?.full_name ?? "—"}</span>
-                  <Badge variant={c.status as "draft" | "sent" | "signed" | "expired"}>
-                    {c.status}
-                  </Badge>
+              {/* Right: dates + status */}
+              <div className="ml-4 flex items-center gap-4 shrink-0">
+                <div className="hidden sm:block text-right">
+                  <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                    {formatDate(c.lease_start)}
+                  </p>
+                  <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                    → {formatDate(c.lease_end)}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground">{c.property?.name ?? "—"}</p>
-                <p className="text-sm mt-1">{formatCurrency(c.rent_amount)}/mo · {formatDate(c.lease_start)} – {formatDate(c.lease_end)}</p>
-              </Link>
-            ))}
-          </div>
-        </>
+                <span className={STATUS_PILL[c.status] ?? "pill-draft"}>{c.status}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
       )}
     </div>
   );

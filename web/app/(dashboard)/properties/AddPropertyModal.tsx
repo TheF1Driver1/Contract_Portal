@@ -3,9 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Plus, Loader2, X } from "lucide-react";
 
 export default function AddPropertyModal({ userId }: { userId: string }) {
@@ -39,33 +36,54 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" />
+      <button onClick={() => setOpen(true)} className="btn-primary-gradient flex items-center gap-2">
+        <Plus className="h-4 w-4" />
         Add Property
-      </Button>
+      </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+          style={{ background: "rgba(0,0,0,0.40)" }}
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="surface-card w-full max-w-md p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Add Property</h2>
-              <button onClick={() => setOpen(false)} className="rounded-lg p-1 hover:bg-muted">
-                <X className="h-4 w-4" />
+              <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                Add Property
+              </h2>
+              <button
+                onClick={() => setOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-xl transition-colors"
+                style={{ background: "var(--surface-container)" }}
+              >
+                <X className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
               </button>
             </div>
+
             <form onSubmit={submit} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Property Name</Label>
-                <Input
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                  Property Name
+                </label>
+                <input
+                  className="input-tonal"
                   placeholder="e.g. Sabana Gardens Apt 2"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Street Address</Label>
-                <Input
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                  Street Address
+                </label>
+                <input
+                  className="input-tonal"
                   placeholder="123 Main St"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
@@ -73,18 +91,24 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>City</Label>
-                  <Input
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    City
+                  </label>
+                  <input
+                    className="input-tonal"
                     placeholder="San Juan"
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>State</Label>
-                  <Input
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    State
+                  </label>
+                  <input
+                    className="input-tonal"
                     placeholder="PR"
                     value={form.state}
                     onChange={(e) => setForm({ ...form, state: e.target.value })}
@@ -92,17 +116,23 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>ZIP</Label>
-                  <Input
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    ZIP
+                  </label>
+                  <input
+                    className="input-tonal"
                     placeholder="00901"
                     value={form.zip}
                     onChange={(e) => setForm({ ...form, zip: e.target.value })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Number of Units</Label>
-                  <Input
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    Units
+                  </label>
+                  <input
+                    className="input-tonal"
                     type="number"
                     min={1}
                     value={form.unit_count}
@@ -110,14 +140,23 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
                   />
                 </div>
               </div>
+
               <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={() => setOpen(false)}>
+                <button
+                  type="button"
+                  className="btn-tonal flex-1 justify-center"
+                  onClick={() => setOpen(false)}
+                >
                   Cancel
-                </Button>
-                <Button type="submit" className="flex-1" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary-gradient flex-1 justify-center"
+                  disabled={loading}
+                >
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   Save
-                </Button>
+                </button>
               </div>
             </form>
           </div>

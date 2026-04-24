@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Building2, Plus } from "lucide-react";
+import { Building2 } from "lucide-react";
 import type { Property } from "@/lib/types";
 import AddPropertyModal from "./AddPropertyModal";
 import PropertyMap from "@/components/PropertyMap";
@@ -22,50 +20,97 @@ export default async function PropertiesPage() {
     .order("name");
 
   const all = (properties ?? []) as Property[];
-  const mapped = all.filter(p => p.latitude && p.longitude) as (Property & { latitude: number; longitude: number })[];
+  const mapped = all.filter(
+    (p) => p.latitude && p.longitude
+  ) as (Property & { latitude: number; longitude: number })[];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-fade-in">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between animate-slide-up">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Properties</h1>
-          <p className="text-sm text-muted-foreground">{all.length} properties</p>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Portfolio
+          </p>
+          <h1
+            className="text-4xl font-bold"
+            style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}
+          >
+            Properties
+          </h1>
         </div>
         <AddPropertyModal userId={user.id} />
       </div>
 
-      {all.length > 0 && (
-        <PropertyMap properties={mapped} allProperties={all} />
+      {/* ── Map ── */}
+      {mapped.length > 0 && (
+        <div
+          className="animate-slide-up"
+          style={{ animationDelay: "0.06s", animationFillMode: "both" }}
+        >
+          <PropertyMap properties={mapped} allProperties={all} />
+        </div>
       )}
 
+      {/* ── Empty state ── */}
       {all.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border py-16 text-center">
-          <Building2 className="h-10 w-10 text-muted-foreground/40" />
-          <p className="font-medium">No properties yet</p>
-          <p className="text-sm text-muted-foreground">Add a property to start creating contracts.</p>
+        <div
+          className="surface-card p-12 flex flex-col items-center gap-4 text-center animate-slide-up"
+          style={{ animationDelay: "0.08s", animationFillMode: "both" }}
+        >
+          <div
+            className="flex h-14 w-14 items-center justify-center rounded-2xl"
+            style={{ background: "var(--surface-container)" }}
+          >
+            <Building2 className="h-6 w-6" style={{ color: "var(--text-muted)" }} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+              No properties yet
+            </p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+              Add a property to start creating contracts
+            </p>
+          </div>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {all.map((p) => (
-            <Card key={p.id}>
-              <CardContent className="p-5">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <Building2 className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold">{p.name}</p>
-                    <p className="truncate text-sm text-muted-foreground">{p.address}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {p.city}, {p.state}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {p.unit_count} unit{p.unit_count !== 1 ? "s" : ""}
-                    </p>
-                  </div>
+        /* ── Property grid ── */
+        <div
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-slide-up"
+          style={{ animationDelay: "0.08s", animationFillMode: "both" }}
+        >
+          {all.map((p, i) => (
+            <div
+              key={p.id}
+              className="surface-card p-5"
+              style={{ animationDelay: `${i * 0.04}s`, animationFillMode: "both" }}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                  style={{ background: "rgba(0,122,255,0.10)" }}
+                >
+                  <Building2 className="h-5 w-5" style={{ color: "#007aff" }} strokeWidth={2} />
                 </div>
-              </CardContent>
-            </Card>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+                    {p.name}
+                  </p>
+                  <p className="truncate text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                    {p.address}
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    {p.city}, {p.state}
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                    {p.unit_count} unit{p.unit_count !== 1 ? "s" : ""}
+                  </p>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}

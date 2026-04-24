@@ -75,32 +75,42 @@ export default async function DashboardPage() {
       value: formatCurrency(monthlyRevenue),
       sub: `${activeContracts.length} active lease${activeContracts.length !== 1 ? "s" : ""}`,
       icon: TrendingUp,
-      accent: true,
-      warn: false,
+      iconBg: "linear-gradient(135deg, #0057d9 0%, #007aff 100%)",
+      iconColor: "#fff",
+      iconGlow: "0 4px 14px rgba(0,122,255,0.45)",
+      valueColor: "#007aff",
     },
     {
       label: "Properties",
       value: propertyCount,
       sub: "in portfolio",
       icon: Building2,
-      accent: false,
-      warn: false,
+      iconBg: "linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)",
+      iconColor: "#fff",
+      iconGlow: "0 4px 14px rgba(20,184,166,0.40)",
+      valueColor: "var(--text-primary)",
     },
     {
       label: "Tenants",
       value: tenantCount,
       sub: "registered",
       icon: Users,
-      accent: false,
-      warn: false,
+      iconBg: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)",
+      iconColor: "#fff",
+      iconGlow: "0 4px 14px rgba(139,92,246,0.40)",
+      valueColor: "var(--text-primary)",
     },
     {
       label: "Expiring Soon",
       value: expiringContracts.length,
       sub: "within 60 days",
       icon: AlertTriangle,
-      accent: false,
-      warn: expiringContracts.length > 0,
+      iconBg: expiringContracts.length > 0
+        ? "linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)"
+        : "linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)",
+      iconColor: "#fff",
+      iconGlow: expiringContracts.length > 0 ? "0 4px 14px rgba(239,68,68,0.40)" : "none",
+      valueColor: expiringContracts.length > 0 ? "#ef4444" : "var(--text-primary)",
     },
   ];
 
@@ -134,39 +144,27 @@ export default async function DashboardPage() {
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map(({ label, value, sub, icon: Icon, accent, warn }, i) => (
+        {stats.map(({ label, value, sub, icon: Icon, iconBg, iconColor, iconGlow, valueColor }, i) => (
           <div
             key={label}
-            className="surface-card p-6 animate-slide-up"
+            className="surface-card animate-slide-up"
             style={{ animationDelay: `${i * 0.06}s`, animationFillMode: "both" }}
           >
             <div className="flex items-start justify-between mb-4">
               <div
-                className="flex h-9 w-9 items-center justify-center rounded-xl"
-                style={{
-                  background: accent
-                    ? "linear-gradient(135deg, #005bc2, #007aff)"
-                    : warn
-                    ? "rgba(159, 64, 61, 0.12)"
-                    : "var(--surface-container)",
-                }}
+                className="flex h-10 w-10 items-center justify-center rounded-xl"
+                style={{ background: iconBg, boxShadow: iconGlow }}
               >
-                <Icon
-                  className="h-4 w-4"
-                  style={{
-                    color: accent ? "white" : warn ? "#c45451" : "var(--text-secondary)",
-                  }}
-                  strokeWidth={2}
-                />
+                <Icon className="h-4.5 w-4.5" style={{ color: iconColor }} strokeWidth={2.5} />
               </div>
             </div>
             <p
               className="text-3xl font-bold"
-              style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}
+              style={{ color: valueColor, letterSpacing: "-0.03em" }}
             >
               {value}
             </p>
-            <p className="text-xs mt-1 font-medium" style={{ color: "var(--text-secondary)" }}>
+            <p className="text-xs mt-1 font-semibold" style={{ color: "var(--text-secondary)" }}>
               {label}
             </p>
             <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>

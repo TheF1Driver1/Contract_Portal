@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { Users } from "lucide-react";
 import type { Tenant } from "@/lib/types";
 import AddTenantModal from "./AddTenantModal";
@@ -22,72 +21,103 @@ export default async function TenantsPage() {
   const all = (tenants ?? []) as Tenant[];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-fade-in">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between animate-slide-up">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tenants</h1>
-          <p className="text-sm text-muted-foreground">{all.length} tenants</p>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Directory
+          </p>
+          <h1
+            className="text-4xl font-bold"
+            style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}
+          >
+            Tenants
+          </h1>
         </div>
         <AddTenantModal userId={user.id} />
       </div>
 
+      {/* ── Empty state ── */}
       {all.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border py-16 text-center">
-          <Users className="h-10 w-10 text-muted-foreground/40" />
-          <p className="font-medium">No tenants yet</p>
-          <p className="text-sm text-muted-foreground">Add tenants to assign them to contracts.</p>
+        <div
+          className="surface-card p-12 flex flex-col items-center gap-4 text-center animate-slide-up"
+          style={{ animationDelay: "0.06s", animationFillMode: "both" }}
+        >
+          <div
+            className="flex h-14 w-14 items-center justify-center rounded-2xl"
+            style={{ background: "var(--surface-container)" }}
+          >
+            <Users className="h-6 w-6" style={{ color: "var(--text-muted)" }} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+              No tenants yet
+            </p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+              Add tenants to assign them to contracts
+            </p>
+          </div>
         </div>
       ) : (
-        <>
-          {/* Desktop table */}
-          <div className="hidden md:block rounded-xl border bg-card">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b text-left text-xs font-medium text-muted-foreground">
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Phone</th>
-                  <th className="px-4 py-3">License #</th>
-                  <th className="px-4 py-3">Address</th>
-                </tr>
-              </thead>
-              <tbody>
-                {all.map((t) => (
-                  <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                          {t.full_name.charAt(0).toUpperCase()}
-                        </div>
-                        <p className="text-sm font-medium">{t.full_name}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{t.email ?? "—"}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{t.phone ?? "—"}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{t.license_number ?? "—"}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{t.current_address ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile cards */}
-          <div className="md:hidden space-y-3">
-            {all.map((t) => (
-              <div key={t.id} className="bg-card rounded-lg p-4 border">
-                <div className="flex items-center gap-2.5 mb-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                    {t.full_name.charAt(0).toUpperCase()}
-                  </div>
-                  <p className="font-medium text-sm">{t.full_name}</p>
-                </div>
-                <p className="text-sm text-muted-foreground">{t.email ?? "—"}</p>
-                <p className="text-sm text-muted-foreground">{t.phone ?? "—"}</p>
+        /* ── Tenant list ── */
+        <div
+          className="surface-card p-2 animate-slide-up"
+          style={{ animationDelay: "0.06s", animationFillMode: "both" }}
+        >
+          {all.map((t, i) => (
+            <div
+              key={t.id}
+              className="row-tonal flex items-center gap-4 p-4 mx-1 my-1"
+              style={{ animationDelay: `${i * 0.03}s`, animationFillMode: "both" }}
+            >
+              {/* Avatar */}
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+                style={{ background: "linear-gradient(135deg, #005bc2, #007aff)" }}
+              >
+                {t.full_name.charAt(0).toUpperCase()}
               </div>
-            ))}
-          </div>
-        </>
+
+              {/* Info */}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {t.full_name}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                  {[t.email, t.phone].filter(Boolean).join(" · ") || "No contact info"}
+                </p>
+              </div>
+
+              {/* Meta — desktop only */}
+              <div className="hidden md:flex items-center gap-6 shrink-0">
+                {t.license_number && (
+                  <div className="text-right">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                      License
+                    </p>
+                    <p className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                      {t.license_number}
+                    </p>
+                  </div>
+                )}
+                {t.current_address && (
+                  <div className="text-right max-w-[200px]">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                      Address
+                    </p>
+                    <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
+                      {t.current_address}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
