@@ -23,6 +23,37 @@ interface ContractBuilderProps {
   landlordEmail: string;
 }
 
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+      <label
+        className="text-xs font-medium block mb-1.5"
+        style={{ color: "var(--text-secondary)" }}
+      >
+        {children}
+      </label>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+      <div className="rounded-2xl p-4 space-y-4" style={{ background: "var(--surface-low)" }}>
+        <p
+          className="text-[10px] font-semibold uppercase tracking-widest"
+          style={{ color: "var(--text-muted)" }}
+        >
+          {title}
+        </p>
+        {children}
+      </div>
+  );
+}
+
 const STEPS = [
   { id: 0, label: "Details" },
   { id: 1, label: "Property" },
@@ -208,38 +239,6 @@ export default function ContractBuilder({
     }
   }
 
-  // ── Shared input label ──────────────────────────────────────────────
-  function FieldLabel({ children }: { children: React.ReactNode }) {
-    return (
-      <label
-        className="text-xs font-medium block mb-1.5"
-        style={{ color: "var(--text-secondary)" }}
-      >
-        {children}
-      </label>
-    );
-  }
-
-  // ── Section wrapper ─────────────────────────────────────────────────
-  function Section({
-    title,
-    children,
-  }: {
-    title: string;
-    children: React.ReactNode;
-  }) {
-    return (
-      <div className="rounded-2xl p-4 space-y-4" style={{ background: "var(--surface-low)" }}>
-        <p
-          className="text-[10px] font-semibold uppercase tracking-widest"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {title}
-        </p>
-        {children}
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6 animate-fade-in">
