@@ -29,6 +29,8 @@ npm install -D @types/leaflet
 | 11 | Rent vs Market Comparison | ✅ DONE | `PLANS/11-rent-vs-market.md` |
 | 12 | Scraper Scheduler (cron) | ✅ DONE | `PLANS/12-scraper-cron.md` |
 | 13 | Apple-style UI Redesign (Stitch) | ✅ DONE | `PLANS/13-ui-redesign.md` |
+| 14 | CRIM Tax Integration (PR municipalities) | ✅ DONE | `PLANS/14-crim-taxes.md` |
+| 15 | Seller Desperation Score | 🔲 TODO | `PLANS/15-desperation-score.md` |
 
 ## Supabase
 | Schema | Tables |

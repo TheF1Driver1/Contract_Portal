@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, TrendingUp, TrendingDown, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { calcMetrics, STATE_TAX_RATES } from "@/lib/investment";
+import { calcMetrics, STATE_TAX_RATES, crimEffectiveAnnualPct } from "@/lib/investment";
 import type { InvestmentAnalysis, InvestmentMetrics, WatchlistItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +40,10 @@ function defaultForm(item: WatchlistItem, existing: InvestmentAnalysis | null): 
       vacancy_rate_pct:     existing.vacancy_rate_pct,
     };
   }
-  const stateTax = item.state ? (STATE_TAX_RATES[item.state.toUpperCase()] ?? 1.1) : 1.1;
+  // PR uses CRIM rates (fetched async in component); fall back to 1.1 placeholder until loaded
+  const stateTax = item.state && item.state.toUpperCase() !== "PR"
+    ? (STATE_TAX_RATES[item.state.toUpperCase()] ?? 1.1)
+    : 1.1;
   return {
     purchase_price:       item.price ?? 0,
     down_payment_pct:     20,
@@ -158,6 +161,19 @@ export default function InvestmentAnalyzer({ item, existing }: Props) {
   const [form, setForm] = useState<FormState>(() => defaultForm(item, existing));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [crimInfo, setCrimInfo] = useState<{ municipality: string; inmueble_rate: number } | null>(null);
+
+  useEffect(() => {
+    if (item.state?.toUpperCase() !== "PR" || !item.city || existing) return;
+    fetch(`/api/crim-rate?city=${encodeURIComponent(item.city)}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data) return;
+        setCrimInfo({ municipality: data.municipality, inmueble_rate: data.inmueble_rate });
+        setForm((f) => ({ ...f, annual_tax_pct: crimEffectiveAnnualPct(data.inmueble_rate) }));
+      })
+      .catch(() => null);
+  }, [item.city, item.state, existing]);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setSaved(false);
@@ -269,7 +285,13 @@ export default function InvestmentAnalyzer({ item, existing }: Props) {
             <SectionLabel>Operating Expenses (Annual %)</SectionLabel>
             <div className="grid grid-cols-2 gap-3">
               <NumberField
-                label={`Property Tax${item.state ? ` (${item.state.toUpperCase()} avg: ${STATE_TAX_RATES[item.state.toUpperCase()]?.toFixed(2) ?? "—"}%)` : ""}`}
+                label={
+                  crimInfo
+                    ? `Property Tax (CRIM — ${crimInfo.municipality} ${crimInfo.inmueble_rate.toFixed(2)}%)`
+                    : item.state
+                      ? `Property Tax (${item.state.toUpperCase()} avg: ${STATE_TAX_RATES[item.state.toUpperCase()]?.toFixed(2) ?? "—"}%)`
+                      : "Property Tax"
+                }
                 value={form.annual_tax_pct}
                 onChange={(v) => set("annual_tax_pct", v)}
                 suffix="%"

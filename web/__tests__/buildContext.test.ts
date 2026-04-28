@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { check, MONTHS_ES, buildContext } from "@/app/api/generate/route";
 import type { Contract } from "@/lib/types";
 

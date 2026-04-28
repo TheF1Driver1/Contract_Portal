@@ -37,7 +37,7 @@ export default function MarketStatsWidget() {
               tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
             />
             <Tooltip
-              formatter={(v: number) => formatCurrency(v)}
+              formatter={(v) => formatCurrency(Number(v))}
               contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
             />
             <Bar dataKey="avg_price" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />

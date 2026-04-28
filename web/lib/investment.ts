@@ -10,8 +10,16 @@ export const STATE_TAX_RATES: Record<string, number> = {
   NM: 0.78, NY: 1.72, NC: 0.82, ND: 0.98, OH: 1.53, OK: 0.87,
   OR: 0.97, PA: 1.58, RI: 1.53, SC: 0.57, SD: 1.08, TN: 0.71,
   TX: 1.80, UT: 0.57, VT: 1.90, VA: 0.82, WA: 0.98, WV: 0.58,
-  WI: 1.73, WY: 0.61, PR: 0.30,
+  WI: 1.73, WY: 0.61,
 };
+
+export const CRIM_ASSESSMENT_RATIO = 0.45;
+
+// Convert CRIM inmueble_rate (%) to effective annual % of purchase price.
+// CRIM taxes assessed value (≈45% of list price), not full price.
+export function crimEffectiveAnnualPct(inmuebleRatePct: number): number {
+  return inmuebleRatePct * CRIM_ASSESSMENT_RATIO;
+}
 
 export function calcMortgage(
   principal: number,

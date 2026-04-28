@@ -37,7 +37,7 @@ export default function RentVsMarketChart() {
               tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
             />
             <Tooltip
-              formatter={(v: number) => formatCurrency(v)}
+              formatter={(v) => formatCurrency(Number(v))}
               contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
             />
             <Legend />
