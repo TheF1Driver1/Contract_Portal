@@ -1,8 +1,15 @@
 import { createClient } from "@/lib/supabase-server"
 import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
-import { ArrowLeft, Bed, Bath, Clock, ExternalLink } from "lucide-react"
+import { ArrowLeft, Bed, Bath, Clock, ExternalLink, TrendingDown } from "lucide-react"
 import WatchlistButton from "@/components/WatchlistButton"
+
+function motivationColor(score: number) {
+  if (score >= 61) return "var(--color-red-500, #ef4444)"
+  if (score >= 41) return "var(--color-orange-500, #f97316)"
+  if (score >= 21) return "var(--color-yellow-500, #eab308)"
+  return "var(--text-muted)"
+}
 
 export default async function MarketPropertyPage({ params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -21,6 +28,8 @@ export default async function MarketPropertyPage({ params }: { params: { id: str
     ? await supabase.from("watchlist").select("id").eq("owner_id", user.id).eq("zillow_id", params.id).single()
     : { data: null }
 
+  const hasSellerSignals = data.desperation_score != null && data.desperation_score > 0
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Back link */}
@@ -33,10 +42,10 @@ export default async function MarketPropertyPage({ params }: { params: { id: str
       </Link>
 
       {/* Hero image */}
-      {data.img_src && (
+      {data.imgSrc && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={data.img_src}
+          src={data.imgSrc}
           alt={data.street ?? "Property"}
           className="h-64 w-full rounded-2xl object-cover"
         />
@@ -47,7 +56,7 @@ export default async function MarketPropertyPage({ params }: { params: { id: str
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-              {data.home_type ?? "Property"}
+              {data.homeType ?? "Property"}
             </p>
             <h1
               className="text-2xl font-bold mt-1"
@@ -70,19 +79,67 @@ export default async function MarketPropertyPage({ params }: { params: { id: str
       <div className="grid grid-cols-3 gap-3">
         <StatCard icon={<Bed className="h-4 w-4" />} value={data.beds ?? "—"} label="Bedrooms" />
         <StatCard icon={<Bath className="h-4 w-4" />} value={data.baths ?? "—"} label="Bathrooms" />
-        <StatCard icon={<Clock className="h-4 w-4" />} value={data.days_on_zillow ?? "—"} label="Days listed" />
+        <StatCard icon={<Clock className="h-4 w-4" />} value={data.daysOnZillow ?? "—"} label="Days listed" />
       </div>
+
+      {/* Seller Signals */}
+      {hasSellerSignals && (
+        <div className="surface-card space-y-4">
+          <div className="flex items-center gap-2">
+            <TrendingDown className="h-4 w-4" style={{ color: motivationColor(data.desperation_score) }} />
+            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Seller Motivation</p>
+          </div>
+
+          {/* Score gauge */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
+              <span>Motivation score</span>
+              <span className="font-bold" style={{ color: motivationColor(data.desperation_score) }}>
+                {data.desperation_score} / 100
+              </span>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--surface-container)" }}>
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${Math.min(data.desperation_score, 100)}%`,
+                  background: motivationColor(data.desperation_score),
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            {data.original_price && data.original_price !== data.price && (
+              <InfoRow label="Original price" value={formatCurrency(data.original_price)} />
+            )}
+            {data.price_cut_pct != null && data.price_cut_pct > 0 && (
+              <InfoRow label="Total reduction" value={`↓ ${data.price_cut_pct}%`} />
+            )}
+            {data.num_price_cuts != null && data.num_price_cuts > 0 && (
+              <InfoRow label="Price cuts" value={String(data.num_price_cuts)} />
+            )}
+            {data.last_cut_date && (
+              <InfoRow label="Last cut" value={new Date(data.last_cut_date).toLocaleDateString()} />
+            )}
+          </div>
+
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+            Score reflects price reduction velocity, recency, and frequency. Higher = more motivated seller.
+          </p>
+        </div>
+      )}
 
       {/* Meta */}
       <div className="surface-card space-y-2">
-        <InfoRow label="Status" value={data.home_status} />
-        <InfoRow label="Type"   value={data.home_type} />
+        <InfoRow label="Status" value={data.homeStatus} />
+        <InfoRow label="Type"   value={data.homeType} />
       </div>
 
       {/* CTA */}
-      {data.detail_url && (
+      {data.detailUrl && (
         <a
-          href={data.detail_url}
+          href={data.detailUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-primary-gradient inline-flex items-center gap-2"

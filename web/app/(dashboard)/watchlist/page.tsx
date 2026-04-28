@@ -4,6 +4,17 @@ import { Heart, ArrowRight, ExternalLink, Calculator } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { WatchlistItem } from "@/lib/types";
 
+function motivationBadge(score: number | null | undefined) {
+  if (score == null || score === 0) return null
+  const { label, cls } =
+    score >= 61 ? { label: `⚡ ${score}`, cls: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" } :
+    score >= 41 ? { label: `⚡ ${score}`, cls: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" } :
+    score >= 21 ? { label: `⚡ ${score}`, cls: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" } :
+    { label: null, cls: "" }
+  if (!label) return null
+  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>{label}</span>
+}
+
 export default async function WatchlistPage() {
   const supabase = createClient();
   const {
@@ -17,6 +28,17 @@ export default async function WatchlistPage() {
     .order("saved_at", { ascending: false });
 
   const items = (data ?? []) as WatchlistItem[];
+
+  // Fetch live desperation scores from zillow_market
+  const zillow_ids = items.map((i) => i.zillow_id).filter(Boolean);
+  const scoreMap: Record<string, number | null> = {};
+  if (zillow_ids.length > 0) {
+    const { data: scores } = await supabase
+      .from("zillow_market")
+      .select("id,desperation_score")
+      .in("id", zillow_ids);
+    for (const row of scores ?? []) scoreMap[row.id] = row.desperation_score;
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -84,6 +106,11 @@ export default async function WatchlistPage() {
                     <Heart className="h-8 w-8" style={{ color: "var(--text-muted)" }} strokeWidth={1} />
                   </div>
                 )}
+
+                {/* Motivation badge — top-left */}
+                <div className="absolute top-3 left-3">
+                  {motivationBadge(scoreMap[item.zillow_id])}
+                </div>
 
                 {/* Zillow link — top-right icon */}
                 {item.detail_url && (

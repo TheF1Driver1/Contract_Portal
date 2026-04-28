@@ -27,10 +27,10 @@ export default function WatchlistButton({ property, saved }: { property: any; sa
           street: property.street,
           city: property.city,
           state: property.state,
-          img_src: property.img_src,
-          detail_url: property.detail_url,
-          home_type: property.home_type,
-          home_status: property.home_status,
+          img_src: property.imgSrc,
+          detail_url: property.detailUrl,
+          home_type: property.homeType,
+          home_status: property.homeStatus,
         }),
       })
     }

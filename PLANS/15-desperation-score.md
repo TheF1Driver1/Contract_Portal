@@ -1,6 +1,6 @@
 # Plan 15 — Seller Desperation Score
 
-## Status: TODO
+## Status: DONE (2026-04-27)
 
 ## Goal
 Surface seller motivation score (0–100) on market listings and detail pages.

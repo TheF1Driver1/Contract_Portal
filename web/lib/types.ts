@@ -101,10 +101,16 @@ export interface MarketProperty {
   zipcode: string | null;
   latitude: number;
   longitude: number;
-  img_src: string | null;
-  detail_url: string | null;
-  home_type: string | null;
-  home_status: string | null;
+  imgSrc: string | null;
+  detailUrl: string | null;
+  homeType: string | null;
+  homeStatus: string | null;
+  daysOnZillow: number | null;
+  original_price: number | null;
+  num_price_cuts: number | null;
+  price_cut_pct: number | null;
+  last_cut_date: string | null;
+  desperation_score: number | null;
 }
 
 export interface WatchlistItem {
