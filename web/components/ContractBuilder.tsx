@@ -151,8 +151,8 @@ export default function ContractBuilder({
         contract_type: data.contract_type,
         status: "draft" as const,
         unit_number: data.unit_number || null,
-        lease_start: data.lease_start,
-        lease_end: data.lease_end,
+        lease_start: data.lease_start || null,
+        lease_end: data.lease_end || null,
         lease_months: data.lease_months,
         rent_amount: data.rent_amount,
         rent_amount_verbal: data.rent_amount_verbal || null,
@@ -715,7 +715,7 @@ export default function ContractBuilder({
                   <FieldLabel>Tenant copy</FieldLabel>
                   {(() => {
                     const selectedTenant = tenants.find((t) => t.id === values.tenant_id);
-                    return selectedTenant?.email ? (
+                    return selectedTenant?.email?.trim() ? (
                       <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                         Sending to: {selectedTenant.email}
                       </p>
