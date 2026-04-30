@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -81,6 +81,8 @@ export default function ContractBuilder({
     handleSubmit,
     control,
     watch,
+    setValue,
+    trigger,
     formState: { errors },
   } = useForm<ContractFormValues>({
     defaultValues: {
@@ -123,6 +125,13 @@ export default function ContractBuilder({
   });
 
   const values = watch();
+
+  useEffect(() => {
+    if (!values.lease_start || !values.lease_months) return;
+    const start = new Date(values.lease_start);
+    start.setMonth(start.getMonth() + Number(values.lease_months));
+    setValue("lease_end", start.toISOString().split("T")[0], { shouldValidate: true });
+  }, [values.lease_start, values.lease_months]);
 
   async function saveDraft(data: ContractFormValues) {
     setLoading(true);
@@ -348,7 +357,7 @@ export default function ContractBuilder({
                   <Controller
                     control={control}
                     name="tenant_id"
-                    rules={{ required: true }}
+                    rules={{ required: "Tenant is required" }}
                     render={({ field }) => (
                       <Select onValueChange={field.onChange} value={field.value}>
                         <SelectTrigger className="input-tonal border-none h-auto">
@@ -364,6 +373,7 @@ export default function ContractBuilder({
                       </Select>
                     )}
                   />
+                  {errors.tenant_id && <p className="text-xs text-destructive mt-1">{errors.tenant_id.message}</p>}
                 </div>
               </div>
             </Section>
@@ -375,8 +385,9 @@ export default function ContractBuilder({
                   <input
                     className="input-tonal"
                     type="date"
-                    {...register("lease_start", { required: true })}
+                    {...register("lease_start", { required: "Start date is required" })}
                   />
+                  {errors.lease_start && <p className="text-xs text-destructive mt-1">{errors.lease_start.message}</p>}
                 </div>
                 <div>
                   <FieldLabel>End Date *</FieldLabel>
@@ -442,7 +453,7 @@ export default function ContractBuilder({
                   <Controller
                     control={control}
                     name="property_id"
-                    rules={{ required: true }}
+                    rules={{ required: "Property is required" }}
                     render={({ field }) => (
                       <Select onValueChange={field.onChange} value={field.value}>
                         <SelectTrigger className="input-tonal border-none h-auto">
@@ -458,6 +469,7 @@ export default function ContractBuilder({
                       </Select>
                     )}
                   />
+                  {errors.property_id && <p className="text-xs text-destructive mt-1">{errors.property_id.message}</p>}
                 </div>
                 <div>
                   <FieldLabel>Unit Number</FieldLabel>
@@ -547,8 +559,9 @@ export default function ContractBuilder({
                     type="number"
                     min={0}
                     step={0.01}
-                    {...register("rent_amount", { valueAsNumber: true, required: true })}
+                    {...register("rent_amount", { valueAsNumber: true, required: "Monthly rent is required", min: { value: 1, message: "Rent must be greater than 0" } })}
                   />
+                  {errors.rent_amount && <p className="text-xs text-destructive mt-1">{errors.rent_amount.message}</p>}
                 </div>
                 <div>
                   <FieldLabel>Rent in Words</FieldLabel>
@@ -791,7 +804,19 @@ export default function ContractBuilder({
             <button
               type="button"
               className="btn-primary-gradient"
-              onClick={() => setStep((s) => s + 1)}
+              onClick={async () => {
+                const stepFields: Record<number, (keyof ContractFormValues)[]> = {
+                  0: ["tenant_id", "lease_start"],
+                  1: ["property_id"],
+                  2: ["rent_amount"],
+                };
+                const fields = stepFields[step];
+                if (fields) {
+                  const valid = await trigger(fields);
+                  if (!valid) return;
+                }
+                setStep((s) => s + 1);
+              }}
             >
               Continue
             </button>
