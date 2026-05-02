@@ -7,16 +7,16 @@ import path from "path";
 import type { Contract } from "@/lib/types";
 
 // Spanish month names for the existing template format
-export const MONTHS_ES = [
+const MONTHS_ES = [
   "", "enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ];
 
-export function check(val: boolean | undefined): string {
+function check(val: boolean | undefined): string {
   return val ? "✔" : "__________";
 }
 
-export function buildContext(contract: Contract) {
+function buildContext(contract: Contract) {
   const amenities = (contract.amenities ?? {}) as Record<string, boolean | number>;
 
   const start = new Date(contract.lease_start);
