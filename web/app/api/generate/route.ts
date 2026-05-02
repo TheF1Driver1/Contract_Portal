@@ -103,8 +103,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Contract not found" }, { status: 404 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const templateRes = await fetch(`${appUrl}/templates/contract_template.docx`);
+  const host = req.headers.get("host") ?? "localhost:3000";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const templateRes = await fetch(`${protocol}://${host}/templates/contract_template.docx`);
   if (!templateRes.ok) {
     return generatePlainContract(contract as Contract);
   }
