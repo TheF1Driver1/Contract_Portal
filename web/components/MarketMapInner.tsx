@@ -22,8 +22,8 @@ export default function MarketMapInner({ properties }: { properties: MarketPrope
               <p className="font-semibold">{p.price ? `$${p.price.toLocaleString()}` : '—'}</p>
               <p>{p.beds ?? '—'} bd · {p.baths ?? '—'} ba</p>
               <p>{p.street}, {p.city}</p>
-              {p.detail_url && (
-                <a href={p.detail_url} target="_blank" rel="noopener noreferrer"
+              {p.detailUrl && (
+                <a href={p.detailUrl} target="_blank" rel="noopener noreferrer"
                   className="text-blue-600 underline">View listing</a>
               )}
             </div>

@@ -101,10 +101,79 @@ export interface MarketProperty {
   zipcode: string | null;
   latitude: number;
   longitude: number;
-  img_src: string | null;
-  detail_url: string | null;
-  home_type: string | null;
-  home_status: string | null;
+  imgSrc: string | null;
+  detailUrl: string | null;
+  homeType: string | null;
+  homeStatus: string | null;
+  daysOnZillow: number | null;
+  original_price: number | null;
+  num_price_cuts: number | null;
+  price_cut_pct: number | null;
+  last_cut_date: string | null;
+  desperation_score: number | null;
+}
+
+export interface WatchlistItem {
+  id: string
+  owner_id: string
+  zillow_id: string
+  price: number | null
+  beds: number | null
+  baths: number | null
+  street: string | null
+  city: string | null
+  state: string | null
+  img_src: string | null
+  detail_url: string | null
+  home_type: string | null
+  home_status: string | null
+  saved_at: string
+}
+
+export interface InvestmentAnalysis {
+  id: string;
+  owner_id: string;
+  watchlist_id: string;
+  purchase_price: number;
+  down_payment_pct: number;
+  closing_cost_pct: number;
+  mortgage_rate_pct: number;
+  loan_term_years: number;
+  annual_tax_pct: number;
+  annual_insurance_pct: number;
+  maintenance_pct: number;
+  monthly_hoa: number;
+  monthly_utilities: number;
+  estimated_rent: number | null;
+  vacancy_rate_pct: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvestmentMetrics {
+  // Upfront
+  down_payment: number;
+  closing_costs: number;
+  total_upfront: number;
+  loan_amount: number;
+  // Monthly
+  monthly_mortgage: number;
+  monthly_tax: number;
+  monthly_insurance: number;
+  monthly_maintenance: number;
+  monthly_hoa: number;
+  monthly_utilities: number;
+  total_monthly_expenses: number;
+  // Income
+  effective_monthly_rent: number;
+  // Cash flow
+  monthly_cash_flow: number;
+  annual_cash_flow: number;
+  // Returns
+  cap_rate: number;
+  cash_on_cash: number;
+  gross_rent_multiplier: number;
+  break_even_rent: number;
 }
 
 // Form values for contract builder

@@ -4,10 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Home, Loader2 } from "lucide-react";
 
 export default function SignupPage() {
@@ -27,9 +23,7 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: fullName },
-      },
+      options: { data: { full_name: fullName } },
     });
 
     if (error) {
@@ -42,72 +36,125 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div
+      className="flex min-h-screen items-center justify-center p-4"
+      style={{ background: "var(--background)" }}
+    >
       <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-lg">
+        {/* Logo + headline */}
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <div
+            className="flex h-12 w-12 items-center justify-center rounded-2xl"
+            style={{ background: "linear-gradient(135deg, #005bc2, #007aff)" }}
+          >
             <Home className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">ContractOS</h1>
-          <p className="text-sm text-muted-foreground">Create your landlord account</p>
+          <div>
+            <h1
+              className="text-2xl font-bold"
+              style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}
+            >
+              ContractOS
+            </h1>
+            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+              Create your landlord account
+            </p>
+          </div>
         </div>
 
-        <Card>
-          <form onSubmit={handleSignup}>
-            <CardContent className="space-y-4 pt-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  placeholder="Jane Smith"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </div>
-              {error && (
-                <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                  {error}
-                </p>
-              )}
-            </CardContent>
-            <CardFooter className="flex flex-col gap-3">
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Account
-              </Button>
-              <p className="text-center text-sm text-muted-foreground">
-                Have an account?{" "}
-                <Link href="/login" className="font-medium text-primary hover:underline">
-                  Sign in
-                </Link>
+        {/* Form card */}
+        <div className="surface-card space-y-4">
+          <form onSubmit={handleSignup} className="space-y-4">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="name"
+                className="block text-xs font-semibold uppercase tracking-widest"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Full Name
+              </label>
+              <input
+                id="name"
+                className="input-tonal w-full"
+                placeholder="Jane Smith"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                autoComplete="name"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="email"
+                className="block text-xs font-semibold uppercase tracking-widest"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                className="input-tonal w-full"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="password"
+                className="block text-xs font-semibold uppercase tracking-widest"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                className="input-tonal w-full"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+              />
+            </div>
+
+            {error && (
+              <p
+                className="rounded-xl px-3 py-2 text-sm"
+                style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}
+              >
+                {error}
               </p>
-            </CardFooter>
+            )}
+
+            <button
+              type="submit"
+              className="btn-primary-gradient w-full justify-center disabled:opacity-60"
+              disabled={loading}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Account
+            </button>
           </form>
-        </Card>
+
+          <p className="text-center text-sm" style={{ color: "var(--text-muted)" }}>
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-semibold hover:opacity-70 transition-opacity"
+              style={{ color: "var(--accent)" }}
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

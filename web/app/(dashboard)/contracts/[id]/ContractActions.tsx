@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Download, Send, Loader2, Trash2 } from "lucide-react";
+import { Download, Loader2, Trash2 } from "lucide-react";
 import type { Contract } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
 export default function ContractActions({ contract }: { contract: Contract }) {
   const [generating, setGenerating] = useState(false);
-  const [sending, setSending] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -37,15 +35,15 @@ export default function ContractActions({ contract }: { contract: Contract }) {
   }
 
   async function handleDownloadPDF() {
-    const { pdf } = await import('@react-pdf/renderer')
-    const { default: ContractPDF } = await import('@/components/ContractPDF')
-    const blob = await pdf(<ContractPDF contract={contract} />).toBlob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `contract_${contract.id}.pdf`
-    a.click()
-    URL.revokeObjectURL(url)
+    const { pdf } = await import("@react-pdf/renderer");
+    const { default: ContractPDF } = await import("@/components/ContractPDF");
+    const blob = await pdf(<ContractPDF contract={contract} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `contract_${contract.id}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function handleDelete() {
@@ -55,26 +53,34 @@ export default function ContractActions({ contract }: { contract: Contract }) {
   }
 
   return (
-    <div className="flex gap-2">
-      <Button variant="outline" size="sm" onClick={handleDownload} disabled={generating}>
+    <div className="flex items-center gap-2">
+      <button
+        className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+        onClick={handleDownload}
+        disabled={generating}
+      >
         {generating ? (
-          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
-          <Download className="mr-1.5 h-3.5 w-3.5" />
+          <Download className="h-3.5 w-3.5" />
         )}
         DOCX
-      </Button>
-      <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-        <Download className="mr-1.5 h-3.5 w-3.5" />
+      </button>
+      <button
+        className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+        onClick={handleDownloadPDF}
+      >
+        <Download className="h-3.5 w-3.5" />
         PDF
-      </Button>
-      <Button
-        variant="destructive"
-        size="sm"
+      </button>
+      <button
+        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+        style={{ background: "rgba(255,59,48,0.12)", color: "#ff3b30" }}
         onClick={handleDelete}
       >
         <Trash2 className="h-3.5 w-3.5" />
-      </Button>
+        Delete
+      </button>
     </div>
   );
 }

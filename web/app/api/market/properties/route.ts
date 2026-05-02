@@ -5,8 +5,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const supabase = createClient()
 
-  let query = (supabase as any).schema("rea").from("zillow_unique")
-    .select("id,price,beds,baths,street,city,state,zipcode,latitude,longitude,img_src,detail_url,home_type,home_status")
+  let query = supabase.from("zillow_market")
+    .select("id,price,beds,baths,street,city,state,zipcode,latitude,longitude,imgSrc,detailUrl,homeType,homeStatus,daysOnZillow,original_price,num_price_cuts,price_cut_pct,last_cut_date,desperation_score")
     .not("latitude", "is", null)
     .not("longitude", "is", null)
 

@@ -1,7 +1,4 @@
 import { createClient } from "@/lib/supabase-server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
   FileText,
@@ -10,10 +7,20 @@ import {
   Users,
   Plus,
   TrendingUp,
+  ArrowRight,
 } from "lucide-react";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
 import CashflowChart from "@/components/CashflowChart";
+import MarketStatsWidget from "@/components/MarketStatsWidget";
+import RentVsMarketChart from "@/components/RentVsMarketChart";
+
+const STATUS_PILL: Record<string, string> = {
+  signed: "pill-active",
+  draft: "pill-draft",
+  sent: "pill-sent",
+  expired: "pill-expired",
+};
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -48,8 +55,8 @@ export default async function DashboardPage() {
   const months = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
     return {
-      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-      label: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
       income: 0,
     };
   });
@@ -64,191 +71,290 @@ export default async function DashboardPage() {
 
   const stats = [
     {
-      label: "Active Leases",
-      value: activeContracts.length,
-      icon: FileText,
-      color: "text-green-600",
-      bg: "bg-green-50",
-    },
-    {
       label: "Monthly Revenue",
       value: formatCurrency(monthlyRevenue),
+      sub: `${activeContracts.length} active lease${activeContracts.length !== 1 ? "s" : ""}`,
       icon: TrendingUp,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      iconBg: "linear-gradient(135deg, #0057d9 0%, #007aff 100%)",
+      iconColor: "#fff",
+      iconGlow: "0 4px 14px rgba(0,122,255,0.45)",
+      valueColor: "#007aff",
     },
     {
       label: "Properties",
       value: propertyCount,
+      sub: "in portfolio",
       icon: Building2,
-      color: "text-purple-600",
-      bg: "bg-purple-50",
+      iconBg: "linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)",
+      iconColor: "#fff",
+      iconGlow: "0 4px 14px rgba(20,184,166,0.40)",
+      valueColor: "var(--text-primary)",
     },
     {
       label: "Tenants",
       value: tenantCount,
+      sub: "registered",
       icon: Users,
-      color: "text-orange-600",
-      bg: "bg-orange-50",
+      iconBg: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)",
+      iconColor: "#fff",
+      iconGlow: "0 4px 14px rgba(139,92,246,0.40)",
+      valueColor: "var(--text-primary)",
+    },
+    {
+      label: "Expiring Soon",
+      value: expiringContracts.length,
+      sub: "within 60 days",
+      icon: AlertTriangle,
+      iconBg: expiringContracts.length > 0
+        ? "linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)"
+        : "linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)",
+      iconColor: "#fff",
+      iconGlow: expiringContracts.length > 0 ? "0 4px 14px rgba(239,68,68,0.40)" : "none",
+      valueColor: expiringContracts.length > 0 ? "#ef4444" : "var(--text-primary)",
     },
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Overview of your rental portfolio
+    <div className="space-y-8 animate-fade-in">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between">
+        <div className="animate-slide-up">
+          <p
+            className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Overview
           </p>
+          <h1
+            className="text-4xl font-bold"
+            style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}
+          >
+            Dashboard
+          </h1>
         </div>
-        <Button asChild>
-          <Link href="/contracts/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Contract
-          </Link>
-        </Button>
+        <Link
+          href="/contracts/new"
+          className="btn-primary-gradient flex items-center gap-2 animate-slide-up"
+          style={{ animationDelay: "0.05s", animationFillMode: "both" }}
+        >
+          <Plus className="h-4 w-4" />
+          New Contract
+        </Link>
       </div>
 
-      {/* Stats */}
+      {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map(({ label, value, icon: Icon, color, bg }) => (
-          <Card key={label}>
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${bg}`}>
-                <Icon className={`h-5 w-5 ${color}`} />
+        {stats.map(({ label, value, sub, icon: Icon, iconBg, iconColor, iconGlow, valueColor }, i) => (
+          <div
+            key={label}
+            className="surface-card animate-slide-up"
+            style={{ animationDelay: `${i * 0.06}s`, animationFillMode: "both" }}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl"
+                style={{ background: iconBg, boxShadow: iconGlow }}
+              >
+                <Icon className="h-4.5 w-4.5" style={{ color: iconColor }} strokeWidth={2.5} />
               </div>
-              <div>
-                <p className="text-2xl font-semibold">{value}</p>
-                <p className="text-xs text-muted-foreground">{label}</p>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            <p
+              className="text-3xl font-bold"
+              style={{ color: valueColor, letterSpacing: "-0.03em" }}
+            >
+              {value}
+            </p>
+            <p className="text-xs mt-1 font-semibold" style={{ color: "var(--text-secondary)" }}>
+              {label}
+            </p>
+            <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+              {sub}
+            </p>
+          </div>
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* ── Main grid ── */}
+      <div className="grid gap-5 lg:grid-cols-3">
         {/* Expiring Soon */}
-        <Card className="lg:col-span-1">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+        <div
+          className="surface-card p-6 animate-slide-up"
+          style={{ animationDelay: "0.24s", animationFillMode: "both" }}
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <AlertTriangle className="h-4 w-4" style={{ color: "#c45451" }} strokeWidth={2} />
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
               Expiring Soon
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {expiringContracts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No contracts expiring in 60 days.</p>
-            ) : (
-              <div className="space-y-3">
-                {expiringContracts.map((c) => {
-                  const days = daysUntil(c.lease_end);
-                  return (
-                    <Link
-                      key={c.id}
-                      href={`/contracts/${c.id}`}
-                      className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{c.tenant?.full_name}</p>
-                        <p className="text-xs text-muted-foreground">{c.property?.name}</p>
-                      </div>
-                      <Badge variant={days <= 30 ? "destructive" : "outline"}>
-                        {days}d
-                      </Badge>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </h2>
+          </div>
+
+          {expiringContracts.length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                All clear — no leases expiring within 60 days.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {expiringContracts.map((c) => {
+                const days = daysUntil(c.lease_end);
+                return (
+                  <Link key={c.id} href={`/contracts/${c.id}`} className="row-tonal flex items-center justify-between p-3">
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                        {c.tenant?.full_name}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                        {c.property?.name}
+                      </p>
+                    </div>
+                    <span className={days <= 30 ? "pill-expired" : "pill-draft"}>{days}d</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Recent Contracts */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Recent Contracts</CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/contracts">View all</Link>
-              </Button>
+        <div
+          className="surface-card p-6 lg:col-span-2 animate-slide-up"
+          style={{ animationDelay: "0.30s", animationFillMode: "both" }}
+        >
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4" style={{ color: "var(--text-secondary)" }} strokeWidth={2} />
+              <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                Recent Contracts
+              </h2>
             </div>
-          </CardHeader>
-          <CardContent>
-            {contracts.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 py-8 text-center">
-                <FileText className="h-8 w-8 text-muted-foreground/50" />
-                <p className="text-sm text-muted-foreground">No contracts yet.</p>
-                <Button size="sm" asChild>
-                  <Link href="/contracts/new">Create your first contract</Link>
-                </Button>
+            <Link
+              href="/contracts"
+              className="flex items-center gap-1 text-xs font-medium hover:opacity-70 transition-opacity"
+              style={{ color: "#007aff" }}
+            >
+              View all
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          {contracts.length === 0 ? (
+            <div className="flex flex-col items-center gap-4 py-10 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl surface-container">
+                <FileText className="h-5 w-5" style={{ color: "var(--text-muted)" }} strokeWidth={1.5} />
               </div>
-            ) : (
-              <div className="space-y-2">
-                {contracts.slice(0, 5).map((c) => (
-                  <Link
-                    key={c.id}
-                    href={`/contracts/${c.id}`}
-                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">
-                        {c.tenant?.full_name ?? "Unknown Tenant"}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {c.property?.name} · {formatCurrency(c.rent_amount)}/mo
-                      </p>
-                    </div>
-                    <div className="ml-4 flex items-center gap-3">
-                      <p className="text-xs text-muted-foreground whitespace-nowrap">
-                        {formatDate(c.created_at)}
-                      </p>
-                      <Badge variant={c.status as "draft" | "sent" | "signed" | "expired"}>
-                        {c.status}
-                      </Badge>
-                    </div>
-                  </Link>
-                ))}
+              <div>
+                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                  No contracts yet
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                  Create your first lease contract
+                </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <Link href="/contracts/new" className="btn-primary-gradient flex items-center gap-1.5">
+                <Plus className="h-3.5 w-3.5" />
+                New Contract
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {contracts.slice(0, 5).map((c) => (
+                <Link key={c.id} href={`/contracts/${c.id}`} className="row-tonal flex items-center justify-between p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                      {c.tenant?.full_name ?? "Unknown Tenant"}
+                    </p>
+                    <p className="truncate text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                      {c.property?.name} · {formatCurrency(c.rent_amount)}/mo
+                    </p>
+                  </div>
+                  <div className="ml-4 flex items-center gap-3 shrink-0">
+                    <p className="text-[10px] whitespace-nowrap hidden sm:block" style={{ color: "var(--text-muted)" }}>
+                      {formatDate(c.created_at)}
+                    </p>
+                    <span className={STATUS_PILL[c.status] ?? "pill-draft"}>{c.status}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Cashflow Chart */}
+      {/* ── Cashflow Chart ── */}
       {cashflowData.some((m) => m.income > 0) && (
-        <div className="bg-card rounded-xl border p-4">
-          <h3 className="font-semibold mb-3">Monthly Income (6 months)</h3>
+        <div
+          className="surface-card p-6 animate-slide-up"
+          style={{ animationDelay: "0.36s", animationFillMode: "both" }}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p
+                className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Cashflow
+              </p>
+              <h2
+                className="text-xl font-bold"
+                style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}
+              >
+                Monthly Income
+              </h2>
+            </div>
+            <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+              Last 6 months
+            </span>
+          </div>
           <CashflowChart data={cashflowData} />
         </div>
       )}
 
-      {/* Drafts */}
+      {/* ── Market Stats Widget ── */}
+      <div className="animate-slide-up" style={{ animationDelay: "0.42s", animationFillMode: "both" }}>
+        <MarketStatsWidget />
+      </div>
+
+      {/* ── Rent vs Market ── */}
+      <div className="animate-slide-up" style={{ animationDelay: "0.48s", animationFillMode: "both" }}>
+        <RentVsMarketChart />
+      </div>
+
+      {/* ── Pending Drafts ── */}
       {draftContracts.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Pending Drafts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {draftContracts.map((c) => (
-                <div
-                  key={c.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{c.tenant?.full_name}</p>
-                    <p className="text-xs text-muted-foreground">{c.property?.name}</p>
-                  </div>
-                  <Button size="sm" variant="outline" asChild>
-                    <Link href={`/contracts/${c.id}`}>Finish</Link>
-                  </Button>
+        <div
+          className="surface-card p-6 animate-slide-up"
+          style={{ animationDelay: "0.42s", animationFillMode: "both" }}
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <span className="pill-draft">{draftContracts.length} pending</span>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+              Draft Contracts
+            </h2>
+          </div>
+          <div className="space-y-1.5">
+            {draftContracts.map((c) => (
+              <div key={c.id} className="row-tonal flex items-center justify-between p-3">
+                <div>
+                  <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                    {c.tenant?.full_name}
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    {c.property?.name}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <Link
+                  href={`/contracts/${c.id}`}
+                  className="flex items-center gap-1.5 text-xs font-semibold hover:opacity-70 transition-opacity"
+                  style={{ color: "#007aff" }}
+                >
+                  Finish
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

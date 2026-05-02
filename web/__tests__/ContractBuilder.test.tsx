@@ -41,7 +41,7 @@ const tenants: Tenant[] = [
 ];
 
 function setup() {
-  return render(<ContractBuilder properties={properties} tenants={tenants} userId="u1" />);
+  return render(<ContractBuilder properties={properties} tenants={tenants} userId="u1" landlordEmail="landlord@example.com" />);
 }
 
 // --- Tests ---

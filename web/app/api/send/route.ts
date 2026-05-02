@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         attachments,
       }));
 
-      const tenantEmail = (contract.tenant as { full_name: string; email?: string } | null)?.email;
+      const tenantEmail = (contract.tenant as { full_name: string; email?: string } | null)?.email?.trim();
       if (tenantEmail) {
         sends.push(resend.emails.send({
           from: process.env.FROM_EMAIL ?? "contracts@yourdomain.com",

@@ -1,12 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -14,12 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import SignaturePad from "@/components/SignaturePad";
 import { createClient } from "@/lib/supabase";
 import type { Property, Tenant, ContractFormValues } from "@/lib/types";
-import { Loader2, Download, Send, CheckCircle2 } from "lucide-react";
+import { Loader2, Download, Send, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ContractBuilderProps {
   properties: Property[];
@@ -28,9 +23,43 @@ interface ContractBuilderProps {
   landlordEmail: string;
 }
 
-const MONTHS = [
-  "enero", "febrero", "marzo", "abril", "mayo", "junio",
-  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+      <label
+        className="text-xs font-medium block mb-1.5"
+        style={{ color: "var(--text-secondary)" }}
+      >
+        {children}
+      </label>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+      <div className="rounded-2xl p-4 space-y-4" style={{ background: "var(--surface-low)" }}>
+        <p
+          className="text-[10px] font-semibold uppercase tracking-widest"
+          style={{ color: "var(--text-muted)" }}
+        >
+          {title}
+        </p>
+        {children}
+      </div>
+  );
+}
+
+const STEPS = [
+  { id: 0, label: "Details" },
+  { id: 1, label: "Property" },
+  { id: 2, label: "Payment" },
+  { id: 3, label: "Signatures" },
+  { id: 4, label: "Send" },
 ];
 
 export default function ContractBuilder({
@@ -53,6 +82,7 @@ export default function ContractBuilder({
     control,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm<ContractFormValues>({
     defaultValues: {
@@ -96,6 +126,13 @@ export default function ContractBuilder({
 
   const values = watch();
 
+  useEffect(() => {
+    if (!values.lease_start || !values.lease_months) return;
+    const start = new Date(values.lease_start);
+    start.setMonth(start.getMonth() + Number(values.lease_months));
+    setValue("lease_end", start.toISOString().split("T")[0], { shouldValidate: true });
+  }, [values.lease_start, values.lease_months]);
+
   async function saveDraft(data: ContractFormValues) {
     setLoading(true);
     try {
@@ -123,8 +160,8 @@ export default function ContractBuilder({
         contract_type: data.contract_type,
         status: "draft" as const,
         unit_number: data.unit_number || null,
-        lease_start: data.lease_start,
-        lease_end: data.lease_end,
+        lease_start: data.lease_start || null,
+        lease_end: data.lease_end || null,
         lease_months: data.lease_months,
         rent_amount: data.rent_amount,
         rent_amount_verbal: data.rent_amount_verbal || null,
@@ -140,7 +177,9 @@ export default function ContractBuilder({
         landlord_signature: data.landlord_signature || null,
         tenant_signature: data.tenant_signature || null,
         signed_at:
-          data.landlord_signature && data.tenant_signature ? new Date().toISOString() : null,
+          data.landlord_signature && data.tenant_signature
+            ? new Date().toISOString()
+            : null,
       };
 
       let contractId = savedId;
@@ -209,49 +248,99 @@ export default function ContractBuilder({
     }
   }
 
-  const STEPS = ["Details", "Property & Amenities", "Payment", "Signatures", "Send"];
 
   return (
-    <div className="space-y-6">
-      {/* Step indicator */}
-      <p className="md:hidden text-sm font-medium text-muted-foreground">
-        Step {step + 1} of {STEPS.length}: {STEPS[step]}
-      </p>
-      <div className="hidden md:flex gap-2">
+    <div className="space-y-6 animate-fade-in">
+      {/* ── Step progress strip ── */}
+      <div className="flex items-center gap-0 animate-slide-up">
         {STEPS.map((s, i) => (
-          <button
-            key={s}
-            onClick={() => setStep(i)}
-            className={`flex-1 rounded-lg py-2 text-xs font-medium transition-colors min-h-[44px] ${
-              i === step
-                ? "bg-primary text-white"
-                : i < step
-                ? "bg-primary/20 text-primary"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {s}
-          </button>
+          <Fragment key={s.id}>
+            <button
+              type="button"
+              onClick={() => setStep(i)}
+              className="flex flex-col items-center gap-1.5 group"
+            >
+              <div
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold transition-all duration-300",
+                  step > i
+                    ? "text-white"
+                    : step === i
+                    ? "text-white ring-4"
+                    : ""
+                )}
+                style={{
+                  background:
+                    step > i || step === i
+                      ? "linear-gradient(135deg, #005bc2, #007aff)"
+                      : "var(--surface-container)",
+                  boxShadow:
+                    step === i ? "0 0 0 4px rgba(0,122,255,0.18)" : "none",
+                  color:
+                    step > i || step === i
+                      ? "white"
+                      : "var(--text-muted)",
+                }}
+              >
+                {step > i ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> : i + 1}
+              </div>
+              <span
+                className="text-[10px] font-medium hidden sm:block"
+                style={{
+                  color: step === i ? "#007aff" : "var(--text-muted)",
+                }}
+              >
+                {s.label}
+              </span>
+            </button>
+
+            {/* Connector line */}
+            {i < STEPS.length - 1 && (
+              <div
+                className="flex-1 h-px mx-2 mb-4 transition-all duration-300"
+                style={{
+                  background:
+                    step > i ? "#007aff" : "var(--surface-container)",
+                }}
+              />
+            )}
+          </Fragment>
         ))}
       </div>
 
+      {/* Mobile step label */}
+      <p
+        className="sm:hidden text-sm font-medium animate-slide-up"
+        style={{ color: "var(--text-secondary)", animationDelay: "0.05s", animationFillMode: "both" }}
+      >
+        Step {step + 1} of {STEPS.length}: {STEPS[step].label}
+      </p>
+
       <form onSubmit={handleSubmit(sendContract)}>
-        {/* Step 0: Tenant & Contract Details */}
+        {/* ── Step 0: Contract Details ── */}
         {step === 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Contract Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
+          <div
+            className="surface-card p-6 space-y-5 animate-scale-in"
+          >
+            <div>
+              <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+                Contract Details
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Choose contract type and assign a tenant
+              </p>
+            </div>
+
+            <Section title="Contract">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Contract Type</Label>
+                <div>
+                  <FieldLabel>Contract Type</FieldLabel>
                   <Controller
                     control={control}
                     name="contract_type"
                     render={({ field }) => (
                       <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
+                        <SelectTrigger className="input-tonal border-none h-auto">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -263,16 +352,16 @@ export default function ContractBuilder({
                     )}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Tenant</Label>
+                <div>
+                  <FieldLabel>Tenant *</FieldLabel>
                   <Controller
                     control={control}
                     name="tenant_id"
-                    rules={{ required: true }}
+                    rules={{ required: "Tenant is required" }}
                     render={({ field }) => (
                       <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select tenant..." />
+                        <SelectTrigger className="input-tonal border-none h-auto">
+                          <SelectValue placeholder="Select tenant…" />
                         </SelectTrigger>
                         <SelectContent>
                           {tenants.map((t) => (
@@ -284,64 +373,91 @@ export default function ContractBuilder({
                       </Select>
                     )}
                   />
+                  {errors.tenant_id && <p className="text-xs text-destructive mt-1">{errors.tenant_id.message}</p>}
                 </div>
               </div>
+            </Section>
 
-              <Separator />
-
+            <Section title="Lease Period">
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label>Lease Start</Label>
-                  <Input type="date" {...register("lease_start", { required: true })} />
+                <div>
+                  <FieldLabel>Start Date *</FieldLabel>
+                  <input
+                    className="input-tonal"
+                    type="date"
+                    {...register("lease_start", { required: "Start date is required" })}
+                  />
+                  {errors.lease_start && <p className="text-xs text-destructive mt-1">{errors.lease_start.message}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label>Lease End</Label>
-                  <Input type="date" {...register("lease_end", { required: true })} />
+                <div>
+                  <FieldLabel>End Date *</FieldLabel>
+                  <input
+                    className="input-tonal"
+                    type="date"
+                    {...register("lease_end", { required: true })}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label>Duration (months)</Label>
-                  <Input type="number" min={1} {...register("lease_months", { valueAsNumber: true })} />
+                <div>
+                  <FieldLabel>Duration (months)</FieldLabel>
+                  <input
+                    className="input-tonal"
+                    type="number"
+                    min={1}
+                    {...register("lease_months", { valueAsNumber: true })}
+                  />
                 </div>
               </div>
+            </Section>
 
-              <div className="space-y-2">
-                <Label>Occupant Names (comma-separated)</Label>
-                <Input
-                  placeholder="John Doe, Jane Doe"
-                  {...register("occupant_names")}
-                />
+            <Section title="Occupants">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <FieldLabel>Names (comma-separated)</FieldLabel>
+                  <input
+                    className="input-tonal"
+                    placeholder="John Doe, Jane Doe"
+                    {...register("occupant_names")}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Number of Occupants</FieldLabel>
+                  <input
+                    className="input-tonal"
+                    type="number"
+                    min={1}
+                    max={10}
+                    {...register("occupant_count", { valueAsNumber: true })}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Number of Occupants</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={10}
-                  {...register("occupant_count", { valueAsNumber: true })}
-                />
-              </div>
-            </CardContent>
-          </Card>
+            </Section>
+          </div>
         )}
 
-        {/* Step 1: Property & Amenities */}
+        {/* ── Step 1: Property & Amenities ── */}
         {step === 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Property & Amenities</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
+          <div className="surface-card p-6 space-y-5 animate-scale-in">
+            <div>
+              <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+                Property & Amenities
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Select the unit and document included amenities
+              </p>
+            </div>
+
+            <Section title="Unit">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Property</Label>
+                <div>
+                  <FieldLabel>Property *</FieldLabel>
                   <Controller
                     control={control}
                     name="property_id"
-                    rules={{ required: true }}
+                    rules={{ required: "Property is required" }}
                     render={({ field }) => (
                       <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select property..." />
+                        <SelectTrigger className="input-tonal border-none h-auto">
+                          <SelectValue placeholder="Select property…" />
                         </SelectTrigger>
                         <SelectContent>
                           {properties.map((p) => (
@@ -353,16 +469,20 @@ export default function ContractBuilder({
                       </Select>
                     )}
                   />
+                  {errors.property_id && <p className="text-xs text-destructive mt-1">{errors.property_id.message}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label>Unit Number</Label>
-                  <Input placeholder="e.g. 2A" {...register("unit_number")} />
+                <div>
+                  <FieldLabel>Unit Number</FieldLabel>
+                  <input
+                    className="input-tonal"
+                    placeholder="e.g. 2A"
+                    {...register("unit_number")}
+                  />
                 </div>
               </div>
+            </Section>
 
-              <Separator />
-              <p className="text-sm font-medium text-muted-foreground">Amenities</p>
-
+            <Section title="Counts">
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
                   { label: "Bedrooms", name: "room_count", min: 1 },
@@ -371,9 +491,10 @@ export default function ContractBuilder({
                   { label: "Stoves", name: "stove_count", min: 0 },
                   { label: "Keys", name: "key_count", min: 1 },
                 ].map(({ label, name, min }) => (
-                  <div key={name} className="space-y-2">
-                    <Label>{label}</Label>
-                    <Input
+                  <div key={name}>
+                    <FieldLabel>{label}</FieldLabel>
+                    <input
+                      className="input-tonal"
                       type="number"
                       min={min}
                       {...register(name as keyof ContractFormValues, { valueAsNumber: true })}
@@ -381,8 +502,10 @@ export default function ContractBuilder({
                   </div>
                 ))}
               </div>
+            </Section>
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <Section title="Included Amenities">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {[
                   { label: "Mirror Closet Doors", name: "mirror_doors" },
                   { label: "Renovated Bathroom", name: "renovated_bathroom" },
@@ -395,59 +518,68 @@ export default function ContractBuilder({
                   { label: "Wall Art", name: "wall_art" },
                   { label: "Parking Included", name: "parking" },
                 ].map(({ label, name }) => (
-                  <label key={name} className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 hover:bg-muted/50">
+                  <label
+                    key={name}
+                    className="flex items-center gap-2.5 rounded-xl p-3 cursor-pointer transition-colors"
+                    style={{ background: "var(--surface-card)" }}
+                  >
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-input"
+                      className="h-4 w-4 rounded accent-[#007aff]"
                       {...register(name as keyof ContractFormValues)}
                     />
-                    <span className="text-sm">{label}</span>
+                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                      {label}
+                    </span>
                   </label>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </Section>
+          </div>
         )}
 
-        {/* Step 2: Payment */}
+        {/* ── Step 2: Payment ── */}
         {step === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Terms</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
+          <div className="surface-card p-6 space-y-5 animate-scale-in">
+            <div>
+              <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+                Payment Terms
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Define rent amount and payment schedule
+              </p>
+            </div>
+
+            <Section title="Rent">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Monthly Rent ($)</Label>
-                  <Input
+                <div>
+                  <FieldLabel>Monthly Rent ($) *</FieldLabel>
+                  <input
+                    className="input-tonal"
                     type="number"
                     min={0}
                     step={0.01}
-                    {...register("rent_amount", { valueAsNumber: true, required: true })}
+                    {...register("rent_amount", { valueAsNumber: true, required: "Monthly rent is required", min: { value: 1, message: "Rent must be greater than 0" } })}
                   />
+                  {errors.rent_amount && <p className="text-xs text-destructive mt-1">{errors.rent_amount.message}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label>Rent in Words</Label>
-                  <Input
+                <div>
+                  <FieldLabel>Rent in Words</FieldLabel>
+                  <input
+                    className="input-tonal"
                     placeholder="e.g. one thousand two hundred"
                     {...register("rent_amount_verbal")}
                   />
                 </div>
               </div>
+            </Section>
 
+            <Section title="Deposit">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Security Deposit ($)</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    {...register("security_deposit", { valueAsNumber: true })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Payment at Signing ($)</Label>
-                  <Input
+                <div>
+                  <FieldLabel>Security Deposit ($)</FieldLabel>
+                  <input
+                    className="input-tonal"
                     type="number"
                     min={0}
                     step={0.01}
@@ -455,20 +587,24 @@ export default function ContractBuilder({
                   />
                 </div>
               </div>
+            </Section>
 
+            <Section title="Schedule">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Rent Due Day of Month</Label>
-                  <Input
+                <div>
+                  <FieldLabel>Rent Due Day of Month</FieldLabel>
+                  <input
+                    className="input-tonal"
                     type="number"
                     min={1}
                     max={28}
                     {...register("payment_due_day", { valueAsNumber: true })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Late Fee After Day</Label>
-                  <Input
+                <div>
+                  <FieldLabel>Late Fee After Day</FieldLabel>
+                  <input
+                    className="input-tonal"
                     type="number"
                     min={1}
                     max={28}
@@ -476,163 +612,214 @@ export default function ContractBuilder({
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </Section>
+          </div>
         )}
 
-        {/* Step 3: Signatures */}
+        {/* ── Step 3: Signatures ── */}
         {step === 3 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Digital Signatures</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <Controller
-                control={control}
-                name="landlord_signature"
-                render={({ field }) => (
-                  <SignaturePad
-                    label="Landlord Signature"
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
-              <Separator />
-              <Controller
-                control={control}
-                name="tenant_signature"
-                render={({ field }) => (
-                  <SignaturePad
-                    label="Tenant Signature"
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
+          <div className="surface-card p-6 space-y-6 animate-scale-in">
+            <div>
+              <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+                Digital Signatures
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Both parties must sign before the contract is finalized
+              </p>
+            </div>
 
-              <div className="flex gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={generating}
-                  onClick={handleSubmit(generateAndDownload)}
-                >
-                  {generating ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Download className="mr-2 h-4 w-4" />
-                  )}
-                  DOCX
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleSubmit(async (data) => {
-                    const contractId = await saveDraft(data);
-                    const contract = { ...data, id: contractId, tenant: tenants.find(t => t.id === data.tenant_id), property: properties.find(p => p.id === data.property_id) };
-                    const { pdf } = await import('@react-pdf/renderer');
-                    const { default: ContractPDF } = await import('@/components/ContractPDF');
-                    const blob = await pdf(<ContractPDF contract={contract} />).toBlob();
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `contract_${contractId}.pdf`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  })}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  PDF
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={loading}
-                  onClick={handleSubmit(saveDraft)}
-                >
-                  Save Draft
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <Controller
+              control={control}
+              name="landlord_signature"
+              render={({ field }) => (
+                <SignaturePad label="Landlord Signature" value={field.value} onChange={field.onChange} />
+              )}
+            />
+
+            <div className="h-px" style={{ background: "var(--surface-container)" }} />
+
+            <Controller
+              control={control}
+              name="tenant_signature"
+              render={({ field }) => (
+                <SignaturePad label="Tenant Signature" value={field.value} onChange={field.onChange} />
+              )}
+            />
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                className="btn-tonal flex items-center gap-2"
+                disabled={generating}
+                onClick={handleSubmit(generateAndDownload)}
+              >
+                {generating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                DOCX
+              </button>
+              <button
+                type="button"
+                className="btn-tonal flex items-center gap-2"
+                onClick={handleSubmit(async (data) => {
+                  const contractId = await saveDraft(data);
+                  const contract = {
+                    ...data,
+                    id: contractId,
+                    tenant: tenants.find((t) => t.id === data.tenant_id),
+                    property: properties.find((p) => p.id === data.property_id),
+                  };
+                  const { pdf } = await import("@react-pdf/renderer");
+                  const { default: ContractPDF } = await import("@/components/ContractPDF");
+                  const blob = await pdf(<ContractPDF contract={contract} />).toBlob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `contract_${contractId}.pdf`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                })}
+              >
+                <Download className="h-4 w-4" />
+                PDF
+              </button>
+              <button
+                type="button"
+                className="btn-tonal flex items-center gap-2"
+                disabled={loading}
+                onClick={handleSubmit(saveDraft)}
+              >
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                Save Draft
+              </button>
+            </div>
+          </div>
         )}
 
-        {/* Step 4: Send */}
+        {/* ── Step 4: Send ── */}
         {step === 4 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Send Contract</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="rounded-lg border p-4 space-y-3">
-                <p className="font-medium">Email</p>
-                <p className="text-sm text-muted-foreground">Sends DOCX attachment to both parties.</p>
-                <div className="space-y-1">
-                  <Label>Your copy</Label>
-                  <Input
+          <div className="surface-card p-6 space-y-5 animate-scale-in">
+            <div>
+              <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+                Send Contract
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Deliver DOCX to both parties via email or SMS
+              </p>
+            </div>
+
+            <Section title="Email">
+              <div className="space-y-4">
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Sends DOCX attachment to both parties.
+                </p>
+                <div>
+                  <FieldLabel>Your copy</FieldLabel>
+                  <input
+                    className="input-tonal"
                     type="email"
                     value={landlordEmailInput}
                     onChange={(e) => setLandlordEmailInput(e.target.value)}
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label>Tenant copy</Label>
+                <div>
+                  <FieldLabel>Tenant copy</FieldLabel>
                   {(() => {
                     const selectedTenant = tenants.find((t) => t.id === values.tenant_id);
-                    return selectedTenant?.email ? (
-                      <p className="text-sm text-muted-foreground">Also sending to: {selectedTenant.email}</p>
+                    return selectedTenant?.email?.trim() ? (
+                      <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                        Sending to: {selectedTenant.email}
+                      </p>
                     ) : (
-                      <p className="text-sm text-destructive">No email on file for this tenant</p>
+                      <p className="text-sm pill-expired inline-block">
+                        No email on file for this tenant
+                      </p>
                     );
                   })()}
                 </div>
               </div>
+            </Section>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 hover:bg-muted/50">
-                <input type="checkbox" className="mt-0.5 h-4 w-4" {...register("send_sms")} />
+            <Section title="SMS (Optional)">
+              <label
+                className="flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-colors"
+                style={{ background: "var(--surface-card)" }}
+              >
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 accent-[#007aff]"
+                  {...register("send_sms")}
+                />
                 <div>
-                  <p className="font-medium">SMS (Twilio)</p>
-                  <p className="text-sm text-muted-foreground">Send contract link via text message</p>
+                  <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                    Send via Twilio
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    Send contract link via text message
+                  </p>
                 </div>
               </label>
               {values.send_sms && (
-                <div className="space-y-2">
-                  <Label>Recipient Phone</Label>
-                  <Input
+                <div className="mt-3">
+                  <FieldLabel>Recipient Phone</FieldLabel>
+                  <input
+                    className="input-tonal"
                     type="tel"
                     placeholder="+1 787 555 0100"
                     {...register("recipient_phone")}
                   />
                 </div>
               )}
+            </Section>
 
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="mr-2 h-4 w-4" />
-                )}
-                Save & Send Contract
-              </Button>
-            </CardContent>
-          </Card>
+            <button
+              type="submit"
+              className="btn-primary-gradient w-full justify-center flex items-center gap-2"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              Save & Send Contract
+            </button>
+          </div>
         )}
 
-        {/* Navigation */}
-        <div className="flex justify-between pt-2">
-          <Button
+        {/* ── Navigation ── */}
+        <div className="flex justify-between pt-4">
+          <button
             type="button"
-            variant="outline"
+            className="btn-tonal"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
+            style={{ opacity: step === 0 ? 0.4 : 1 }}
           >
             Back
-          </Button>
+          </button>
           {step < STEPS.length - 1 && (
-            <Button type="button" onClick={() => setStep((s) => s + 1)}>
+            <button
+              type="button"
+              className="btn-primary-gradient"
+              onClick={async () => {
+                const stepFields: Record<number, (keyof ContractFormValues)[]> = {
+                  0: ["tenant_id", "lease_start"],
+                  1: ["property_id"],
+                  2: ["rent_amount"],
+                };
+                const fields = stepFields[step];
+                if (fields) {
+                  const valid = await trigger(fields);
+                  if (!valid) return;
+                }
+                setStep((s) => s + 1);
+              }}
+            >
               Continue
-            </Button>
+            </button>
           )}
         </div>
       </form>
