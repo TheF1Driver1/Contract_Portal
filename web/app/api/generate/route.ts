@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
-import fs from "fs";
-import path from "path";
 import type { Contract } from "@/lib/types";
 
 // Spanish month names for the existing template format
@@ -105,24 +103,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Contract not found" }, { status: 404 });
   }
 
-  // Look for template file — first check project templates dir, fall back to example
-  const templatePaths = [
-    path.join(process.cwd(), "templates", "contract_template.docx"),
-    path.join(process.cwd(), "..", "CONTRATO_SABANA_GARDENS_prueba.docx"),
-  ];
-
-  let templateBuffer: Buffer | null = null;
-  for (const p of templatePaths) {
-    if (fs.existsSync(p)) {
-      templateBuffer = fs.readFileSync(p);
-      break;
-    }
-  }
-
-  if (!templateBuffer) {
-    // Generate a minimal plain-text contract if no template found
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const templateRes = await fetch(`${appUrl}/templates/contract_template.docx`);
+  if (!templateRes.ok) {
     return generatePlainContract(contract as Contract);
   }
+  const templateBuffer = Buffer.from(await templateRes.arrayBuffer());
 
   try {
     const zip = new PizZip(templateBuffer);
