@@ -4,6 +4,8 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { TemplateCreateSchema } from "@/lib/schemas";
 
+export const dynamic = "force-dynamic";
+
 // Service role client — used only for storage uploads (bypasses RLS; auth verified before use)
 function adminClient() {
   return createAdminClient(
@@ -34,6 +36,7 @@ export async function GET() {
 
 // POST /api/templates — upload a new .docx template
 export async function POST(req: Request) {
+  try {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,9 +44,12 @@ export async function POST(req: Request) {
   const limited = await rateLimitStrict(user.id);
   if (limited) return limited;
 
+  console.log("[templates POST] parsing formData");
   const formData = await req.formData();
+  console.log("[templates POST] formData keys:", [...formData.keys()]);
   const file = formData.get("file") as File | null;
   const metaRaw = formData.get("meta") as string | null;
+  console.log("[templates POST] file:", file?.name, file?.size, file?.type, "metaRaw:", metaRaw);
 
   if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
   if (file.type !== ALLOWED_MIME && !file.name.endsWith(".docx")) {
@@ -116,4 +122,8 @@ export async function POST(req: Request) {
     .single();
 
   return NextResponse.json(full, { status: 201 });
+  } catch (err) {
+    console.error("[templates POST] unhandled error:", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
