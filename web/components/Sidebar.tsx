@@ -14,8 +14,6 @@ import {
   Heart,
   X,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -35,20 +33,19 @@ interface SidebarProps {
   userEmail: string;
 }
 
-/* Dark sidebar palette (same regardless of light/dark content) */
 const S = {
-  bg:          "linear-gradient(160deg, #0b0f1c 0%, #0e1628 55%, #091320 100%)",
+  bg:          "#000000",
   border:      "rgba(255,255,255,0.06)",
-  activeBg:    "rgba(0,122,255,0.20)",
-  activeGlow:  "0 0 20px rgba(0,122,255,0.28), 0 2px 8px rgba(0,122,255,0.15)",
-  activeBorder:"rgba(0,122,255,0.35)",
-  hoverBg:     "rgba(255,255,255,0.06)",
-  text:        "rgba(190,205,235,0.78)",
+  activeBg:    "rgba(0,122,255,0.18)",
+  activeGlow:  "0 0 18px rgba(0,122,255,0.25), 0 2px 8px rgba(0,122,255,0.12)",
+  activeBorder:"rgba(0,122,255,0.30)",
+  hoverBg:     "rgba(255,255,255,0.05)",
+  text:        "rgba(200,210,230,0.70)",
   textActive:  "#ffffff",
-  textMuted:   "rgba(120,135,170,0.55)",
+  textMuted:   "rgba(120,135,160,0.50)",
   divider:     "rgba(255,255,255,0.06)",
-  footerBg:    "rgba(255,255,255,0.04)",
-  avatarGrad:  "linear-gradient(135deg, #1a4fd4, #007aff)",
+  footerBg:    "rgba(255,255,255,0.03)",
+  avatarGrad:  "linear-gradient(135deg, #0057d9, #007aff)",
 };
 
 export default function Sidebar({ userEmail }: SidebarProps) {
@@ -216,7 +213,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         <div
           className="absolute top-0 left-0 right-0 h-64 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse at 30% -10%, rgba(0,122,255,0.14) 0%, transparent 65%)",
+            background: "radial-gradient(ellipse at 30% -10%, rgba(0,122,255,0.08) 0%, transparent 65%)",
           }}
         />
 
@@ -298,12 +295,6 @@ export default function Sidebar({ userEmail }: SidebarProps) {
           className="relative p-3 space-y-1"
           style={{ borderTop: `1px solid ${S.divider}` }}
         >
-          {/* Theme toggle */}
-          <div className="flex items-center justify-between px-2 py-1.5">
-            <span className="text-xs font-medium" style={{ color: S.textMuted }}>Theme</span>
-            <ThemeToggle />
-          </div>
-
           {/* User row */}
           <div
             className="flex items-center gap-3 rounded-xl p-2.5"
