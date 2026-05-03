@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { rateLimitStrict } from "@/lib/rate-limit";
+import { SendContractSchema } from "@/lib/schemas";
 
 export async function POST(req: Request) {
   const supabase = createClient();
@@ -9,7 +11,16 @@ export async function POST(req: Request) {
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { contractId, landlordEmail, phone } = await req.json();
+  const limited = await rateLimitStrict(user.id);
+  if (limited) return limited;
+
+  const body = await req.json();
+  const parsed = SendContractSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const { contractId, landlordEmail, phone } = parsed.data;
 
   // Verify ownership
   const { data: contract, error } = await supabase
