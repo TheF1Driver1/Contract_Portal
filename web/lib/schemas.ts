@@ -31,6 +31,7 @@ export const ContractCreateSchema = z.object({
   landlord_signature: z.string().max(100_000).optional().nullable(),
   tenant_signature: z.string().max(100_000).optional().nullable(),
   status: z.enum(["draft", "sent", "signed", "expired"]).optional(),
+  template_id: uuid.optional().nullable(),
 });
 
 export const ContractUpdateSchema = ContractCreateSchema.partial();
@@ -124,4 +125,18 @@ export const CrimRateQuerySchema = z.object({
 
 export const GenerateContractSchema = z.object({
   contractId: uuid,
+  format: z.enum(["docx", "pdf"]).optional().default("pdf"),
+});
+
+// ── Contract templates ───────────────────────────────────────────────────────
+
+export const TemplateCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional().nullable(),
+  contract_type: z.enum(["all", "lease", "rental", "addendum"]).default("all"),
+  is_default: z.boolean().optional().default(false),
+});
+
+export const TemplateSetDefaultSchema = z.object({
+  id: uuid,
 });

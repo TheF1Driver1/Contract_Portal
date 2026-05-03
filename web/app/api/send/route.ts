@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       const docRes = await fetch(`${appUrl}/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contractId }),
+        body: JSON.stringify({ contractId, format: "pdf" }),
       });
 
       const { Resend } = await import("resend");
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
         docRes.ok
           ? [
               {
-                filename: `contract_${contractId}.docx`,
+                filename: `contract_${contractId}.pdf`,
                 content: Buffer.from(await docRes.arrayBuffer()),
               },
             ]

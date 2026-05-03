@@ -85,9 +85,13 @@ export interface Contract {
   created_at: string;
   updated_at: string;
 
+  // Template used for this contract
+  template_id?: string | null;
+
   // Joined fields
   property?: Property;
   tenant?: Tenant;
+  template?: ContractTemplate;
 }
 
 export interface MarketProperty {
@@ -176,6 +180,17 @@ export interface InvestmentMetrics {
   break_even_rent: number;
 }
 
+export interface ContractTemplate {
+  id: string;
+  owner_id: string;
+  name: string;
+  description: string | null;
+  file_url: string;
+  contract_type: "all" | ContractType;
+  is_default: boolean;
+  created_at: string;
+}
+
 // Form values for contract builder
 export interface ContractFormValues {
   // Contract meta
@@ -226,6 +241,9 @@ export interface ContractFormValues {
   futon: boolean;
   wall_art: boolean;
   parking: boolean;
+
+  // Template
+  template_id: string;
 
   // Signatures
   landlord_signature: string;
