@@ -197,7 +197,11 @@ export async function POST(req: Request) {
   let docxBuffer: Buffer;
   try {
     const zip = new PizZip(templateBuffer);
-    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      delimiters: { start: "{{", end: "}}" },
+    });
     doc.render(buildContext(contract as Contract));
     docxBuffer = doc.getZip().generate({ type: "nodebuffer" }) as Buffer;
   } catch (e) {
