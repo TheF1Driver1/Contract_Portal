@@ -390,12 +390,15 @@ export default function ContractBuilder({
                     control={control}
                     name="template_id"
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <Select
+                        onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)}
+                        value={field.value || "__none__"}
+                      >
                         <SelectTrigger className="input-tonal border-none h-auto">
                           <SelectValue placeholder="Use default template…" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Default template</SelectItem>
+                          <SelectItem value="__none__">Default template</SelectItem>
                           {templates.map((t) => (
                             <SelectItem key={t.id} value={t.id}>
                               {t.name}
