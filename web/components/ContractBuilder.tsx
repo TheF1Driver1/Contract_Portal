@@ -248,6 +248,11 @@ export default function ContractBuilder({
         }),
       });
       if (!res.ok) throw new Error(await res.text());
+      const result = await res.json();
+      if (result.results?.email && result.results.email !== "sent") {
+        console.warn("[send] email result:", result.results.email);
+        alert(`Contract saved. Email issue: ${result.results.email}`);
+      }
       router.push(`/contracts/${contractId}`);
     } finally {
       setLoading(false);

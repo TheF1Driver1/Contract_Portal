@@ -2,66 +2,10 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { GenerateContractSchema } from "@/lib/schemas";
-import { buildContext, SIG_LANDLORD, SIG_TENANT } from "@/lib/contract-context";
-import PizZip from "pizzip";
-import Docxtemplater from "docxtemplater";
+import { SIG_LANDLORD, SIG_TENANT } from "@/lib/contract-context";
+import { fetchTemplate, renderDocx } from "@/lib/generate-docx";
 import mammoth from "mammoth";
 import type { Contract } from "@/lib/types";
-
-// Fetch template buffer: user's custom template from Supabase Storage, or fall back to bundled default
-async function fetchTemplate(
-  supabase: ReturnType<typeof createClient>,
-  userId: string,
-  contractTypeVal: string,
-  templateId: string | null,
-  fallbackUrl: string
-): Promise<Buffer> {
-  // 1. Try specific template assigned to this contract
-  if (templateId) {
-    const { data: tmpl } = await supabase
-      .from("contract_templates")
-      .select("file_url")
-      .eq("id", templateId)
-      .eq("owner_id", userId)
-      .single();
-    if (tmpl?.file_url) {
-      const res = await fetch(tmpl.file_url);
-      if (res.ok) return Buffer.from(await res.arrayBuffer());
-    }
-  }
-
-  // 2. Try owner's default template for this contract type
-  const typeQuery = supabase
-    .from("contract_templates")
-    .select("file_url")
-    .eq("owner_id", userId)
-    .eq("is_default", true);
-
-  // prefer exact type, then 'all'
-  const { data: exact } = await typeQuery.eq("contract_type", contractTypeVal).single();
-  if (exact?.file_url) {
-    const res = await fetch(exact.file_url);
-    if (res.ok) return Buffer.from(await res.arrayBuffer());
-  }
-
-  const { data: all } = await supabase
-    .from("contract_templates")
-    .select("file_url")
-    .eq("owner_id", userId)
-    .eq("is_default", true)
-    .eq("contract_type", "all")
-    .single();
-  if (all?.file_url) {
-    const res = await fetch(all.file_url);
-    if (res.ok) return Buffer.from(await res.arrayBuffer());
-  }
-
-  // 3. Bundled default
-  const res = await fetch(fallbackUrl);
-  if (res.ok) return Buffer.from(await res.arrayBuffer());
-
-  return Buffer.alloc(0);
-}
 
 async function generatePdf(docxBuffer: Buffer, contract: Contract): Promise<Buffer | null> {
   try {
@@ -196,14 +140,7 @@ export async function POST(req: Request) {
 
   let docxBuffer: Buffer;
   try {
-    const zip = new PizZip(templateBuffer);
-    const doc = new Docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true,
-      delimiters: { start: "{{", end: "}}" },
-    });
-    doc.render(buildContext(contract as Contract));
-    docxBuffer = doc.getZip().generate({ type: "nodebuffer" }) as Buffer;
+    docxBuffer = renderDocx(templateBuffer, contract as Contract);
   } catch (e) {
     console.error("Docxtemplater error:", e);
     return NextResponse.json({ error: "Template rendering failed" }, { status: 500 });
