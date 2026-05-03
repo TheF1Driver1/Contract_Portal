@@ -241,8 +241,8 @@ export default function ContractBuilder({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contractId,
-          landlordEmail: landlordEmailInput,
-          phone: data.send_sms ? data.recipient_phone : null,
+          ...(landlordEmailInput ? { landlordEmail: landlordEmailInput } : {}),
+          ...(data.send_sms && data.recipient_phone ? { phone: data.recipient_phone } : {}),
         }),
       });
       if (!res.ok) throw new Error(await res.text());
