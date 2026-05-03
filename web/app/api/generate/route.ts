@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { GenerateContractSchema } from "@/lib/schemas";
-import { SIG_LANDLORD, SIG_TENANT } from "@/lib/contract-context";
+import { buildContext, SIG_LANDLORD, SIG_TENANT } from "@/lib/contract-context";
 import { fetchTemplate, renderDocx } from "@/lib/generate-docx";
 import mammoth from "mammoth";
 import type { Contract } from "@/lib/types";
