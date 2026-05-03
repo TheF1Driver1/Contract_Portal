@@ -22,7 +22,6 @@ export async function POST(req: Request) {
 
   const { contractId, landlordEmail, phone } = parsed.data;
 
-  // Verify ownership
   const { data: contract, error } = await supabase
     .from("contracts")
     .select("*, tenant:tenants(full_name, email), property:properties(name)")
@@ -41,7 +40,6 @@ export async function POST(req: Request) {
   // === EMAIL via Resend ===
   if (landlordEmail && process.env.RESEND_API_KEY) {
     try {
-      // Generate document
       const docRes = await fetch(`${appUrl}/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -121,7 +119,6 @@ export async function POST(req: Request) {
     }
   }
 
-  // Mark as sent
   await supabase
     .from("contracts")
     .update({ status: "sent", sent_at: new Date().toISOString() })
