@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
+import { ContractCreateSchema } from "@/lib/schemas";
 
 export async function GET() {
   const supabase = createClient();
@@ -10,6 +12,9 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const limited = await rateLimitRead(user.id);
+  if (limited) return limited;
 
   const { data, error } = await supabase
     .from("contracts")
@@ -32,10 +37,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const limited = await rateLimitWrite(user.id);
+  if (limited) return limited;
+
   const body = await req.json();
+  const parsed = ContractCreateSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
   const { data, error } = await supabase
     .from("contracts")
-    .insert({ ...body, owner_id: user.id })
+    .insert({ ...parsed.data, owner_id: user.id })
     .select()
     .single();
 

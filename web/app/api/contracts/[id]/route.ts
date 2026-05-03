@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
+import { ContractUpdateSchema } from "@/lib/schemas";
 
 export async function GET(
   _req: Request,
@@ -11,6 +13,9 @@ export async function GET(
   } = await supabase.auth.getUser();
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limited = await rateLimitRead(user.id);
+  if (limited) return limited;
 
   const { data, error } = await supabase
     .from("contracts")
@@ -35,10 +40,18 @@ export async function PATCH(
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const limited = await rateLimitWrite(user.id);
+  if (limited) return limited;
+
   const body = await req.json();
+  const parsed = ContractUpdateSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
   const { data, error } = await supabase
     .from("contracts")
-    .update(body)
+    .update(parsed.data)
     .eq("id", params.id)
     .eq("owner_id", user.id)
     .select()
@@ -59,6 +72,9 @@ export async function DELETE(
   } = await supabase.auth.getUser();
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limited = await rateLimitWrite(user.id);
+  if (limited) return limited;
 
   const { error } = await supabase
     .from("contracts")
