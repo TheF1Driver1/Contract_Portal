@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase-server";
+import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
+import { InvestmentAnalysisSchema } from "@/lib/schemas";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET — fetch existing analysis for a watchlist item (returns null if none)
 export async function GET(
   _req: NextRequest,
   { params }: { params: { watchlistId: string } }
@@ -9,6 +10,9 @@ export async function GET(
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limited = await rateLimitRead(user.id);
+  if (limited) return limited;
 
   const { data, error } = await supabase
     .from("investment_analyses")
@@ -21,7 +25,6 @@ export async function GET(
   return NextResponse.json(data ?? null);
 }
 
-// PUT — upsert analysis inputs
 export async function PUT(
   req: NextRequest,
   { params }: { params: { watchlistId: string } }
@@ -30,9 +33,15 @@ export async function PUT(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json();
+  const limited = await rateLimitWrite(user.id);
+  if (limited) return limited;
 
-  // Check if row already exists
+  const body = await req.json();
+  const parsed = InvestmentAnalysisSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
   const { data: existing } = await supabase
     .from("investment_analyses")
     .select("id")
@@ -41,20 +50,9 @@ export async function PUT(
     .maybeSingle();
 
   const payload = {
-    owner_id:             user.id,
-    watchlist_id:         params.watchlistId,
-    purchase_price:       body.purchase_price,
-    down_payment_pct:     body.down_payment_pct,
-    closing_cost_pct:     body.closing_cost_pct,
-    mortgage_rate_pct:    body.mortgage_rate_pct,
-    loan_term_years:      body.loan_term_years,
-    annual_tax_pct:       body.annual_tax_pct,
-    annual_insurance_pct: body.annual_insurance_pct,
-    maintenance_pct:      body.maintenance_pct,
-    monthly_hoa:          body.monthly_hoa,
-    monthly_utilities:    body.monthly_utilities,
-    estimated_rent:       body.estimated_rent ?? null,
-    vacancy_rate_pct:     body.vacancy_rate_pct,
+    owner_id:     user.id,
+    watchlist_id: params.watchlistId,
+    ...parsed.data,
   };
 
   let result;
