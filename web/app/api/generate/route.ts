@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { rateLimitStrict } from "@/lib/rate-limit";
+import { GenerateContractSchema } from "@/lib/schemas";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import type { Contract } from "@/lib/types";
@@ -89,7 +91,15 @@ export async function POST(req: Request) {
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { contractId } = await req.json();
+  const limited = await rateLimitStrict(user.id);
+  if (limited) return limited;
+
+  const body = await req.json();
+  const parsed = GenerateContractSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+  const { contractId } = parsed.data;
 
   // Fetch contract with joins
   const { data: contract, error } = await supabase
