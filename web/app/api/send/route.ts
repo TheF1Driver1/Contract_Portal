@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { SendContractSchema } from "@/lib/schemas";
+import { fetchTemplate, renderDocx } from "@/lib/generate-docx";
+import type { Contract } from "@/lib/types";
 
 export async function POST(req: Request) {
   const supabase = createClient();
@@ -33,68 +35,85 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Contract not found" }, { status: 404 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const host = req.headers.get("host") ?? "localhost:3000";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? `${protocol}://${host}`;
   const contractUrl = `${appUrl}/contracts/${contractId}`;
   const results: Record<string, unknown> = {};
 
   // === EMAIL via Resend ===
-  if (landlordEmail && process.env.RESEND_API_KEY) {
-    try {
-      const docRes = await fetch(`${appUrl}/api/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contractId }),
-      });
+  if (landlordEmail) {
+    if (!process.env.RESEND_API_KEY) {
+      results.email = "skipped: RESEND_API_KEY not configured in this environment";
+    } else {
+      try {
+        // Generate DOCX attachment directly (no HTTP — avoids auth issue)
+        let attachments: { filename: string; content: Buffer }[] = [];
+        try {
+          const fallbackUrl = `${appUrl}/templates/contract_template.docx`;
+          const templateBuffer = await fetchTemplate(
+            supabase,
+            user.id,
+            contract.contract_type,
+            (contract as Contract & { template_id?: string | null }).template_id ?? null,
+            fallbackUrl
+          );
+          if (templateBuffer.length) {
+            const docxBuffer = renderDocx(templateBuffer, contract as Contract);
+            attachments = [{ filename: `contract_${contractId}.docx`, content: docxBuffer }];
+          }
+        } catch (attachErr) {
+          console.error("[send] attachment generation failed:", attachErr);
+        }
 
-      const { Resend } = await import("resend");
-      const resend = new Resend(process.env.RESEND_API_KEY);
+        const { Resend } = await import("resend");
+        const resend = new Resend(process.env.RESEND_API_KEY);
 
-      const attachments =
-        docRes.ok
-          ? [
-              {
-                filename: `contract_${contractId}.docx`,
-                content: Buffer.from(await docRes.arrayBuffer()),
-              },
-            ]
-          : [];
+        const subject = `Lease Agreement — ${contract.property?.name}`;
+        const html = `
+          <p>Hello,</p>
+          <p>Please find attached the lease agreement for <strong>${contract.property?.name}</strong>.</p>
+          <p><a href="${contractUrl}">View Contract Online</a></p>
+        `;
 
-      const subject = `Lease Agreement — ${contract.property?.name}`;
-      const html = `
-        <p>Hello,</p>
-        <p>Please find attached the lease agreement for <strong>${contract.property?.name}</strong>.</p>
-        <p><a href="${contractUrl}">View Contract</a></p>
-      `;
-
-      const sends: Promise<unknown>[] = [];
-      sends.push(resend.emails.send({
-        from: process.env.FROM_EMAIL ?? "contracts@yourdomain.com",
-        to: landlordEmail,
-        subject,
-        html,
-        attachments,
-      }));
-
-      const tenantEmail = (contract.tenant as { full_name: string; email?: string } | null)?.email?.trim();
-      if (tenantEmail) {
+        const sends: Promise<unknown>[] = [];
         sends.push(resend.emails.send({
-          from: process.env.FROM_EMAIL ?? "contracts@yourdomain.com",
-          to: tenantEmail,
+          from: process.env.FROM_EMAIL ?? "onboarding@resend.dev",
+          to: landlordEmail,
           subject,
-          html: `
-            <p>Hello ${(contract.tenant as { full_name: string })?.full_name},</p>
-            <p>Please review and sign your lease agreement for <strong>${contract.property?.name}</strong>.</p>
-            <p><a href="${contractUrl}">View Contract</a></p>
-            <p>The contract is also attached to this email.</p>
-          `,
+          html,
           attachments,
         }));
-      }
 
-      await Promise.all(sends);
-      results.email = "sent";
-    } catch (e) {
-      results.email = "failed: " + (e as Error).message;
+        const tenantEmail = (contract.tenant as { full_name: string; email?: string } | null)?.email?.trim();
+        if (tenantEmail) {
+          sends.push(resend.emails.send({
+            from: process.env.FROM_EMAIL ?? "onboarding@resend.dev",
+            to: tenantEmail,
+            subject,
+            html: `
+              <p>Hello ${(contract.tenant as { full_name: string })?.full_name},</p>
+              <p>Please review and sign your lease agreement for <strong>${contract.property?.name}</strong>.</p>
+              <p><a href="${contractUrl}">View Contract Online</a></p>
+              ${attachments.length ? "<p>The contract is also attached to this email.</p>" : ""}
+            `,
+            attachments,
+          }));
+        }
+
+        const sendResults = await Promise.allSettled(sends);
+        const failed = sendResults.filter((r) => r.status === "rejected");
+        if (failed.length) {
+          const reasons = failed.map((r) => (r as PromiseRejectedResult).reason?.message ?? String(r));
+          console.error("[send] Resend errors:", reasons);
+          results.email = `partial failure: ${reasons.join("; ")}`;
+        } else {
+          results.email = "sent";
+        }
+      } catch (e) {
+        console.error("[send] email error:", e);
+        results.email = "failed: " + (e as Error).message;
+      }
     }
   }
 

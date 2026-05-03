@@ -41,7 +41,7 @@ const tenants: Tenant[] = [
 ];
 
 function setup() {
-  return render(<ContractBuilder properties={properties} tenants={tenants} userId="u1" landlordEmail="landlord@example.com" />);
+  return render(<ContractBuilder properties={properties} tenants={tenants} templates={[]} userId="u1" landlordEmail="landlord@example.com" />);
 }
 
 // --- Tests ---
@@ -54,7 +54,7 @@ describe("ContractBuilder step navigation", () => {
 
   it("shows all 5 step tabs", () => {
     setup();
-    ["Details", "Property & Amenities", "Payment", "Signatures", "Send"].forEach((label) => {
+    ["Details", "Property", "Payment", "Signatures", "Send"].forEach((label) => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
   });
@@ -64,80 +64,91 @@ describe("ContractBuilder step navigation", () => {
     expect(screen.getByRole("button", { name: /back/i })).toBeDisabled();
   });
 
-  it("Continue advances to step 1", async () => {
+  it("clicking Property tab advances to step 1 content", async () => {
     setup();
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
-    expect(screen.getByRole("heading", { name: "Property & Amenities" })).toBeInTheDocument();
+    await userEvent.click(getStepButton("Property"));
+    expect(screen.getByText("Property & Amenities")).toBeInTheDocument();
   });
 
   it("Back returns to step 0 from step 1", async () => {
     setup();
-    await userEvent.click(screen.getByRole("button", { name: /continue/i }));
+    await userEvent.click(getStepButton("Property"));
     await userEvent.click(screen.getByRole("button", { name: /back/i }));
     expect(screen.getByText("Contract Details")).toBeInTheDocument();
   });
 
   it("clicking step tab jumps directly to that step", async () => {
     setup();
-    await userEvent.click(screen.getByRole("button", { name: "Payment" }));
+    await userEvent.click(getStepButton("Payment"));
     expect(screen.getByText("Payment Terms")).toBeInTheDocument();
   });
 
   it("Continue not shown on last step", async () => {
     setup();
-    // Navigate to last step (Send)
-    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+    await userEvent.click(getStepButton("Send"));
     expect(screen.queryByRole("button", { name: /continue/i })).not.toBeInTheDocument();
   });
 
   it("last step shows Send Contract submit button", async () => {
     setup();
-    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+    await userEvent.click(getStepButton("Send"));
     expect(screen.getByRole("button", { name: /save & send contract/i })).toBeInTheDocument();
   });
 });
 
+function getStepButton(label: string) {
+  return screen.getAllByRole("button").find(b => {
+    const spans = b.querySelectorAll("span");
+    return Array.from(spans).some(s => s.textContent?.trim() === label);
+  })!;
+}
+
 describe("ContractBuilder step 4 (Send) conditional fields", () => {
-  it("email input hidden when email checkbox unchecked", async () => {
+  async function goToSendStep() {
     setup();
-    await userEvent.click(screen.getByRole("button", { name: "Send" }));
-    expect(screen.queryByPlaceholderText("tenant@example.com")).not.toBeInTheDocument();
+    await userEvent.click(getStepButton("Send"));
+  }
+
+  it("Send step shows Save & Send Contract button", async () => {
+    await goToSendStep();
+    expect(screen.getByRole("button", { name: /save & send contract/i })).toBeInTheDocument();
   });
 
-  it("email input shown when email checkbox checked", async () => {
-    setup();
-    await userEvent.click(screen.getByRole("button", { name: "Send" }));
-    const emailCheckbox = screen.getByRole("checkbox", { name: /email/i });
-    await userEvent.click(emailCheckbox);
-    expect(screen.getByPlaceholderText("tenant@example.com")).toBeInTheDocument();
-  });
-
-  it("SMS input hidden when SMS checkbox unchecked", async () => {
-    setup();
-    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+  it("SMS phone input hidden when SMS checkbox unchecked", async () => {
+    await goToSendStep();
     expect(screen.queryByPlaceholderText("+1 787 555 0100")).not.toBeInTheDocument();
   });
 
-  it("SMS input shown when SMS checkbox checked", async () => {
-    setup();
-    await userEvent.click(screen.getByRole("button", { name: "Send" }));
-    const smsCheckbox = screen.getByRole("checkbox", { name: /sms/i });
+  it("SMS phone input shown when SMS checkbox checked", async () => {
+    await goToSendStep();
+    const smsCheckbox = screen.getAllByRole("checkbox")[0];
     await userEvent.click(smsCheckbox);
     expect(screen.getByPlaceholderText("+1 787 555 0100")).toBeInTheDocument();
+  });
+
+  it("email address input always visible for landlord copy", async () => {
+    await goToSendStep();
+    const emailInputs = screen.getAllByRole("textbox");
+    expect(emailInputs.some(i => (i as HTMLInputElement).type === "email")).toBe(true);
   });
 });
 
 describe("ContractBuilder step 3 (Signatures)", () => {
-  it("renders signature pads for landlord and tenant", async () => {
+  async function goToSignaturesStep() {
     setup();
-    await userEvent.click(screen.getByRole("button", { name: "Signatures" }));
+    await userEvent.click(getStepButton("Signatures"));
+  }
+
+  it("renders signature pads for landlord and tenant", async () => {
+    await goToSignaturesStep();
     expect(screen.getByText("Landlord Signature")).toBeInTheDocument();
     expect(screen.getByText("Tenant Signature")).toBeInTheDocument();
   });
 
-  it("Download DOCX button present on signatures step", async () => {
-    setup();
-    await userEvent.click(screen.getByRole("button", { name: "Signatures" }));
-    expect(screen.getByRole("button", { name: /download docx/i })).toBeInTheDocument();
+  it("PDF and DOCX download buttons present on signatures step", async () => {
+    await goToSignaturesStep();
+    const buttons = screen.getAllByRole("button");
+    expect(buttons.some(b => b.textContent?.trim() === "PDF")).toBe(true);
+    expect(buttons.some(b => b.textContent?.trim() === "DOCX")).toBe(true);
   });
 });

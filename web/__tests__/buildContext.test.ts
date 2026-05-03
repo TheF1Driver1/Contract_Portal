@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { check, MONTHS_ES, buildContext } from "@/app/api/generate/route";
+import { check, MONTHS_ES, buildContext } from "@/lib/contract-context";
 import type { Contract } from "@/lib/types";
 
 // Minimal contract fixture

@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/select";
 import SignaturePad from "@/components/SignaturePad";
 import { createClient } from "@/lib/supabase";
-import type { Property, Tenant, ContractFormValues } from "@/lib/types";
+import type { Property, Tenant, ContractFormValues, ContractTemplate } from "@/lib/types";
 import { Loader2, Download, Send, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContractBuilderProps {
   properties: Property[];
   tenants: Tenant[];
+  templates: ContractTemplate[];
   userId: string;
   landlordEmail: string;
 }
@@ -65,6 +66,7 @@ const STEPS = [
 export default function ContractBuilder({
   properties,
   tenants,
+  templates,
   userId,
   landlordEmail,
 }: ContractBuilderProps) {
@@ -115,6 +117,7 @@ export default function ContractBuilder({
       futon: false,
       wall_art: false,
       parking: false,
+      template_id: "",
       landlord_signature: "",
       tenant_signature: "",
       send_email: false,
@@ -174,6 +177,7 @@ export default function ContractBuilder({
         occupant_count: data.occupant_count,
         amenities,
         key_count: data.key_count,
+        template_id: data.template_id || null,
         landlord_signature: data.landlord_signature || null,
         tenant_signature: data.tenant_signature || null,
         signed_at:
@@ -206,21 +210,23 @@ export default function ContractBuilder({
     }
   }
 
-  async function generateAndDownload(data: ContractFormValues) {
+  async function generateAndDownload(data: ContractFormValues, format: "pdf" | "docx" = "pdf") {
     const contractId = await saveDraft(data);
     setGenerating(true);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contractId }),
+        body: JSON.stringify({ contractId, format }),
       });
       if (!res.ok) throw new Error(await res.text());
+      const contentType = res.headers.get("content-type") ?? "";
+      const ext = contentType.includes("pdf") ? "pdf" : "docx";
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `contract_${contractId}.docx`;
+      a.download = `contract_${contractId}.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -237,11 +243,16 @@ export default function ContractBuilder({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contractId,
-          landlordEmail: landlordEmailInput,
-          phone: data.send_sms ? data.recipient_phone : null,
+          ...(landlordEmailInput ? { landlordEmail: landlordEmailInput } : {}),
+          ...(data.send_sms && data.recipient_phone ? { phone: data.recipient_phone } : {}),
         }),
       });
       if (!res.ok) throw new Error(await res.text());
+      const result = await res.json();
+      if (result.results?.email && result.results.email !== "sent") {
+        console.warn("[send] email result:", result.results.email);
+        alert(`Contract saved. Email issue: ${result.results.email}`);
+      }
       router.push(`/contracts/${contractId}`);
     } finally {
       setLoading(false);
@@ -377,6 +388,43 @@ export default function ContractBuilder({
                 </div>
               </div>
             </Section>
+
+            {templates.length > 0 && (
+              <Section title="Template">
+                <div>
+                  <FieldLabel>Contract Template</FieldLabel>
+                  <Controller
+                    control={control}
+                    name="template_id"
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)}
+                        value={field.value || "__none__"}
+                      >
+                        <SelectTrigger className="input-tonal border-none h-auto">
+                          <SelectValue placeholder="Use default template…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Default template</SelectItem>
+                          {templates.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.name}
+                              {t.is_default ? " ★" : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <p className="text-xs mt-1.5" style={{ color: "var(--text-muted)" }}>
+                    Manage templates in{" "}
+                    <a href="/settings/templates" className="underline" style={{ color: "#007aff" }}>
+                      Settings → Templates
+                    </a>
+                  </p>
+                </div>
+              </Section>
+            )}
 
             <Section title="Lease Period">
               <div className="grid gap-4 sm:grid-cols-3">
@@ -651,7 +699,20 @@ export default function ContractBuilder({
                 type="button"
                 className="btn-tonal flex items-center gap-2"
                 disabled={generating}
-                onClick={handleSubmit(generateAndDownload)}
+                onClick={handleSubmit((d) => generateAndDownload(d, "pdf"))}
+              >
+                {generating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                PDF
+              </button>
+              <button
+                type="button"
+                className="btn-tonal flex items-center gap-2"
+                disabled={generating}
+                onClick={handleSubmit((d) => generateAndDownload(d, "docx"))}
               >
                 {generating ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -659,31 +720,6 @@ export default function ContractBuilder({
                   <Download className="h-4 w-4" />
                 )}
                 DOCX
-              </button>
-              <button
-                type="button"
-                className="btn-tonal flex items-center gap-2"
-                onClick={handleSubmit(async (data) => {
-                  const contractId = await saveDraft(data);
-                  const contract = {
-                    ...data,
-                    id: contractId,
-                    tenant: tenants.find((t) => t.id === data.tenant_id),
-                    property: properties.find((p) => p.id === data.property_id),
-                  };
-                  const { pdf } = await import("@react-pdf/renderer");
-                  const { default: ContractPDF } = await import("@/components/ContractPDF");
-                  const blob = await pdf(<ContractPDF contract={contract} />).toBlob();
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `contract_${contractId}.pdf`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                })}
-              >
-                <Download className="h-4 w-4" />
-                PDF
               </button>
               <button
                 type="button"
