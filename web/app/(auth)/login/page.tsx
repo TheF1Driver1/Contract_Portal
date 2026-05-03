@@ -45,9 +45,23 @@ export default function LoginPage() {
       {/* Cursor spotlight */}
       <Spotlight size={150} springOptions={{ stiffness: 60, damping: 20, mass: 1 }} />
 
-      {/* Foreground — form floats right */}
-      <div className="pointer-events-none relative z-10 flex items-center justify-end h-screen">
-        <div className="pointer-events-none w-1/2 flex flex-col justify-center px-10 lg:px-16">
+      {/* Foreground — hero left + form right */}
+      <div className="pointer-events-none relative z-10 flex items-center h-screen">
+        {/* Left hero text */}
+        <div className="hidden md:flex w-1/2 flex-col justify-center px-12 lg:px-20 gap-5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+            Real Estate Management
+          </p>
+          <h2 className="text-5xl lg:text-6xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
+            Your portfolio.<br />Managed<br />beautifully.
+          </h2>
+          <p className="text-neutral-500 text-base leading-relaxed max-w-sm">
+            Contracts, tenants, and market intelligence — all in one clean, powerful dashboard.
+          </p>
+        </div>
+
+        {/* Right form */}
+        <div className="pointer-events-none w-full md:w-1/2 flex flex-col justify-center px-10 lg:px-16">
           <div className="mb-8">
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
               Welcome back
