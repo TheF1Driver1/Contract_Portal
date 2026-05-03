@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
   console.log("[templates POST] parsing formData");
   const formData = await req.formData();
-  console.log("[templates POST] formData keys:", [...formData.keys()]);
+  console.log("[templates POST] formData keys:", Array.from(formData.keys()));
   const file = formData.get("file") as File | null;
   const metaRaw = formData.get("meta") as string | null;
   console.log("[templates POST] file:", file?.name, file?.size, file?.type, "metaRaw:", metaRaw);
