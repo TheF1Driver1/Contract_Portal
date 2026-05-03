@@ -543,6 +543,20 @@
 .animate-slide-up     { animation: slide-up 400ms cubic-bezier(0.16,1,0.3,1) both; }
 .animate-slide-in-left { animation: slide-in-left 400ms cubic-bezier(0.16,1,0.3,1) both; }
 
+/* Spline loader spinner */
+.loader {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Signature pad */
 .signature-canvas {
   background: var(--surface-low);
