@@ -21,11 +21,13 @@ export default function ContractActions({ contract }: { contract: Contract }) {
         body: JSON.stringify({ contractId: contract.id, format }),
       });
       if (!res.ok) throw new Error(await res.text());
+      const contentType = res.headers.get("content-type") ?? "";
+      const ext = contentType.includes("pdf") ? "pdf" : "docx";
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `contract_${contract.id}.${format}`;
+      a.download = `contract_${contract.id}.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {

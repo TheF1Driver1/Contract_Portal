@@ -220,11 +220,13 @@ export default function ContractBuilder({
         body: JSON.stringify({ contractId, format }),
       });
       if (!res.ok) throw new Error(await res.text());
+      const contentType = res.headers.get("content-type") ?? "";
+      const ext = contentType.includes("pdf") ? "pdf" : "docx";
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `contract_${contractId}.${format}`;
+      a.download = `contract_${contractId}.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
