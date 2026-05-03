@@ -59,8 +59,8 @@ export default async function ContractsPage({
             Leases
           </p>
           <h1
-            className="text-4xl font-bold"
-            style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}
+            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400"
+            style={{ letterSpacing: "-0.03em" }}
           >
             Contracts
           </h1>
