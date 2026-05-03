@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { TemplateCreateSchema } from "@/lib/schemas";
+
+// Service role client — used only for storage uploads (bypasses RLS; auth verified before use)
+function adminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -79,8 +88,9 @@ export async function POST(req: Request) {
 
   const storagePath = `${user.id}/${record.id}.docx`;
   const bytes = await file.arrayBuffer();
+  const admin = adminClient();
 
-  const { error: uploadErr } = await supabase.storage
+  const { error: uploadErr } = await admin.storage
     .from(BUCKET)
     .upload(storagePath, bytes, {
       contentType: ALLOWED_MIME,
@@ -88,12 +98,11 @@ export async function POST(req: Request) {
     });
 
   if (uploadErr) {
-    // Roll back the DB record
     await supabase.from("contract_templates").delete().eq("id", record.id);
     return NextResponse.json({ error: uploadErr.message }, { status: 500 });
   }
 
-  const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
+  const { data: { publicUrl } } = admin.storage.from(BUCKET).getPublicUrl(storagePath);
 
   await supabase
     .from("contract_templates")

@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { rateLimitStrict } from "@/lib/rate-limit";
+
+function adminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 const BUCKET = "contract-templates";
 
@@ -80,7 +88,7 @@ export async function DELETE(
   }
 
   const storagePath = `${user.id}/${params.id}.docx`;
-  await supabase.storage.from(BUCKET).remove([storagePath]);
+  await adminClient().storage.from(BUCKET).remove([storagePath]);
 
   await supabase.from("contract_templates").delete().eq("id", params.id);
 
