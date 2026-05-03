@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { GenerateContractSchema } from "@/lib/schemas";
 import { buildContext, SIG_LANDLORD, SIG_TENANT } from "@/lib/contract-context";
-import { fetchTemplate, renderDocx } from "@/lib/generate-docx";
+import { fetchTemplate, renderDocx, injectSignaturesIntoDocx } from "@/lib/generate-docx";
 import mammoth from "mammoth";
 import type { Contract } from "@/lib/types";
 
@@ -148,7 +148,8 @@ export async function POST(req: Request) {
 
   // DOCX output
   if (format === "docx") {
-    return new NextResponse(docxBuffer as unknown as BodyInit, {
+    const signedDocx = injectSignaturesIntoDocx(docxBuffer, contract as Contract);
+    return new NextResponse(signedDocx as unknown as BodyInit, {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="contract_${contractId}.docx"`,

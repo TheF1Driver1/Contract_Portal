@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { SendContractSchema } from "@/lib/schemas";
-import { fetchTemplate, renderDocx } from "@/lib/generate-docx";
+import { fetchTemplate, renderDocx, injectSignaturesIntoDocx } from "@/lib/generate-docx";
 import type { Contract } from "@/lib/types";
 
 export async function POST(req: Request) {
@@ -59,7 +59,8 @@ export async function POST(req: Request) {
             fallbackUrl
           );
           if (templateBuffer.length) {
-            const docxBuffer = renderDocx(templateBuffer, contract as Contract);
+            const rendered = renderDocx(templateBuffer, contract as Contract);
+            const docxBuffer = injectSignaturesIntoDocx(rendered, contract as Contract);
             attachments = [{ filename: `contract_${contractId}.docx`, content: docxBuffer }];
           }
         } catch (attachErr) {
