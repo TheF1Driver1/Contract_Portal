@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { Loader2, ArrowRight } from "lucide-react";
-import { Spotlight } from "@/components/ui/spotlight";
 import { SplineScene } from "@/components/ui/splite";
 import { MeshGradientBg } from "@/components/ui/mesh-gradient-bg";
 
@@ -41,9 +40,6 @@ export default function LoginPage() {
         scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
         className="absolute inset-0 w-full h-full"
       />
-
-      {/* Cursor spotlight */}
-      <Spotlight size={150} springOptions={{ stiffness: 60, damping: 20, mass: 1 }} />
 
       {/* Foreground — hero left + form right */}
       <div className="pointer-events-none relative z-10 flex items-center h-screen">
@@ -87,7 +83,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-neutral-400 placeholder-neutral-600 outline-none focus:border-white/30 transition-colors"
+                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm text-black placeholder-neutral-400 outline-none focus:border-neutral-300 focus:ring-2 focus:ring-neutral-100 transition-colors"
               />
             </div>
 
@@ -111,7 +107,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-neutral-400 placeholder-neutral-600 outline-none focus:border-white/30 transition-colors"
+                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm text-black placeholder-neutral-400 outline-none focus:border-neutral-300 focus:ring-2 focus:ring-neutral-100 transition-colors"
               />
             </div>
 
