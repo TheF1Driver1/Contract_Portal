@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { Loader2, ArrowRight } from "lucide-react";
-import { SplineScene } from "@/components/ui/splite";
 import { MeshGradientBg } from "@/components/ui/mesh-gradient-bg";
 
 export default function LoginPage() {
@@ -36,11 +35,6 @@ export default function LoginPage() {
     <main className="min-h-screen w-full relative overflow-hidden">
       {/* Background layers */}
       <MeshGradientBg />
-      <SplineScene
-        scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-        className="absolute inset-0 w-full h-full"
-      />
-
       {/* Foreground — hero left + form right */}
       <div className="pointer-events-none relative z-10 flex items-center h-screen">
         {/* Left hero text */}
