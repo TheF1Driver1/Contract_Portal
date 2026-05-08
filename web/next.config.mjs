@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ["docxtemplater", "pizzip"],
+    serverComponentsExternalPackages: ["docxtemplater", "pizzip", "@react-pdf/renderer"],
     outputFileTracingIncludes: {
       '/api/generate': ['./templates/**'],
     },

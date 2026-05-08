@@ -32,6 +32,12 @@ export const ContractCreateSchema = z.object({
   tenant_signature: z.string().max(100_000).optional().nullable(),
   status: z.enum(["draft", "sent", "signed", "expired"]).optional(),
   template_id: uuid.optional().nullable(),
+  late_fee_type: z.enum(['fixed', 'daily', 'both']).default('fixed'),
+  late_fee_grace_period_days: z.number().int().min(0).max(30).default(0),
+  late_fee_fixed_amount: nonNeg.default(0),
+  late_fee_daily_amount: nonNeg.default(0),
+  tenant_snapshot: z.record(z.unknown()).optional().nullable(),
+  property_snapshot: z.record(z.unknown()).optional().nullable(),
 });
 
 export const ContractUpdateSchema = ContractCreateSchema.partial();
@@ -126,6 +132,7 @@ export const CrimRateQuerySchema = z.object({
 export const GenerateContractSchema = z.object({
   contractId: uuid,
   format: z.enum(["docx", "pdf"]).optional().default("pdf"),
+  store: z.boolean().optional().default(false),
 });
 
 // ── Contract templates ───────────────────────────────────────────────────────
@@ -139,4 +146,35 @@ export const TemplateCreateSchema = z.object({
 
 export const TemplateSetDefaultSchema = z.object({
   id: uuid,
+});
+
+// ── Property update ──────────────────────────────────────────────────────────
+
+export const PropertyUpdateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  address: z.string().min(1).max(300).optional(),
+  city: z.string().min(1).max(100).optional(),
+  state: z.string().min(1).max(10).optional(),
+  zip: z.string().max(20).optional().nullable(),
+  unit_count: z.number().int().min(1).max(1000).optional(),
+  bathroom_count: z.number().int().min(0).max(50).optional(),
+  parking_available: z.boolean().optional(),
+  parking_count: z.number().int().min(0).max(500).optional().nullable(),
+});
+
+// ── Tenant update ────────────────────────────────────────────────────────────
+
+export const TenantUpdateSchema = z.object({
+  full_name: z.string().min(1).max(200).optional(),
+  email: z.string().email().max(254).optional().nullable(),
+  phone: z.string().max(30).optional().nullable(),
+  ssn_last4: z.string().length(4).regex(/^\d{4}$/).optional().nullable(),
+  license_number: z.string().max(50).optional().nullable(),
+  current_address: z.string().max(300).optional().nullable(),
+  date_of_birth: isoDate.optional().nullable(),
+  employer_name: z.string().max(200).optional().nullable(),
+  employer_phone: z.string().max(30).optional().nullable(),
+  monthly_income: nonNeg.optional().nullable(),
+  emergency_contact_name: z.string().max(200).optional().nullable(),
+  emergency_contact_phone: z.string().max(30).optional().nullable(),
 });

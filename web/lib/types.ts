@@ -19,6 +19,9 @@ export interface Property {
   state: string;
   zip: string | null;
   unit_count: number;
+  bathroom_count: number;
+  parking_available: boolean;
+  parking_count: number | null;
   created_at: string;
   latitude?: number | null;
   longitude?: number | null;
@@ -33,6 +36,12 @@ export interface Tenant {
   ssn_last4: string | null;
   license_number: string | null;
   current_address: string | null;
+  date_of_birth: string | null;
+  employer_name: string | null;
+  employer_phone: string | null;
+  monthly_income: number | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
   created_at: string;
 }
 
@@ -58,6 +67,12 @@ export interface Contract {
   security_deposit: number;
   payment_due_day: number;
   late_fee_day: number;
+
+  // Late fee policy
+  late_fee_type: 'fixed' | 'daily' | 'both';
+  late_fee_grace_period_days: number;
+  late_fee_fixed_amount: number;
+  late_fee_daily_amount: number;
 
   // Occupants
   occupant_names: string[];
@@ -87,6 +102,10 @@ export interface Contract {
 
   // Template used for this contract
   template_id?: string | null;
+
+  // Immutable snapshots (frozen at contract creation/signing)
+  tenant_snapshot: TenantSnapshot | null;
+  property_snapshot: PropertySnapshot | null;
 
   // Joined fields
   property?: Property;
@@ -180,6 +199,48 @@ export interface InvestmentMetrics {
   break_even_rent: number;
 }
 
+export interface TenantSnapshot {
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  ssn_last4: string | null;
+  license_number: string | null;
+  current_address: string | null;
+  date_of_birth: string | null;
+  employer_name: string | null;
+  employer_phone: string | null;
+  monthly_income: number | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+}
+
+export interface PropertySnapshot {
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string | null;
+  unit_count: number;
+  bathroom_count: number;
+  parking_available: boolean;
+  parking_count: number | null;
+}
+
+export interface ContractOccupant {
+  id: string;
+  contract_id: string;
+  owner_id: string;
+  role: 'co_tenant' | 'guarantor' | 'emergency_contact';
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  ssn_last4: string | null;
+  license_number: string | null;
+  current_address: string | null;
+  date_of_birth: string | null;
+  created_at: string;
+}
+
 export interface ContractTemplate {
   id: string;
   owner_id: string;
@@ -241,6 +302,18 @@ export interface ContractFormValues {
   futon: boolean;
   wall_art: boolean;
   parking: boolean;
+
+  // Property counts
+  bathroom_count: number;
+  parking_available: boolean;
+  parking_count: number;
+  parking_spot: string;
+
+  // Late fee policy
+  late_fee_type: 'fixed' | 'daily' | 'both';
+  late_fee_grace_period_days: number;
+  late_fee_fixed_amount: number;
+  late_fee_daily_amount: number;
 
   // Template
   template_id: string;
