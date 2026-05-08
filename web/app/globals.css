@@ -509,6 +509,11 @@ button, [role="button"], a { cursor: pointer; }
 .stagger-5 { animation-delay: 0.25s; }
 .stagger-6 { animation-delay: 0.30s; }
 
-/* Date input empty state — show muted placeholder color until user selects a date */
-input[type="date"][data-empty]::-webkit-datetime-edit { color: var(--text-muted, #9ca3af); }
-input[type="date"][data-empty]::-webkit-datetime-edit-fields-wrapper { color: var(--text-muted, #9ca3af); }
+/* Date input empty state — dim the mm/dd/yyyy text like a placeholder */
+input[type="date"][data-empty] { color: var(--text-muted, #6b7280) !important; }
+input[type="date"][data-empty]::-webkit-datetime-edit { color: var(--text-muted, #6b7280); }
+input[type="date"][data-empty]::-webkit-datetime-edit-fields-wrapper { color: var(--text-muted, #6b7280); }
+input[type="date"][data-empty]::-webkit-datetime-edit-text { color: var(--text-muted, #6b7280); }
+input[type="date"][data-empty]::-webkit-datetime-edit-month-field { color: var(--text-muted, #6b7280); }
+input[type="date"][data-empty]::-webkit-datetime-edit-day-field { color: var(--text-muted, #6b7280); }
+input[type="date"][data-empty]::-webkit-datetime-edit-year-field { color: var(--text-muted, #6b7280); }
