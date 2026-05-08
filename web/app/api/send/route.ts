@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { SendContractSchema } from "@/lib/schemas";
-import { buildPdfHtml } from "@/lib/pdf-template";
-import { renderPdfFromHtml } from "@/lib/render-pdf";
+import { renderContractPdf } from "@/lib/pdf-react";
 import type { Contract, Profile } from "@/lib/types";
 
 export async function POST(req: Request) {
@@ -62,10 +61,9 @@ export async function POST(req: Request) {
     }
   }
 
-  // 2. If no stored PDF, generate fresh from the programmatic template
+  // 2. If no stored PDF, generate fresh
   if (!pdfBuffer) {
-    const html = buildPdfHtml(contract as Contract, profile as Profile | null);
-    pdfBuffer = await renderPdfFromHtml(html);
+    pdfBuffer = await renderContractPdf(contract as Contract, profile as Profile | null);
   }
 
   const attachments: { filename: string; content: Buffer }[] =

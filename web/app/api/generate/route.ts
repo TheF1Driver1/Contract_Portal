@@ -3,8 +3,7 @@ import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { GenerateContractSchema } from "@/lib/schemas";
 import { fetchTemplate, renderDocx } from "@/lib/generate-docx";
-import { buildPdfHtml } from "@/lib/pdf-template";
-import { renderPdfFromHtml } from "@/lib/render-pdf";
+import { renderContractPdf } from "@/lib/pdf-react";
 import type { Contract, Profile } from "@/lib/types";
 
 export async function POST(req: Request) {
@@ -76,8 +75,7 @@ export async function POST(req: Request) {
   }
 
   // ── PDF — programmatic clean document ─────────────────────────────────────
-  const html = buildPdfHtml(contract as Contract, profile as Profile | null);
-  const pdfBuffer = await renderPdfFromHtml(html);
+  const pdfBuffer = await renderContractPdf(contract as Contract, profile as Profile | null);
 
   if (!pdfBuffer) {
     return NextResponse.json({ error: "PDF generation failed" }, { status: 500 });
