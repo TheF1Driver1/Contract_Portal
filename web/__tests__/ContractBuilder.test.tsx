@@ -33,11 +33,11 @@ vi.mock("@/components/SignaturePad", () => ({
 // --- Fixtures ---
 
 const properties: Property[] = [
-  { id: "p1", owner_id: "u1", name: "Sabana Gardens", address: "456 Oak", city: "San Juan", state: "PR", zip: "00901", unit_count: 5, created_at: "" },
+  { id: "p1", owner_id: "u1", name: "Sabana Gardens", address: "456 Oak", city: "San Juan", state: "PR", zip: "00901", unit_count: 5, bathroom_count: 1, parking_available: false, parking_count: null, created_at: "" },
 ];
 
 const tenants: Tenant[] = [
-  { id: "t1", owner_id: "u1", full_name: "Jane Smith", email: "jane@example.com", phone: null, ssn_last4: "4567", license_number: "D123", current_address: "123 Main", created_at: "" },
+  { id: "t1", owner_id: "u1", full_name: "Jane Smith", email: "jane@example.com", phone: null, ssn_last4: "4567", license_number: "D123", current_address: "123 Main", date_of_birth: null, employer_name: null, employer_phone: null, monthly_income: null, emergency_contact_name: null, emergency_contact_phone: null, created_at: "" },
 ];
 
 function setup() {

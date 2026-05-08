@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
   const { data: contract, error } = await supabase
     .from("contracts")
-    .select("*, tenant:tenants(full_name, email), property:properties(name)")
+    .select("*, tenant:tenants(full_name, email), property:properties(name), pdf_url")
     .eq("id", contractId)
     .eq("owner_id", user.id)
     .single();
@@ -47,20 +47,30 @@ export async function POST(req: Request) {
       results.email = "skipped: RESEND_API_KEY not configured in this environment";
     } else {
       try {
-        // Generate DOCX attachment directly (no HTTP — avoids auth issue)
+        // Prefer stored PDF; fall back to on-the-fly DOCX
         let attachments: { filename: string; content: Buffer }[] = [];
         try {
-          const fallbackUrl = `${appUrl}/templates/contract_template.docx`;
-          const templateBuffer = await fetchTemplate(
-            supabase,
-            user.id,
-            contract.contract_type,
-            (contract as Contract & { template_id?: string | null }).template_id ?? null,
-            fallbackUrl
-          );
-          if (templateBuffer.length) {
-            const docxBuffer = renderDocx(templateBuffer, contract as Contract);
-            attachments = [{ filename: `contract_${contractId}.docx`, content: docxBuffer }];
+          const storedPdfUrl = (contract as Contract & { pdf_url?: string | null }).pdf_url;
+          if (storedPdfUrl) {
+            const pdfRes = await fetch(storedPdfUrl);
+            if (pdfRes.ok) {
+              const pdfBuf = Buffer.from(await pdfRes.arrayBuffer());
+              attachments = [{ filename: `contract_${contractId}.pdf`, content: pdfBuf }];
+            }
+          }
+          if (!attachments.length) {
+            const fallbackUrl = `${appUrl}/templates/contract_template.docx`;
+            const templateBuffer = await fetchTemplate(
+              supabase,
+              user.id,
+              contract.contract_type,
+              (contract as Contract & { template_id?: string | null }).template_id ?? null,
+              fallbackUrl
+            );
+            if (templateBuffer.length) {
+              const docxBuffer = renderDocx(templateBuffer, contract as Contract);
+              attachments = [{ filename: `contract_${contractId}.docx`, content: docxBuffer }];
+            }
           }
         } catch (attachErr) {
           console.error("[send] attachment generation failed:", attachErr);

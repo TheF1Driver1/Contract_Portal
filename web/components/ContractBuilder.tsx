@@ -117,6 +117,13 @@ export default function ContractBuilder({
       futon: false,
       wall_art: false,
       parking: false,
+      bathroom_count: 1,
+      parking_available: false,
+      parking_count: 0,
+      late_fee_type: "fixed" as const,
+      late_fee_grace_period_days: 0,
+      late_fee_fixed_amount: 0,
+      late_fee_daily_amount: 0,
       template_id: "",
       landlord_signature: "",
       tenant_signature: "",
@@ -135,6 +142,15 @@ export default function ContractBuilder({
     start.setMonth(start.getMonth() + Number(values.lease_months));
     setValue("lease_end", start.toISOString().split("T")[0], { shouldValidate: true });
   }, [values.lease_start, values.lease_months]);
+
+  useEffect(() => {
+    if (!values.property_id) return;
+    const prop = properties.find((p) => p.id === values.property_id);
+    if (!prop) return;
+    setValue("bathroom_count", prop.bathroom_count ?? 1);
+    setValue("parking_available", prop.parking_available ?? false);
+    setValue("parking_count", prop.parking_count ?? 0);
+  }, [values.property_id]);
 
   async function saveDraft(data: ContractFormValues) {
     setLoading(true);
@@ -184,6 +200,10 @@ export default function ContractBuilder({
           data.landlord_signature && data.tenant_signature
             ? new Date().toISOString()
             : null,
+        late_fee_type: data.late_fee_type,
+        late_fee_grace_period_days: data.late_fee_grace_period_days,
+        late_fee_fixed_amount: data.late_fee_fixed_amount,
+        late_fee_daily_amount: data.late_fee_daily_amount,
       };
 
       let contractId = savedId;
@@ -202,6 +222,39 @@ export default function ContractBuilder({
         if (error) throw error;
         contractId = created.id;
         setSavedId(contractId);
+      }
+
+      // Write immutable snapshots for legal accuracy
+      const selectedProperty = properties.find((p) => p.id === data.property_id);
+      const selectedTenant   = tenants.find((t) => t.id === data.tenant_id);
+      if (selectedProperty || selectedTenant) {
+        await supabase.from("contracts").update({
+          property_snapshot: selectedProperty ? {
+            name: selectedProperty.name,
+            address: selectedProperty.address,
+            city: selectedProperty.city,
+            state: selectedProperty.state,
+            zip: selectedProperty.zip ?? null,
+            unit_count: selectedProperty.unit_count,
+            bathroom_count: selectedProperty.bathroom_count ?? data.bathroom_count,
+            parking_available: selectedProperty.parking_available ?? data.parking_available,
+            parking_count: selectedProperty.parking_count ?? null,
+          } : null,
+          tenant_snapshot: selectedTenant ? {
+            full_name: selectedTenant.full_name,
+            email: selectedTenant.email ?? null,
+            phone: selectedTenant.phone ?? null,
+            ssn_last4: selectedTenant.ssn_last4 ?? null,
+            license_number: selectedTenant.license_number ?? null,
+            current_address: selectedTenant.current_address ?? null,
+            date_of_birth: selectedTenant.date_of_birth ?? null,
+            employer_name: selectedTenant.employer_name ?? null,
+            employer_phone: selectedTenant.employer_phone ?? null,
+            monthly_income: selectedTenant.monthly_income ?? null,
+            emergency_contact_name: selectedTenant.emergency_contact_name ?? null,
+            emergency_contact_phone: selectedTenant.emergency_contact_phone ?? null,
+          } : null,
+        }).eq("id", contractId!);
       }
 
       return contractId!;
@@ -234,8 +287,29 @@ export default function ContractBuilder({
     }
   }
 
+  async function generateAndStore(contractId: string): Promise<string | null> {
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contractId, format: "pdf", store: true }),
+      });
+      if (!res.ok) return null;
+      const result = await res.json();
+      return result.pdf_url ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   async function sendContract(data: ContractFormValues) {
     const contractId = await saveDraft(data);
+    setGenerating(true);
+    try {
+      await generateAndStore(contractId);
+    } finally {
+      setGenerating(false);
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/send", {
@@ -433,6 +507,7 @@ export default function ContractBuilder({
                   <input
                     className="input-tonal"
                     type="date"
+                    data-empty={!values.lease_start || undefined}
                     {...register("lease_start", { required: "Start date is required" })}
                   />
                   {errors.lease_start && <p className="text-xs text-destructive mt-1">{errors.lease_start.message}</p>}
@@ -442,6 +517,7 @@ export default function ContractBuilder({
                   <input
                     className="input-tonal"
                     type="date"
+                    data-empty={!values.lease_end || undefined}
                     {...register("lease_end", { required: true })}
                   />
                 </div>
@@ -552,6 +628,47 @@ export default function ContractBuilder({
               </div>
             </Section>
 
+            <Section title="Bathrooms & Parking">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <FieldLabel>Bathrooms</FieldLabel>
+                  <input
+                    className="input-tonal"
+                    type="number"
+                    min={1}
+                    max={20}
+                    {...register("bathroom_count", { valueAsNumber: true })}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Parking Included</FieldLabel>
+                  <label
+                    className="flex items-center gap-2.5 rounded-xl p-3 cursor-pointer transition-colors h-[42px]"
+                    style={{ background: "var(--surface-card)" }}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded accent-[#007aff]"
+                      {...register("parking_available")}
+                    />
+                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Yes</span>
+                  </label>
+                </div>
+                {values.parking_available && (
+                  <div>
+                    <FieldLabel>Parking Spaces</FieldLabel>
+                    <input
+                      className="input-tonal"
+                      type="number"
+                      min={0}
+                      max={20}
+                      {...register("parking_count", { valueAsNumber: true })}
+                    />
+                  </div>
+                )}
+              </div>
+            </Section>
+
             <Section title="Included Amenities">
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {[
@@ -564,7 +681,6 @@ export default function ContractBuilder({
                   { label: "Sofa", name: "sofa" },
                   { label: "Futon", name: "futon" },
                   { label: "Wall Art", name: "wall_art" },
-                  { label: "Parking Included", name: "parking" },
                 ].map(({ label, name }) => (
                   <label
                     key={name}
@@ -659,6 +775,66 @@ export default function ContractBuilder({
                     {...register("late_fee_day", { valueAsNumber: true })}
                   />
                 </div>
+              </div>
+            </Section>
+
+            <Section title="Late Fee Policy">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <FieldLabel>Fee Type</FieldLabel>
+                  <Controller
+                    control={control}
+                    name="late_fee_type"
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="input-tonal border-none h-auto">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="fixed">Fixed Amount</SelectItem>
+                          <SelectItem value="daily">Daily Accrual</SelectItem>
+                          <SelectItem value="both">Fixed + Daily</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Grace Period (days)</FieldLabel>
+                  <input
+                    className="input-tonal"
+                    type="number"
+                    min={0}
+                    max={30}
+                    {...register("late_fee_grace_period_days", { valueAsNumber: true })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {(values.late_fee_type === "fixed" || values.late_fee_type === "both") && (
+                  <div>
+                    <FieldLabel>Fixed Late Fee ($)</FieldLabel>
+                    <input
+                      className="input-tonal"
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      {...register("late_fee_fixed_amount", { valueAsNumber: true })}
+                    />
+                  </div>
+                )}
+                {(values.late_fee_type === "daily" || values.late_fee_type === "both") && (
+                  <div>
+                    <FieldLabel>Daily Late Fee ($)</FieldLabel>
+                    <input
+                      className="input-tonal"
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      {...register("late_fee_daily_amount", { valueAsNumber: true })}
+                    />
+                  </div>
+                )}
               </div>
             </Section>
           </div>

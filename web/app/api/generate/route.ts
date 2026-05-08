@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
+import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { GenerateContractSchema } from "@/lib/schemas";
 import { buildContext, SIG_LANDLORD, SIG_TENANT } from "@/lib/contract-context";
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const { contractId, format } = parsed.data;
+  const { contractId, format, store } = parsed.data;
 
   const { data: contract, error } = await supabase
     .from("contracts")
@@ -168,6 +168,37 @@ export async function POST(req: Request) {
     });
   }
 
+  // Store PDF in Supabase Storage and update pdf_url on the contract
+  if (store && pdfBuffer) {
+    try {
+      const supabaseAdmin = createAdminClient();
+      const storagePath = `${user.id}/${contractId}.pdf`;
+      const { error: uploadError } = await supabaseAdmin.storage
+        .from("contracts")
+        .upload(storagePath, pdfBuffer, { contentType: "application/pdf", upsert: true });
+
+      if (!uploadError) {
+        const { data: signedData } = await supabaseAdmin.storage
+          .from("contracts")
+          .createSignedUrl(storagePath, 60 * 60 * 24 * 365); // 1-year signed URL
+        const pdfUrl = signedData?.signedUrl ?? null;
+
+        await supabase
+          .from("contracts")
+          .update({ pdf_url: pdfUrl })
+          .eq("id", contractId);
+
+        return NextResponse.json({ success: true, pdf_url: pdfUrl });
+      } else {
+        console.error("[generate] storage upload error:", uploadError);
+        // Fall through to return buffer as download
+      }
+    } catch (storeErr) {
+      console.error("[generate] store error:", storeErr);
+      // Fall through to return buffer as download
+    }
+  }
+
   return new NextResponse(pdfBuffer as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
@@ -201,6 +232,7 @@ PAYMENT
 Monthly Rent: $${ctx.canon_arrendamiento_numero} (${ctx.canon_arrendamiento_verbal})
 Due: Day ${contract.payment_due_day} of each month
 Late after: Day ${ctx.dia_pago_tarde}
+Late Fee Policy: ${ctx.descripcion_mora}
 Deposit paid at signing: $${ctx.cantidad_pago_firma}
 Keys: ${ctx.cantidad_llaves}
 
