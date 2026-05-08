@@ -12,7 +12,7 @@ export async function renderPdfFromHtml(html: string): Promise<Buffer | null> {
       const { default: chromium } = await import("@sparticuz/chromium-min");
       const packUrl =
         process.env.CHROMIUM_PACK_URL ??
-        "https://github.com/Sparticuz/chromium/releases/download/v148.0.0/chromium-v148.0.0-pack.tar";
+        "https://github.com/Sparticuz/chromium/releases/download/v131.0.0/chromium-v131.0.0-pack.tar";
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const chromiumAny = chromium as any;
       browser = await puppeteer.launch({
