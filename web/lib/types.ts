@@ -307,6 +307,7 @@ export interface ContractFormValues {
   bathroom_count: number;
   parking_available: boolean;
   parking_count: number;
+  parking_spot: string;
 
   // Late fee policy
   late_fee_type: 'fixed' | 'daily' | 'both';

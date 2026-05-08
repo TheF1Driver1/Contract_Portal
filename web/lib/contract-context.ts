@@ -74,6 +74,7 @@ export function buildContext(contract: Contract) {
       prop?.parking_available ?? Boolean(amenities.parking)
     )),
     cantidad_estacionamientos: String(prop?.parking_count ?? 0),
+    numero_estacionamiento:    String(amenities.parking_spot ?? ""),
 
     // ── Occupants ──
     cantidad_personas: String(contract.occupant_count),

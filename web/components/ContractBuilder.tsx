@@ -120,6 +120,7 @@ export default function ContractBuilder({
       bathroom_count: 1,
       parking_available: false,
       parking_count: 0,
+      parking_spot: "",
       late_fee_type: "fixed" as const,
       late_fee_grace_period_days: 0,
       late_fee_fixed_amount: 0,
@@ -169,7 +170,8 @@ export default function ContractBuilder({
         sofa: data.sofa,
         futon: data.futon,
         wall_art: data.wall_art,
-        parking: data.parking,
+        parking: data.parking_available,
+        parking_spot: data.parking_spot || null,
       };
 
       const payload = {
@@ -610,6 +612,7 @@ export default function ContractBuilder({
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
                   { label: "Bedrooms", name: "room_count", min: 1 },
+                  { label: "Bathrooms", name: "bathroom_count", min: 1 },
                   { label: "Ceiling Fans", name: "fan_count", min: 0 },
                   { label: "Bar Stools", name: "stool_count", min: 0 },
                   { label: "Stoves", name: "stove_count", min: 0 },
@@ -628,18 +631,8 @@ export default function ContractBuilder({
               </div>
             </Section>
 
-            <Section title="Bathrooms & Parking">
+            <Section title="Parking">
               <div className="grid gap-4 sm:grid-cols-3">
-                <div>
-                  <FieldLabel>Bathrooms</FieldLabel>
-                  <input
-                    className="input-tonal"
-                    type="number"
-                    min={1}
-                    max={20}
-                    {...register("bathroom_count", { valueAsNumber: true })}
-                  />
-                </div>
                 <div>
                   <FieldLabel>Parking Included</FieldLabel>
                   <label
@@ -655,16 +648,26 @@ export default function ContractBuilder({
                   </label>
                 </div>
                 {values.parking_available && (
-                  <div>
-                    <FieldLabel>Parking Spaces</FieldLabel>
-                    <input
-                      className="input-tonal"
-                      type="number"
-                      min={0}
-                      max={20}
-                      {...register("parking_count", { valueAsNumber: true })}
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <FieldLabel>Spaces</FieldLabel>
+                      <input
+                        className="input-tonal"
+                        type="number"
+                        min={1}
+                        max={20}
+                        {...register("parking_count", { valueAsNumber: true })}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Spot Number / ID</FieldLabel>
+                      <input
+                        className="input-tonal"
+                        placeholder="e.g. A-1, 12"
+                        {...register("parking_spot")}
+                      />
+                    </div>
+                  </>
                 )}
               </div>
             </Section>
