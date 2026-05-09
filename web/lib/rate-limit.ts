@@ -17,39 +17,35 @@ const LIMITS = {
 } as const;
 // ────────────────────────────────────────────────────────────────────────────
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+const redisConfigured =
+  !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN;
 
-const strictLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(LIMITS.strict, "60 s"),
-  prefix: "rl:strict",
-});
+const redis = redisConfigured
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+  : null;
 
-const writeLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(LIMITS.write, "60 s"),
-  prefix: "rl:write",
-});
+function makeLimiter(limit: number, prefix: string): Ratelimit | null {
+  if (!redis) return null;
+  return new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(limit, "60 s"),
+    prefix,
+  });
+}
 
-const readLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(LIMITS.read, "60 s"),
-  prefix: "rl:read",
-});
-
-const publicLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(LIMITS.public, "60 s"),
-  prefix: "rl:public",
-});
+const strictLimiter = makeLimiter(LIMITS.strict, "rl:strict");
+const writeLimiter  = makeLimiter(LIMITS.write,  "rl:write");
+const readLimiter   = makeLimiter(LIMITS.read,   "rl:read");
+const publicLimiter = makeLimiter(LIMITS.public, "rl:public");
 
 async function check(
-  limiter: Ratelimit,
+  limiter: Ratelimit | null,
   id: string
 ): Promise<NextResponse | null> {
+  if (!limiter) return null; // fail open when Redis not configured
   const { success, limit, remaining, reset } = await limiter.limit(id);
   if (success) return null;
   return NextResponse.json(

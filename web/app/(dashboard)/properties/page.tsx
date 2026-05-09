@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Building2 } from "lucide-react";
 import type { Property } from "@/lib/types";
 import AddPropertyModal from "./AddPropertyModal";
+import EditPropertyModal from "./EditPropertyModal";
 import PropertyMap from "@/components/PropertyMap";
 
 export default async function PropertiesPage() {
@@ -95,7 +96,7 @@ export default async function PropertiesPage() {
                 >
                   <Building2 className="h-5 w-5" style={{ color: "#007aff" }} strokeWidth={2} />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
                     {p.name}
                   </p>
@@ -107,7 +108,12 @@ export default async function PropertiesPage() {
                   </p>
                   <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
                     {p.unit_count} unit{p.unit_count !== 1 ? "s" : ""}
+                    {p.bathroom_count ? ` · ${p.bathroom_count} bath${p.bathroom_count !== 1 ? "s" : ""}` : ""}
+                    {p.parking_available ? " · Parking" : ""}
                   </p>
+                </div>
+                <div className="shrink-0">
+                  <EditPropertyModal property={p} />
                 </div>
               </div>
             </div>

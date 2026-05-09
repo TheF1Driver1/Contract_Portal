@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase-server";
 import ContractBuilder from "@/components/ContractBuilder";
 import { redirect } from "next/navigation";
-import type { Property, Tenant } from "@/lib/types";
+import type { Property, Tenant, ContractTemplate } from "@/lib/types";
 import { AlertTriangle } from "lucide-react";
 
 export default async function NewContractPage() {
@@ -12,10 +12,11 @@ export default async function NewContractPage() {
 
   if (!user) redirect("/login");
 
-  const [{ data: properties }, { data: tenants }, { data: profile }] = await Promise.all([
+  const [{ data: properties }, { data: tenants }, { data: profile }, { data: templates }] = await Promise.all([
     supabase.from("properties").select("*").eq("owner_id", user.id).order("name"),
     supabase.from("tenants").select("*").eq("owner_id", user.id).order("full_name"),
     supabase.from("profiles").select("email").eq("id", user.id).single(),
+    supabase.from("contract_templates").select("*").eq("owner_id", user.id).order("created_at", { ascending: false }),
   ]);
 
   const landlordEmail = (profile as { email?: string } | null)?.email ?? user.email ?? "";
@@ -56,6 +57,7 @@ export default async function NewContractPage() {
       <ContractBuilder
         properties={(properties ?? []) as Property[]}
         tenants={(tenants ?? []) as Tenant[]}
+        templates={(templates ?? []) as ContractTemplate[]}
         userId={user.id}
         landlordEmail={landlordEmail}
       />

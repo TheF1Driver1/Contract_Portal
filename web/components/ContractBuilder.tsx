@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/select";
 import SignaturePad from "@/components/SignaturePad";
 import { createClient } from "@/lib/supabase";
-import type { Property, Tenant, ContractFormValues } from "@/lib/types";
+import type { Property, Tenant, ContractFormValues, ContractTemplate } from "@/lib/types";
 import { Loader2, Download, Send, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContractBuilderProps {
   properties: Property[];
   tenants: Tenant[];
+  templates: ContractTemplate[];
   userId: string;
   landlordEmail: string;
 }
@@ -65,6 +66,7 @@ const STEPS = [
 export default function ContractBuilder({
   properties,
   tenants,
+  templates,
   userId,
   landlordEmail,
 }: ContractBuilderProps) {
@@ -115,6 +117,15 @@ export default function ContractBuilder({
       futon: false,
       wall_art: false,
       parking: false,
+      bathroom_count: 1,
+      parking_available: false,
+      parking_count: 0,
+      parking_spot: "",
+      late_fee_type: "fixed" as const,
+      late_fee_grace_period_days: 0,
+      late_fee_fixed_amount: 0,
+      late_fee_daily_amount: 0,
+      template_id: "",
       landlord_signature: "",
       tenant_signature: "",
       send_email: false,
@@ -133,6 +144,15 @@ export default function ContractBuilder({
     setValue("lease_end", start.toISOString().split("T")[0], { shouldValidate: true });
   }, [values.lease_start, values.lease_months]);
 
+  useEffect(() => {
+    if (!values.property_id) return;
+    const prop = properties.find((p) => p.id === values.property_id);
+    if (!prop) return;
+    setValue("bathroom_count", prop.bathroom_count ?? 1);
+    setValue("parking_available", prop.parking_available ?? false);
+    setValue("parking_count", prop.parking_count ?? 0);
+  }, [values.property_id]);
+
   async function saveDraft(data: ContractFormValues) {
     setLoading(true);
     try {
@@ -150,7 +170,8 @@ export default function ContractBuilder({
         sofa: data.sofa,
         futon: data.futon,
         wall_art: data.wall_art,
-        parking: data.parking,
+        parking: data.parking_available,
+        parking_spot: data.parking_spot || null,
       };
 
       const payload = {
@@ -174,12 +195,17 @@ export default function ContractBuilder({
         occupant_count: data.occupant_count,
         amenities,
         key_count: data.key_count,
+        template_id: data.template_id || null,
         landlord_signature: data.landlord_signature || null,
         tenant_signature: data.tenant_signature || null,
         signed_at:
           data.landlord_signature && data.tenant_signature
             ? new Date().toISOString()
             : null,
+        late_fee_type: data.late_fee_type,
+        late_fee_grace_period_days: data.late_fee_grace_period_days,
+        late_fee_fixed_amount: data.late_fee_fixed_amount,
+        late_fee_daily_amount: data.late_fee_daily_amount,
       };
 
       let contractId = savedId;
@@ -200,27 +226,62 @@ export default function ContractBuilder({
         setSavedId(contractId);
       }
 
+      // Write immutable snapshots for legal accuracy
+      const selectedProperty = properties.find((p) => p.id === data.property_id);
+      const selectedTenant   = tenants.find((t) => t.id === data.tenant_id);
+      if (selectedProperty || selectedTenant) {
+        await supabase.from("contracts").update({
+          property_snapshot: selectedProperty ? {
+            name: selectedProperty.name,
+            address: selectedProperty.address,
+            city: selectedProperty.city,
+            state: selectedProperty.state,
+            zip: selectedProperty.zip ?? null,
+            unit_count: selectedProperty.unit_count,
+            bathroom_count: selectedProperty.bathroom_count ?? data.bathroom_count,
+            parking_available: selectedProperty.parking_available ?? data.parking_available,
+            parking_count: selectedProperty.parking_count ?? null,
+          } : null,
+          tenant_snapshot: selectedTenant ? {
+            full_name: selectedTenant.full_name,
+            email: selectedTenant.email ?? null,
+            phone: selectedTenant.phone ?? null,
+            ssn_last4: selectedTenant.ssn_last4 ?? null,
+            license_number: selectedTenant.license_number ?? null,
+            current_address: selectedTenant.current_address ?? null,
+            date_of_birth: selectedTenant.date_of_birth ?? null,
+            employer_name: selectedTenant.employer_name ?? null,
+            employer_phone: selectedTenant.employer_phone ?? null,
+            monthly_income: selectedTenant.monthly_income ?? null,
+            emergency_contact_name: selectedTenant.emergency_contact_name ?? null,
+            emergency_contact_phone: selectedTenant.emergency_contact_phone ?? null,
+          } : null,
+        }).eq("id", contractId!);
+      }
+
       return contractId!;
     } finally {
       setLoading(false);
     }
   }
 
-  async function generateAndDownload(data: ContractFormValues) {
+  async function generateAndDownload(data: ContractFormValues, format: "pdf" | "docx" = "pdf") {
     const contractId = await saveDraft(data);
     setGenerating(true);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contractId }),
+        body: JSON.stringify({ contractId, format }),
       });
       if (!res.ok) throw new Error(await res.text());
+      const contentType = res.headers.get("content-type") ?? "";
+      const ext = contentType.includes("pdf") ? "pdf" : "docx";
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `contract_${contractId}.docx`;
+      a.download = `contract_${contractId}.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -228,8 +289,29 @@ export default function ContractBuilder({
     }
   }
 
+  async function generateAndStore(contractId: string): Promise<string | null> {
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contractId, format: "pdf", store: true }),
+      });
+      if (!res.ok) return null;
+      const result = await res.json();
+      return result.pdf_url ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   async function sendContract(data: ContractFormValues) {
     const contractId = await saveDraft(data);
+    setGenerating(true);
+    try {
+      await generateAndStore(contractId);
+    } finally {
+      setGenerating(false);
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/send", {
@@ -237,11 +319,16 @@ export default function ContractBuilder({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contractId,
-          landlordEmail: landlordEmailInput,
-          phone: data.send_sms ? data.recipient_phone : null,
+          ...(landlordEmailInput ? { landlordEmail: landlordEmailInput } : {}),
+          ...(data.send_sms && data.recipient_phone ? { phone: data.recipient_phone } : {}),
         }),
       });
       if (!res.ok) throw new Error(await res.text());
+      const result = await res.json();
+      if (result.results?.email && result.results.email !== "sent") {
+        console.warn("[send] email result:", result.results.email);
+        alert(`Contract saved. Email issue: ${result.results.email}`);
+      }
       router.push(`/contracts/${contractId}`);
     } finally {
       setLoading(false);
@@ -378,6 +465,43 @@ export default function ContractBuilder({
               </div>
             </Section>
 
+            {templates.length > 0 && (
+              <Section title="Template">
+                <div>
+                  <FieldLabel>Contract Template</FieldLabel>
+                  <Controller
+                    control={control}
+                    name="template_id"
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)}
+                        value={field.value || "__none__"}
+                      >
+                        <SelectTrigger className="input-tonal border-none h-auto">
+                          <SelectValue placeholder="Use default template…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Default template</SelectItem>
+                          {templates.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.name}
+                              {t.is_default ? " ★" : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <p className="text-xs mt-1.5" style={{ color: "var(--text-muted)" }}>
+                    Manage templates in{" "}
+                    <a href="/settings/templates" className="underline" style={{ color: "#007aff" }}>
+                      Settings → Templates
+                    </a>
+                  </p>
+                </div>
+              </Section>
+            )}
+
             <Section title="Lease Period">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div>
@@ -385,6 +509,7 @@ export default function ContractBuilder({
                   <input
                     className="input-tonal"
                     type="date"
+                    data-empty={!values.lease_start || undefined}
                     {...register("lease_start", { required: "Start date is required" })}
                   />
                   {errors.lease_start && <p className="text-xs text-destructive mt-1">{errors.lease_start.message}</p>}
@@ -394,6 +519,7 @@ export default function ContractBuilder({
                   <input
                     className="input-tonal"
                     type="date"
+                    data-empty={!values.lease_end || undefined}
                     {...register("lease_end", { required: true })}
                   />
                 </div>
@@ -486,6 +612,7 @@ export default function ContractBuilder({
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
                   { label: "Bedrooms", name: "room_count", min: 1 },
+                  { label: "Bathrooms", name: "bathroom_count", min: 1 },
                   { label: "Ceiling Fans", name: "fan_count", min: 0 },
                   { label: "Bar Stools", name: "stool_count", min: 0 },
                   { label: "Stoves", name: "stove_count", min: 0 },
@@ -504,6 +631,47 @@ export default function ContractBuilder({
               </div>
             </Section>
 
+            <Section title="Parking">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <FieldLabel>Parking Included</FieldLabel>
+                  <label
+                    className="flex items-center gap-2.5 rounded-xl p-3 cursor-pointer transition-colors h-[42px]"
+                    style={{ background: "var(--surface-card)" }}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded accent-[#007aff]"
+                      {...register("parking_available")}
+                    />
+                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Yes</span>
+                  </label>
+                </div>
+                {values.parking_available && (
+                  <>
+                    <div>
+                      <FieldLabel>Spaces</FieldLabel>
+                      <input
+                        className="input-tonal"
+                        type="number"
+                        min={1}
+                        max={20}
+                        {...register("parking_count", { valueAsNumber: true })}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Spot Number / ID</FieldLabel>
+                      <input
+                        className="input-tonal"
+                        placeholder="e.g. A-1, 12"
+                        {...register("parking_spot")}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </Section>
+
             <Section title="Included Amenities">
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {[
@@ -516,7 +684,6 @@ export default function ContractBuilder({
                   { label: "Sofa", name: "sofa" },
                   { label: "Futon", name: "futon" },
                   { label: "Wall Art", name: "wall_art" },
-                  { label: "Parking Included", name: "parking" },
                 ].map(({ label, name }) => (
                   <label
                     key={name}
@@ -613,6 +780,66 @@ export default function ContractBuilder({
                 </div>
               </div>
             </Section>
+
+            <Section title="Late Fee Policy">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <FieldLabel>Fee Type</FieldLabel>
+                  <Controller
+                    control={control}
+                    name="late_fee_type"
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="input-tonal border-none h-auto">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="fixed">Fixed Amount</SelectItem>
+                          <SelectItem value="daily">Daily Accrual</SelectItem>
+                          <SelectItem value="both">Fixed + Daily</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Grace Period (days)</FieldLabel>
+                  <input
+                    className="input-tonal"
+                    type="number"
+                    min={0}
+                    max={30}
+                    {...register("late_fee_grace_period_days", { valueAsNumber: true })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {(values.late_fee_type === "fixed" || values.late_fee_type === "both") && (
+                  <div>
+                    <FieldLabel>Fixed Late Fee ($)</FieldLabel>
+                    <input
+                      className="input-tonal"
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      {...register("late_fee_fixed_amount", { valueAsNumber: true })}
+                    />
+                  </div>
+                )}
+                {(values.late_fee_type === "daily" || values.late_fee_type === "both") && (
+                  <div>
+                    <FieldLabel>Daily Late Fee ($)</FieldLabel>
+                    <input
+                      className="input-tonal"
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      {...register("late_fee_daily_amount", { valueAsNumber: true })}
+                    />
+                  </div>
+                )}
+              </div>
+            </Section>
           </div>
         )}
 
@@ -651,7 +878,20 @@ export default function ContractBuilder({
                 type="button"
                 className="btn-tonal flex items-center gap-2"
                 disabled={generating}
-                onClick={handleSubmit(generateAndDownload)}
+                onClick={handleSubmit((d) => generateAndDownload(d, "pdf"))}
+              >
+                {generating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                PDF
+              </button>
+              <button
+                type="button"
+                className="btn-tonal flex items-center gap-2"
+                disabled={generating}
+                onClick={handleSubmit((d) => generateAndDownload(d, "docx"))}
               >
                 {generating ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -659,31 +899,6 @@ export default function ContractBuilder({
                   <Download className="h-4 w-4" />
                 )}
                 DOCX
-              </button>
-              <button
-                type="button"
-                className="btn-tonal flex items-center gap-2"
-                onClick={handleSubmit(async (data) => {
-                  const contractId = await saveDraft(data);
-                  const contract = {
-                    ...data,
-                    id: contractId,
-                    tenant: tenants.find((t) => t.id === data.tenant_id),
-                    property: properties.find((p) => p.id === data.property_id),
-                  };
-                  const { pdf } = await import("@react-pdf/renderer");
-                  const { default: ContractPDF } = await import("@/components/ContractPDF");
-                  const blob = await pdf(<ContractPDF contract={contract} />).toBlob();
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `contract_${contractId}.pdf`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                })}
-              >
-                <Download className="h-4 w-4" />
-                PDF
               </button>
               <button
                 type="button"

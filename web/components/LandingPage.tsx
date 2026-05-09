@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Spotlight } from '@/components/ui/spotlight'
 import { SplineScene } from '@/components/ui/splite'
 import { MeshGradientBg } from '@/components/ui/mesh-gradient-bg'
 
@@ -14,9 +13,6 @@ export function LandingPage() {
         scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
         className="absolute inset-0 w-full h-full"
       />
-
-      {/* Cursor spotlight */}
-      <Spotlight size={150} springOptions={{ stiffness: 60, damping: 20, mass: 1 }} />
 
       {/* Foreground content */}
       <div className="pointer-events-none relative z-10 flex items-center h-screen px-12">

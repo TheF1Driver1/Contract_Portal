@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Users } from "lucide-react";
 import type { Tenant } from "@/lib/types";
 import AddTenantModal from "./AddTenantModal";
+import EditTenantModal from "./EditTenantModal";
 
 export default async function TenantsPage() {
   const supabase = createClient();
@@ -114,6 +115,11 @@ export default async function TenantsPage() {
                     </p>
                   </div>
                 )}
+              </div>
+
+              {/* Edit button */}
+              <div className="ml-auto shrink-0">
+                <EditTenantModal tenant={t} />
               </div>
             </div>
           ))}

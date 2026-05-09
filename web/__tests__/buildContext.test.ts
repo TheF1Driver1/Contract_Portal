@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { check, MONTHS_ES, buildContext } from "@/app/api/generate/route";
+import { check, MONTHS_ES, buildContext } from "@/lib/contract-context";
 import type { Contract } from "@/lib/types";
 
 // Minimal contract fixture
@@ -48,6 +48,12 @@ function makeContract(overrides: Partial<Contract> = {}): Contract {
     opened_at: null,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
+    tenant_snapshot: null,
+    property_snapshot: null,
+    late_fee_type: "fixed" as const,
+    late_fee_grace_period_days: 0,
+    late_fee_fixed_amount: 0,
+    late_fee_daily_amount: 0,
     tenant: {
       id: "t1",
       owner_id: "u1",
@@ -57,6 +63,12 @@ function makeContract(overrides: Partial<Contract> = {}): Contract {
       ssn_last4: "4567",
       license_number: "D123456",
       current_address: "123 Main St",
+      date_of_birth: null,
+      employer_name: null,
+      employer_phone: null,
+      monthly_income: null,
+      emergency_contact_name: null,
+      emergency_contact_phone: null,
       created_at: "2026-01-01T00:00:00Z",
     },
     property: {
@@ -68,6 +80,9 @@ function makeContract(overrides: Partial<Contract> = {}): Contract {
       state: "PR",
       zip: "00901",
       unit_count: 10,
+      bathroom_count: 2,
+      parking_available: true,
+      parking_count: 1,
       created_at: "2026-01-01T00:00:00Z",
     },
     ...overrides,
