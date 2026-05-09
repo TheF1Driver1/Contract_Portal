@@ -19,7 +19,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("contracts")
-    .select("*, property:properties(*), tenant:tenants(*)")
+    .select("*, property:properties(*), tenant:tenants(*), occupants:contract_occupants(*)")
     .eq("id", params.id)
     .eq("owner_id", user.id)
     .single();
