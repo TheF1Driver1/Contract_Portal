@@ -121,6 +121,10 @@ export interface Contract {
   tenant_snapshot: TenantSnapshot | null;
   property_snapshot: PropertySnapshot | null;
 
+  // Renewal chain
+  parent_contract_id: string | null;
+  is_renewal: boolean;
+
   // Joined fields
   property?: Property;
   tenant?: Tenant;
@@ -271,6 +275,69 @@ export interface ContractTemplate {
   contract_type: "all" | ContractType;
   is_default: boolean;
   created_at: string;
+}
+
+export interface PropertyCoOwner {
+  id: string;
+  property_id: string;
+  owner_id: string;
+  co_owner_id: string;
+  ownership_pct: number;
+  status: 'pending' | 'accepted' | 'declined';
+  invited_at: string;
+  accepted_at: string | null;
+  // Joined
+  co_owner?: { id: string; full_name: string | null; email: string };
+  property?: Property;
+}
+
+export interface BusinessGroup {
+  id: string;
+  name: string;
+  created_by: string;
+  created_at: string;
+  // Joined
+  members?: BusinessGroupMember[];
+  properties?: BusinessGroupProperty[];
+}
+
+export interface BusinessGroupMember {
+  id: string;
+  group_id: string;
+  user_id: string;
+  role: 'owner' | 'admin' | 'member';
+  joined_at: string;
+  // Joined
+  profile?: { id: string; full_name: string | null; email: string };
+}
+
+export interface BusinessGroupProperty {
+  id: string;
+  group_id: string;
+  property_id: string;
+  added_by: string | null;
+  added_at: string;
+  // Joined
+  property?: Property;
+}
+
+export interface GroupPropertyOwnership {
+  id: string;
+  group_id: string;
+  property_id: string;
+  user_id: string;
+  ownership_pct: number;
+  // Joined
+  profile?: { id: string; full_name: string | null; email: string };
+}
+
+export interface ContractAlert {
+  id: string;
+  contract_id: string;
+  owner_id: string;
+  alert_type: 'expiry_60' | 'expiry_30' | 'expiry_14' | 'renewal_sent';
+  sent_at: string;
+  dismissed_at: string | null;
 }
 
 // Form values for contract builder

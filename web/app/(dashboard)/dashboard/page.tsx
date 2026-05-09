@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [contractsResult, propertiesResult, tenantsResult] = await Promise.all([
+  const [contractsResult, propertiesResult, tenantsResult, coOwnedResult] = await Promise.all([
     supabase
       .from("contracts")
       .select("*, property:properties(name, address), tenant:tenants(full_name, email)")
@@ -36,11 +36,22 @@ export default async function DashboardPage() {
       .order("created_at", { ascending: false }),
     supabase.from("properties").select("id").eq("owner_id", user!.id),
     supabase.from("tenants").select("id").eq("owner_id", user!.id),
+    supabase
+      .from("property_co_owners")
+      .select("property_id, ownership_pct")
+      .eq("co_owner_id", user!.id)
+      .eq("status", "accepted"),
   ]);
 
   const contracts = (contractsResult.data ?? []) as Contract[];
-  const propertyCount = propertiesResult.data?.length ?? 0;
+  const propertyCount = (propertiesResult.data?.length ?? 0) + (coOwnedResult.data?.length ?? 0);
   const tenantCount = tenantsResult.data?.length ?? 0;
+
+  // Map property_id → ownership_pct for co-owned properties (100% for own properties)
+  const ownershipMap: Record<string, number> = {};
+  (coOwnedResult.data ?? []).forEach((row: any) => {
+    ownershipMap[row.property_id] = row.ownership_pct;
+  });
 
   const activeContracts = contracts.filter((c) => c.status === "signed");
   const draftContracts = contracts.filter((c) => c.status === "draft");
@@ -49,7 +60,10 @@ export default async function DashboardPage() {
     return days >= 0 && days <= 60;
   });
 
-  const monthlyRevenue = activeContracts.reduce((sum, c) => sum + c.rent_amount, 0);
+  const monthlyRevenue = activeContracts.reduce((sum, c) => {
+    const pct = ownershipMap[c.property_id] ?? 100;
+    return sum + c.rent_amount * (pct / 100);
+  }, 0);
 
   const now = new Date();
   const months = Array.from({ length: 6 }, (_, i) => {
@@ -63,8 +77,9 @@ export default async function DashboardPage() {
   activeContracts.forEach((c) => {
     const start = c.lease_start.slice(0, 7);
     const end = c.lease_end.slice(0, 7);
+    const pct = ownershipMap[c.property_id] ?? 100;
     months.forEach((m) => {
-      if (m.key >= start && m.key <= end) m.income += c.rent_amount;
+      if (m.key >= start && m.key <= end) m.income += c.rent_amount * (pct / 100);
     });
   });
   const cashflowData = months.map(({ label, income }) => ({ label, income }));
@@ -199,17 +214,26 @@ export default async function DashboardPage() {
               {expiringContracts.map((c) => {
                 const days = daysUntil(c.lease_end);
                 return (
-                  <Link key={c.id} href={`/contracts/${c.id}`} className="row-tonal flex items-center justify-between p-3">
-                    <div>
+                  <div key={c.id} className="row-tonal flex items-center justify-between p-3">
+                    <Link href={`/contracts/${c.id}`} className="min-w-0 flex-1">
                       <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                         {c.tenant?.full_name}
                       </p>
                       <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                         {c.property?.name}
                       </p>
+                    </Link>
+                    <div className="flex items-center gap-2 ml-3 shrink-0">
+                      <span className={days <= 30 ? "pill-expired" : "pill-draft"}>{days}d</span>
+                      <Link
+                        href={`/contracts/${c.id}`}
+                        className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold"
+                        style={{ background: "rgba(34,197,94,0.12)", color: "#22c55e" }}
+                      >
+                        Renew
+                      </Link>
                     </div>
-                    <span className={days <= 30 ? "pill-expired" : "pill-draft"}>{days}d</span>
-                  </Link>
+                  </div>
                 );
               })}
             </div>

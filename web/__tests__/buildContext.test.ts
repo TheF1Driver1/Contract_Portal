@@ -54,6 +54,8 @@ function makeContract(overrides: Partial<Contract> = {}): Contract {
     late_fee_grace_period_days: 0,
     late_fee_fixed_amount: 0,
     late_fee_daily_amount: 0,
+    parent_contract_id: null,
+    is_renewal: false,
     tenant: {
       id: "t1",
       owner_id: "u1",

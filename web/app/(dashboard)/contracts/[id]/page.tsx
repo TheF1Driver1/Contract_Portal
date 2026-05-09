@@ -26,12 +26,15 @@ export default async function ContractDetailPage({
 
   if (!user) redirect("/login");
 
-  const { data: contract, error } = await supabase
-    .from("contracts")
-    .select("*, property:properties(*), tenant:tenants(*), occupants:contract_occupants(*)")
-    .eq("id", params.id)
-    .eq("owner_id", user.id)
-    .single();
+  const [{ data: contract, error }, { data: tenantsData }] = await Promise.all([
+    supabase
+      .from("contracts")
+      .select("*, property:properties(*), tenant:tenants(*), occupants:contract_occupants(*)")
+      .eq("id", params.id)
+      .eq("owner_id", user.id)
+      .single(),
+    supabase.from("tenants").select("*").eq("owner_id", user.id).order("full_name"),
+  ]);
 
   if (error || !contract) notFound();
 
@@ -63,7 +66,7 @@ export default async function ContractDetailPage({
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>{c.property?.name}</p>
           </div>
         </div>
-        <ContractActions contract={c} />
+        <ContractActions contract={c} availableTenants={tenantsData ?? []} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
