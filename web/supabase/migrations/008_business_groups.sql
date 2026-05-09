@@ -16,7 +16,7 @@ ALTER TABLE business_groups ENABLE ROW LEVEL SECURITY;
 CREATE POLICY groups_creator_all ON business_groups
   FOR ALL USING (created_by = auth.uid());
 
--- ── Members (created before member_select policy on business_groups) ──────────
+-- ── Members ───────────────────────────────────────────────────────────────────
 
 CREATE TABLE business_group_members (
   id        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -33,35 +33,7 @@ CREATE INDEX bgm_user_idx  ON business_group_members(user_id);
 
 ALTER TABLE business_group_members ENABLE ROW LEVEL SECURITY;
 
--- Now safe to add member_select on business_groups (table exists)
-CREATE POLICY groups_member_select ON business_groups
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM business_group_members bgm
-      WHERE bgm.group_id = id AND bgm.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY bgm_admin_all ON business_group_members
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM business_group_members mgr
-      WHERE mgr.group_id = group_id
-        AND mgr.user_id = auth.uid()
-        AND mgr.role IN ('owner','admin')
-    )
-  );
-
--- Any member: read membership list of groups they belong to
-CREATE POLICY bgm_member_select ON business_group_members
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM business_group_members self
-      WHERE self.group_id = group_id AND self.user_id = auth.uid()
-    )
-  );
-
--- ── Group properties ─────────────────────────────────────────────────────────
+-- ── Group properties ──────────────────────────────────────────────────────────
 
 CREATE TABLE business_group_properties (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -76,24 +48,6 @@ CREATE INDEX bgp_group_idx    ON business_group_properties(group_id);
 CREATE INDEX bgp_property_idx ON business_group_properties(property_id);
 
 ALTER TABLE business_group_properties ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY bgp_member_select ON business_group_properties
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM business_group_members bgm
-      WHERE bgm.group_id = group_id AND bgm.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY bgp_admin_write ON business_group_properties
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM business_group_members bgm
-      WHERE bgm.group_id = group_id
-        AND bgm.user_id = auth.uid()
-        AND bgm.role IN ('owner','admin')
-    )
-  );
 
 -- ── Per-member ownership % per property in a group ───────────────────────────
 
@@ -113,20 +67,45 @@ CREATE INDEX gpo_user_idx     ON group_property_ownership(user_id);
 
 ALTER TABLE group_property_ownership ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY gpo_member_select ON group_property_ownership
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM business_group_members bgm
-      WHERE bgm.group_id = group_id AND bgm.user_id = auth.uid()
-    )
+-- ── SECURITY DEFINER helpers (avoid recursive policy checks) ─────────────────
+-- Self-referencing EXISTS on business_group_members causes infinite recursion.
+-- SECURITY DEFINER bypasses RLS inside the function body.
+
+CREATE OR REPLACE FUNCTION is_group_member(gid uuid)
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM business_group_members
+    WHERE group_id = gid AND user_id = auth.uid()
   );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+CREATE OR REPLACE FUNCTION is_group_admin(gid uuid)
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM business_group_members
+    WHERE group_id = gid AND user_id = auth.uid() AND role IN ('owner','admin')
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+-- ── Policies ──────────────────────────────────────────────────────────────────
+
+CREATE POLICY groups_member_select ON business_groups
+  FOR SELECT USING (is_group_member(id));
+
+CREATE POLICY bgm_member_select ON business_group_members
+  FOR SELECT USING (is_group_member(group_id));
+
+CREATE POLICY bgm_admin_all ON business_group_members
+  FOR ALL USING (is_group_admin(group_id));
+
+CREATE POLICY bgp_member_select ON business_group_properties
+  FOR SELECT USING (is_group_member(group_id));
+
+CREATE POLICY bgp_admin_write ON business_group_properties
+  FOR ALL USING (is_group_admin(group_id));
+
+CREATE POLICY gpo_member_select ON group_property_ownership
+  FOR SELECT USING (is_group_member(group_id));
 
 CREATE POLICY gpo_admin_write ON group_property_ownership
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM business_group_members bgm
-      WHERE bgm.group_id = group_id
-        AND bgm.user_id = auth.uid()
-        AND bgm.role IN ('owner','admin')
-    )
-  );
+  FOR ALL USING (is_group_admin(group_id));
