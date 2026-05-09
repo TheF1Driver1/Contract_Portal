@@ -9,6 +9,7 @@ import { UserPlus, X, Search, Loader2 } from "lucide-react";
 interface ProfileResult {
   id: string;
   full_name: string | null;
+  username: string | null;
   email: string;
 }
 
@@ -31,7 +32,7 @@ export default function InviteMemberModal({ groupId }: { groupId: string }) {
     }
     const timer = setTimeout(async () => {
       setSearching(true);
-      const { data } = await supabase.rpc("search_profiles_by_email", { search_email: searchQuery.trim() });
+      const { data } = await supabase.rpc("search_profiles", { query: searchQuery.trim() });
       setSearchResults((data ?? []) as ProfileResult[]);
       setSearching(false);
     }, 350);
@@ -97,8 +98,8 @@ export default function InviteMemberModal({ groupId }: { groupId: string }) {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
                 <input
                   className="input-tonal pl-9"
-                  placeholder="user@example.com"
-                  value={selectedUser ? `${selectedUser.full_name ?? selectedUser.email} (${selectedUser.email})` : searchQuery}
+                  placeholder="@username or email"
+                  value={selectedUser ? `@${selectedUser.username ?? selectedUser.email}` : searchQuery}
                   onChange={(e) => { setSelectedUser(null); setSearchQuery(e.target.value); }}
                 />
                 {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin" style={{ color: "var(--text-muted)" }} />}
@@ -112,7 +113,10 @@ export default function InviteMemberModal({ groupId }: { groupId: string }) {
                       style={{ background: "var(--surface)" }}
                       onClick={() => { setSelectedUser(r); setSearchResults([]); }}
                     >
-                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{r.full_name ?? r.email}</p>
+                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                        {r.username ? `@${r.username}` : r.email}
+                        {r.full_name && <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--text-muted)" }}>{r.full_name}</span>}
+                      </p>
                       <p className="text-xs" style={{ color: "var(--text-muted)" }}>{r.email}</p>
                     </button>
                   ))}

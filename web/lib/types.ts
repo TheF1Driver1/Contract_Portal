@@ -4,6 +4,7 @@ export type ContractType = "lease" | "rental" | "addendum";
 export interface Profile {
   id: string;
   full_name: string | null;
+  username: string | null;
   company_name: string | null;
   phone: string | null;
   email: string;

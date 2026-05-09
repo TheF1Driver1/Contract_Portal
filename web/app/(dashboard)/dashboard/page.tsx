@@ -14,6 +14,7 @@ import type { Contract } from "@/lib/types";
 import CashflowChart from "@/components/CashflowChart";
 import MarketStatsWidget from "@/components/MarketStatsWidget";
 import RentVsMarketChart from "@/components/RentVsMarketChart";
+import UsernameSetupModal from "./UsernameSetupModal";
 
 const STATUS_PILL: Record<string, string> = {
   signed: "pill-active",
@@ -27,6 +28,12 @@ export default async function DashboardPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user!.id)
+    .single();
 
   const [contractsResult, propertiesResult, tenantsResult, coOwnedResult] = await Promise.all([
     supabase
@@ -131,6 +138,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {!profile?.username && <UsernameSetupModal />}
       {/* ── Header ── */}
       <div className="flex items-start justify-between">
         <div className="animate-slide-up">

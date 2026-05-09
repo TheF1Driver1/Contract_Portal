@@ -10,6 +10,7 @@ import type { Property, PropertyCoOwner } from "@/lib/types";
 interface ProfileResult {
   id: string;
   full_name: string | null;
+  username: string | null;
   email: string;
 }
 
@@ -48,8 +49,8 @@ export default function CoOwnersModal({ property }: { property: Property }) {
     }
     const timer = setTimeout(async () => {
       setSearching(true);
-      const { data } = await supabase.rpc("search_profiles_by_email", {
-        search_email: searchQuery.trim(),
+      const { data } = await supabase.rpc("search_profiles", {
+        query: searchQuery.trim(),
       });
       setSearchResults((data ?? []) as ProfileResult[]);
       setSearching(false);
@@ -202,8 +203,8 @@ export default function CoOwnersModal({ property }: { property: Property }) {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
                 <input
                   className="input-tonal pl-9"
-                  placeholder="Search by email…"
-                  value={selectedUser ? `${selectedUser.full_name ?? selectedUser.email} (${selectedUser.email})` : searchQuery}
+                  placeholder="Search by @username or email…"
+                  value={selectedUser ? `@${selectedUser.username ?? selectedUser.email}` : searchQuery}
                   onChange={(e) => {
                     setSelectedUser(null);
                     setSearchQuery(e.target.value);
@@ -231,7 +232,8 @@ export default function CoOwnersModal({ property }: { property: Property }) {
                       }}
                     >
                       <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                        {r.full_name ?? r.email}
+                        {r.username ? `@${r.username}` : r.email}
+                        {r.full_name && <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--text-muted)" }}>{r.full_name}</span>}
                       </p>
                       <p className="text-xs" style={{ color: "var(--text-muted)" }}>{r.email}</p>
                     </button>
