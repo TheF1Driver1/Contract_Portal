@@ -16,16 +16,7 @@ ALTER TABLE business_groups ENABLE ROW LEVEL SECURITY;
 CREATE POLICY groups_creator_all ON business_groups
   FOR ALL USING (created_by = auth.uid());
 
--- Members can read groups they belong to
-CREATE POLICY groups_member_select ON business_groups
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM business_group_members bgm
-      WHERE bgm.group_id = id AND bgm.user_id = auth.uid()
-    )
-  );
-
--- ── Members ──────────────────────────────────────────────────────────────────
+-- ── Members (created before member_select policy on business_groups) ──────────
 
 CREATE TABLE business_group_members (
   id        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,7 +33,15 @@ CREATE INDEX bgm_user_idx  ON business_group_members(user_id);
 
 ALTER TABLE business_group_members ENABLE ROW LEVEL SECURITY;
 
--- Group owner/admin: manage all members in their groups
+-- Now safe to add member_select on business_groups (table exists)
+CREATE POLICY groups_member_select ON business_groups
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM business_group_members bgm
+      WHERE bgm.group_id = id AND bgm.user_id = auth.uid()
+    )
+  );
+
 CREATE POLICY bgm_admin_all ON business_group_members
   FOR ALL USING (
     EXISTS (
