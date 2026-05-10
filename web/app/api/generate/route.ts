@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   // Fetch contract with all relations + snapshots
   const { data: contract, error } = await supabase
     .from("contracts")
-    .select("*, property:properties(*), tenant:tenants(*), occupants:contract_occupants(*)")
+    .select("*, property:properties(*), tenant:tenants(*)")
     .eq("id", contractId)
     .eq("owner_id", user.id)
     .single();
