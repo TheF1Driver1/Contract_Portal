@@ -187,7 +187,7 @@ export default function ProfilePage() {
     setResetStatus(null);
     const base = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
     const { error } = await supabase.auth.resetPasswordForEmail(currentEmail, {
-      redirectTo: `${base}/reset-password`,
+      redirectTo: `${base}/auth/callback?next=/reset-password`,
     });
     if (error) {
       setResetStatus({ type: "error", message: error.message });
