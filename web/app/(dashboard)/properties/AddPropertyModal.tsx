@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Plus, Loader2, X } from "lucide-react";
+import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
 
 export default function AddPropertyModal({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false);
@@ -12,9 +13,11 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
   const [form, setForm] = useState({
     name: "",
     address: "",
+    unit: "",
     city: "",
     state: "PR",
     zip: "",
+    country: "US",
     unit_count: 1,
   });
   const router = useRouter();
@@ -25,15 +28,24 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
     setLoading(true);
     const { error } = await supabase.from("properties").insert({
       owner_id: userId,
-      ...form,
+      name: form.name,
+      address: form.address,
+      unit: form.unit || null,
+      city: form.city,
+      state: form.state,
+      zip: form.zip || null,
+      country: form.country || null,
+      unit_count: form.unit_count,
     });
     setLoading(false);
     if (!error) {
       setOpen(false);
-      setForm({ name: "", address: "", city: "", state: "PR", zip: "", unit_count: 1 });
+      setForm({ name: "", address: "", unit: "", city: "", state: "PR", zip: "", country: "US", unit_count: 1 });
       router.refresh();
     }
   }
+
+  const lbl = { color: "var(--text-secondary)" } as const;
 
   return (
     <>
@@ -49,10 +61,9 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="surface-card w-full max-w-md p-6"
+            className="surface-card w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
                 Add Property
@@ -68,9 +79,7 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
 
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                  Property Name
-                </label>
+                <label className="text-xs font-medium" style={lbl}>Property Name</label>
                 <input
                   className="input-tonal"
                   placeholder="e.g. Sabana Gardens Apt 2"
@@ -79,23 +88,39 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
                   required
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                  Street Address
-                </label>
-                <input
-                  className="input-tonal"
-                  placeholder="123 Main St"
-                  value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <AddressAutocomplete
+                    label="Street Address"
+                    placeholder="123 Main St"
+                    value={form.address}
+                    onChange={(v) => setForm((f) => ({ ...f, address: v }))}
+                    onSelect={(parts) => setForm((f) => ({
+                      ...f,
+                      address: parts.street,
+                      city: parts.city || f.city,
+                      state: parts.state || f.state,
+                      zip: parts.zip || f.zip,
+                      country: parts.country || f.country,
+                    }))}
+                    required
+                  />
+                </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                    City
-                  </label>
+                  <label className="text-xs font-medium" style={lbl}>Unit / Apt</label>
+                  <input
+                    className="input-tonal"
+                    placeholder="Apt 2B"
+                    value={form.unit}
+                    onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-3">
+                <div className="col-span-2 space-y-1.5">
+                  <label className="text-xs font-medium" style={lbl}>City</label>
                   <input
                     className="input-tonal"
                     placeholder="San Juan"
@@ -105,9 +130,7 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                    State
-                  </label>
+                  <label className="text-xs font-medium" style={lbl}>State</label>
                   <input
                     className="input-tonal"
                     placeholder="PR"
@@ -115,12 +138,8 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
                     onChange={(e) => setForm({ ...form, state: e.target.value })}
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                    ZIP
-                  </label>
+                  <label className="text-xs font-medium" style={lbl}>ZIP</label>
                   <input
                     className="input-tonal"
                     placeholder="00901"
@@ -128,10 +147,20 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
                     onChange={(e) => setForm({ ...form, zip: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                    Units
-                  </label>
+                  <label className="text-xs font-medium" style={lbl}>Country</label>
+                  <input
+                    className="input-tonal"
+                    placeholder="US"
+                    value={form.country}
+                    onChange={(e) => setForm({ ...form, country: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium" style={lbl}>Units</label>
                   <input
                     className="input-tonal"
                     type="number"

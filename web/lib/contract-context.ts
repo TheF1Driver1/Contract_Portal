@@ -78,7 +78,13 @@ export function buildContext(contract: Contract) {
 
     // ── Occupants ──
     cantidad_personas: String(contract.occupant_count),
-    nombres_ocupantes: (contract.occupant_names ?? []).join(", "),
+    nombres_ocupantes: (() => {
+      const nameList = [...(contract.occupant_names ?? [])];
+      const coTenantNames = (contract.occupants ?? [])
+        .filter((o) => o.role === "co_tenant")
+        .map((o) => o.full_name);
+      return [...nameList, ...coTenantNames].join(", ");
+    })(),
 
     // ── Lease dates ──
     cantidad_de_anios_contrato:  String(Math.floor(contract.lease_months / 12)),

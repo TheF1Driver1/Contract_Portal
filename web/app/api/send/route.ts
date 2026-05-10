@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   // Full contract fetch including snapshots and all joined relations
   const { data: contract, error } = await supabase
     .from("contracts")
-    .select("*, property:properties(*), tenant:tenants(*), pdf_url")
+    .select("*, property:properties(*), tenant:tenants(*), pdf_url, occupants:contract_occupants(*)")
     .eq("id", contractId)
     .eq("owner_id", user.id)
     .single();
@@ -121,6 +121,27 @@ export async function POST(req: Request) {
           );
         }
 
+        // Send to co-tenants who have emails
+        const coTenants = ((contract as Record<string, unknown>).occupants as Array<{ role: string; email?: string | null; full_name?: string }> | undefined) ?? [];
+        for (const ct of coTenants) {
+          if (ct.role === "co_tenant" && ct.email?.trim()) {
+            sends.push(
+              resend.emails.send({
+                from,
+                to: ct.email.trim(),
+                subject,
+                html: emailHtml({
+                  greeting: `Hello${ct.full_name ? ` ${ct.full_name}` : ""},`,
+                  body: `Your lease agreement for <strong>${propertyName}</strong> is attached to this email as a PDF. Please retain this document for your records.`,
+                  contractUrl,
+                  hasAttachment: attachments.length > 0,
+                }),
+                attachments,
+              })
+            );
+          }
+        }
+
         const sendResults = await Promise.allSettled(sends);
         const failed = sendResults.filter((r) => r.status === "rejected");
         if (failed.length) {
@@ -156,9 +177,10 @@ export async function POST(req: Request) {
     }
   }
 
+  const alreadySigned = !!(contract as Contract).landlord_signature && !!(contract as Contract).tenant_signature;
   await supabase
     .from("contracts")
-    .update({ status: "sent", sent_at: new Date().toISOString() })
+    .update({ status: alreadySigned ? "signed" : "sent", sent_at: new Date().toISOString() })
     .eq("id", contractId);
 
   return NextResponse.json({ success: true, results });
