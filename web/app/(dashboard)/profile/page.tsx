@@ -299,7 +299,7 @@ export default function ProfilePage() {
               type="tel"
               value={phone}
               onChange={(v) => setPhone(formatPhone(v))}
-              placeholder="787-599-0998"
+              placeholder="123-456-7890"
               autoComplete="tel"
             />
             <p className="text-[11px] mt-1.5" style={{ color: S.muted }}>
