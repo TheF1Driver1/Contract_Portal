@@ -15,6 +15,7 @@ import CashflowChart from "@/components/CashflowChart";
 import MarketStatsWidget from "@/components/MarketStatsWidget";
 import RentVsMarketChart from "@/components/RentVsMarketChart";
 import UsernameSetupModal from "./UsernameSetupModal";
+import GroupInvites from "./GroupInvites";
 
 const STATUS_PILL: Record<string, string> = {
   signed: "pill-active",
@@ -35,7 +36,7 @@ export default async function DashboardPage() {
     .eq("id", user!.id)
     .single();
 
-  const [contractsResult, propertiesResult, tenantsResult, coOwnedResult] = await Promise.all([
+  const [contractsResult, propertiesResult, tenantsResult, coOwnedResult, groupInvitesResult] = await Promise.all([
     supabase
       .from("contracts")
       .select("*, property:properties(name, address), tenant:tenants(full_name, email)")
@@ -48,6 +49,11 @@ export default async function DashboardPage() {
       .select("property_id, ownership_pct")
       .eq("co_owner_id", user!.id)
       .eq("status", "accepted"),
+    supabase
+      .from("business_group_members")
+      .select("*, group:business_groups(id, name)")
+      .eq("user_id", user!.id)
+      .eq("status", "pending"),
   ]);
 
   const contracts = (contractsResult.data ?? []) as Contract[];
@@ -55,6 +61,7 @@ export default async function DashboardPage() {
   const tenantCount = tenantsResult.data?.length ?? 0;
 
   // Map property_id → ownership_pct for co-owned properties (100% for own properties)
+  const groupInvites = (groupInvitesResult.data ?? []) as any[];
   const ownershipMap: Record<string, number> = {};
   (coOwnedResult.data ?? []).forEach((row: any) => {
     ownershipMap[row.property_id] = row.ownership_pct;
@@ -196,6 +203,9 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* ── Group Invites ── */}
+      <GroupInvites invites={groupInvites} />
 
       {/* ── Main grid ── */}
       <div className="grid gap-5 lg:grid-cols-3">

@@ -43,10 +43,14 @@ export default function InviteMemberModal({ groupId }: { groupId: string }) {
     if (!selectedUser) return;
     setSaving(true);
     setError("");
+    const { data: { user } } = await supabase.auth.getUser();
     const { error: err } = await supabase.from("business_group_members").insert({
       group_id: groupId,
       user_id: selectedUser.id,
       role,
+      status: "pending",
+      invited_by: user?.id ?? null,
+      invited_at: new Date().toISOString(),
     });
     setSaving(false);
     if (err) { setError(err.message); return; }

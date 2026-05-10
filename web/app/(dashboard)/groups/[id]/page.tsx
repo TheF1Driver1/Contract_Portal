@@ -45,7 +45,9 @@ export default async function GroupDetailPage({ params }: { params: { id: string
 
   if (!group) notFound();
 
-  const members = (membersData ?? []) as BusinessGroupMember[];
+  const allMembers = (membersData ?? []) as BusinessGroupMember[];
+  const members = allMembers.filter((m) => m.status === "accepted");
+  const pendingMembers = allMembers.filter((m) => m.status === "pending");
   const groupProps = (groupPropsData ?? []) as BusinessGroupProperty[];
   const ownership = (ownershipData ?? []) as GroupPropertyOwnership[];
   const groupPropertyIds = new Set(groupProps.map((gp) => gp.property_id));
@@ -86,11 +88,21 @@ export default async function GroupDetailPage({ params }: { params: { id: string
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Members */}
         <div className="surface-card p-6 animate-slide-up" style={{ animationDelay: "0.06s", animationFillMode: "both" }}>
-          <div className="flex items-center gap-2 mb-5">
-            <Users className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
-            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-              Members ({members.length})
-            </h2>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
+              <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                Members ({members.length})
+              </h2>
+            </div>
+            {pendingMembers.length > 0 && (
+              <span
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(245,158,11,0.12)", color: "#f59e0b" }}
+              >
+                {pendingMembers.length} pending
+              </span>
+            )}
           </div>
           <div className="space-y-2">
             {members.map((m) => {
@@ -103,7 +115,7 @@ export default async function GroupDetailPage({ params }: { params: { id: string
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                      {m.profile?.full_name ?? m.profile?.email}
+                      {m.profile?.username ? `@${m.profile.username}` : m.profile?.full_name ?? m.profile?.email}
                       {m.user_id === user.id && (
                         <span className="ml-1.5 text-[10px]" style={{ color: "var(--text-muted)" }}>(you)</span>
                       )}
@@ -119,6 +131,33 @@ export default async function GroupDetailPage({ params }: { params: { id: string
                 </div>
               );
             })}
+            {pendingMembers.length > 0 && (
+              <div className="pt-2 space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-widest px-1" style={{ color: "var(--text-muted)" }}>
+                  Awaiting Response
+                </p>
+                {pendingMembers.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between rounded-xl p-3 opacity-60"
+                    style={{ background: "var(--surface-container)", border: "1px dashed var(--border)" }}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {m.profile?.username ? `@${m.profile.username}` : m.profile?.full_name ?? m.profile?.email}
+                      </p>
+                      <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>{m.profile?.email}</p>
+                    </div>
+                    <span
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-3 shrink-0"
+                      style={{ background: "rgba(245,158,11,0.12)", color: "#f59e0b" }}
+                    >
+                      Pending
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

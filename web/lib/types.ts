@@ -307,9 +307,13 @@ export interface BusinessGroupMember {
   group_id: string;
   user_id: string;
   role: 'owner' | 'admin' | 'member';
+  status: 'pending' | 'accepted' | 'declined';
+  invited_by: string | null;
+  invited_at: string | null;
   joined_at: string;
   // Joined
-  profile?: { id: string; full_name: string | null; email: string };
+  profile?: { id: string; full_name: string | null; username: string | null; email: string };
+  group?: { id: string; name: string };
 }
 
 export interface BusinessGroupProperty {
