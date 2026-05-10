@@ -38,7 +38,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (user && isAuthPage && !pathname.startsWith("/reset-password")) {
+  const isResetPassword = pathname.startsWith("/reset-password");
+  if (user && isAuthPage && !isResetPassword) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

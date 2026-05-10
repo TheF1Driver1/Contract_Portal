@@ -14,6 +14,7 @@ import {
   Heart,
   X,
   Settings,
+  UserCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -159,7 +160,18 @@ export default function Sidebar({ userEmail }: SidebarProps) {
               })}
             </nav>
 
-            <div className="p-3" style={{ borderTop: `1px solid ${S.divider}` }}>
+            <div className="p-3 space-y-1" style={{ borderTop: `1px solid ${S.divider}` }}>
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200"
+                style={{ color: S.text, background: "transparent" }}
+                onMouseEnter={e => (e.currentTarget.style.background = S.hoverBg)}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+              >
+                <UserCircle className="h-4 w-4 shrink-0" />
+                Profile
+              </Link>
               <button
                 onClick={signOut}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200"
@@ -297,10 +309,13 @@ export default function Sidebar({ userEmail }: SidebarProps) {
           className="relative p-3 space-y-1"
           style={{ borderTop: `1px solid ${S.divider}` }}
         >
-          {/* User row */}
-          <div
-            className="flex items-center gap-3 rounded-xl p-2.5"
+          {/* User row — click to open profile */}
+          <Link
+            href="/profile"
+            className="flex items-center gap-3 rounded-xl p-2.5 transition-all"
             style={{ background: S.footerBg, border: `1px solid ${S.divider}` }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
+            onMouseLeave={e => (e.currentTarget.style.background = S.footerBg)}
           >
             <div
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
@@ -311,18 +326,20 @@ export default function Sidebar({ userEmail }: SidebarProps) {
             <p className="flex-1 min-w-0 truncate text-xs font-medium" style={{ color: S.text }}>
               {userEmail}
             </p>
-            <button
-              onClick={signOut}
-              title="Sign out"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors"
-              style={{ background: "transparent" }}
-              onMouseEnter={e => (e.currentTarget.style.background = S.hoverBg)}
-              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-              aria-label="Sign out"
-            >
-              <LogOut className="h-3.5 w-3.5" style={{ color: S.textMuted }} />
-            </button>
-          </div>
+            <UserCircle className="h-3.5 w-3.5 shrink-0" style={{ color: S.textMuted }} />
+          </Link>
+          {/* Sign out button */}
+          <button
+            onClick={signOut}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium transition-all"
+            style={{ color: S.textMuted, background: "transparent" }}
+            onMouseEnter={e => (e.currentTarget.style.background = S.hoverBg)}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            aria-label="Sign out"
+          >
+            <LogOut className="h-3.5 w-3.5 shrink-0" />
+            Sign out
+          </button>
         </div>
       </aside>
     </>
