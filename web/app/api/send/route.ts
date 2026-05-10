@@ -177,9 +177,10 @@ export async function POST(req: Request) {
     }
   }
 
+  const alreadySigned = !!(contract as Contract).landlord_signature && !!(contract as Contract).tenant_signature;
   await supabase
     .from("contracts")
-    .update({ status: "sent", sent_at: new Date().toISOString() })
+    .update({ status: alreadySigned ? "signed" : "sent", sent_at: new Date().toISOString() })
     .eq("id", contractId);
 
   return NextResponse.json({ success: true, results });
