@@ -6,6 +6,7 @@ import type { BusinessGroupMember, BusinessGroupProperty, GroupPropertyOwnership
 import InviteMemberModal from "./InviteMemberModal";
 import AddPropertyToGroupModal from "./AddPropertyToGroupModal";
 import OwnershipTable from "./OwnershipTable";
+import DeleteGroupButton from "./DeleteGroupButton";
 
 const ROLE_ICON: Record<string, React.ElementType> = {
   owner: Crown,
@@ -29,7 +30,7 @@ export default async function GroupDetailPage({ params }: { params: { id: string
       supabase.from("business_groups").select("*").eq("id", params.id).single(),
       supabase
         .from("business_group_members")
-        .select("*, profile:profiles(id, full_name, email)")
+        .select("*, profile:profiles(id, full_name, username, email)")
         .eq("group_id", params.id)
         .order("joined_at"),
       supabase
@@ -38,7 +39,7 @@ export default async function GroupDetailPage({ params }: { params: { id: string
         .eq("group_id", params.id),
       supabase
         .from("group_property_ownership")
-        .select("*, profile:profiles(id, full_name, email)")
+        .select("*, profile:profiles(id, full_name, username, email)")
         .eq("group_id", params.id),
       supabase.from("properties").select("*").eq("owner_id", user.id).order("name"),
     ]);
@@ -55,7 +56,8 @@ export default async function GroupDetailPage({ params }: { params: { id: string
   const groupPropertyList = groupProps.map((gp) => gp.property).filter(Boolean) as Property[];
 
   const currentMember = members.find((m) => m.user_id === user.id);
-  const isAdmin = currentMember?.role === "owner" || currentMember?.role === "admin";
+  const isOwner = group.created_by === user.id || currentMember?.role === "owner";
+  const isAdmin = isOwner || currentMember?.role === "admin";
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -81,7 +83,10 @@ export default async function GroupDetailPage({ params }: { params: { id: string
               {group.name}
             </h1>
           </div>
-          {isAdmin && <InviteMemberModal groupId={params.id} />}
+          <div className="flex items-center gap-2">
+            {isAdmin && <InviteMemberModal groupId={params.id} />}
+            {isOwner && <DeleteGroupButton groupId={params.id} />}
+          </div>
         </div>
       </div>
 
