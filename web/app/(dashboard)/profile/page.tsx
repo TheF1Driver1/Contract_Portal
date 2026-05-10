@@ -152,10 +152,16 @@ export default function ProfilePage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setCurrentEmail(data.user.email ?? "");
-        setPhone(data.user.phone ?? "");
-      }
+      if (!data.user) return;
+      setCurrentEmail(data.user.email ?? "");
+      supabase
+        .from("profiles")
+        .select("phone")
+        .eq("id", data.user.id)
+        .single()
+        .then(({ data: profile }) => {
+          if (profile?.phone) setPhone(formatPhone(profile.phone));
+        });
     });
   }, []);
 
@@ -190,25 +196,32 @@ export default function ProfilePage() {
     setResetLoading(false);
   }
 
-  function toE164(raw: string): string {
-    const digits = raw.replace(/\D/g, "");
-    if (raw.trimStart().startsWith("+")) return "+" + digits;
-    // default to +1 (US/PR) if no country code prefix
-    return digits.length === 10 ? "+1" + digits : "+" + digits;
+  function formatPhone(raw: string): string {
+    const digits = raw.replace(/\D/g, "").slice(0, 10);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
   }
 
   async function handlePhoneUpdate(e: React.FormEvent) {
     e.preventDefault();
-    const normalized = toE164(phone.trim());
-    if (!normalized || normalized === "+") return;
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 10) {
+      setPhoneStatus({ type: "error", message: "Enter a 10-digit phone number." });
+      return;
+    }
     setPhoneLoading(true);
     setPhoneStatus(null);
-    const { error } = await supabase.auth.updateUser({ phone: normalized });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setPhoneLoading(false); return; }
+    const { error } = await supabase
+      .from("profiles")
+      .update({ phone: formatPhone(digits) })
+      .eq("id", user.id);
     if (error) {
       setPhoneStatus({ type: "error", message: error.message });
     } else {
-      setPhone(normalized);
-      setPhoneStatus({ type: "success", message: "Phone number updated." });
+      setPhoneStatus({ type: "success", message: "Phone number saved." });
     }
     setPhoneLoading(false);
   }
@@ -285,12 +298,12 @@ export default function ProfilePage() {
               id="phone"
               type="tel"
               value={phone}
-              onChange={setPhone}
-              placeholder="5551234567 or +15551234567"
+              onChange={(v) => setPhone(formatPhone(v))}
+              placeholder="787-599-0998"
               autoComplete="tel"
             />
             <p className="text-[11px] mt-1.5" style={{ color: S.muted }}>
-              10-digit US numbers auto-formatted. Include country code for international (e.g. +44...).
+              10-digit number, auto-formatted as xxx-xxx-xxxx.
             </p>
           </div>
           {phoneStatus && <StatusBanner {...phoneStatus} />}
