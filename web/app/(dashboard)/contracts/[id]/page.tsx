@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
-import { ArrowLeft, User, Building2, DollarSign, Calendar, Key, AlertTriangle } from "lucide-react";
+import { ArrowLeft, User, Building2, DollarSign, Calendar, Key, AlertTriangle, Users } from "lucide-react";
+import type { ContractOccupant } from "@/lib/types";
 import ContractActions from "./ContractActions";
 
 const STATUS_PILL: Record<string, string> = {
@@ -25,17 +26,21 @@ export default async function ContractDetailPage({
 
   if (!user) redirect("/login");
 
-  const { data: contract, error } = await supabase
-    .from("contracts")
-    .select("*, property:properties(*), tenant:tenants(*)")
-    .eq("id", params.id)
-    .eq("owner_id", user.id)
-    .single();
+  const [{ data: contract, error }, { data: tenantsData }] = await Promise.all([
+    supabase
+      .from("contracts")
+      .select("*, property:properties(*), tenant:tenants(*), occupants:contract_occupants(*)")
+      .eq("id", params.id)
+      .eq("owner_id", user.id)
+      .single(),
+    supabase.from("tenants").select("*").eq("owner_id", user.id).order("full_name"),
+  ]);
 
   if (error || !contract) notFound();
 
   const c = contract as Contract;
   const daysLeft = daysUntil(c.lease_end);
+  const coTenants = (c.occupants ?? []).filter((o) => o.role === "co_tenant") as ContractOccupant[];
 
   return (
     <div className="space-y-6">
@@ -61,7 +66,7 @@ export default async function ContractDetailPage({
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>{c.property?.name}</p>
           </div>
         </div>
-        <ContractActions contract={c} />
+        <ContractActions contract={c} availableTenants={tenantsData ?? []} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -79,6 +84,20 @@ export default async function ContractDetailPage({
             value={c.occupant_names?.length ? c.occupant_names.join(", ") : String(c.occupant_count)}
           />
         </div>
+
+        {/* Co-Tenants */}
+        {coTenants.map((ct, i) => (
+          <div key={ct.id} className="surface-card space-y-3">
+            <SectionLabel icon={<Users className="h-3.5 w-3.5" />} label={`Co-Tenant ${i + 2}`} />
+            <InfoRow label="Name"        value={ct.full_name} />
+            <InfoRow label="Email"       value={ct.email} />
+            <InfoRow label="Phone"       value={ct.phone} />
+            <InfoRow label="License #"   value={ct.license_number} />
+            <InfoRow label="SSN (last 4)" value={ct.ssn_last4 ? `xxx-xx-${ct.ssn_last4}` : null} />
+            <InfoRow label="Address"     value={ct.current_address} />
+            <InfoRow label="Signed"      value={ct.signed_at ? formatDate(ct.signed_at) : null} />
+          </div>
+        ))}
 
         {/* Property */}
         <div className="surface-card space-y-3">
@@ -147,35 +166,49 @@ export default async function ContractDetailPage({
       </div>
 
       {/* Signatures */}
-      {(c.landlord_signature || c.tenant_signature) && (
+      {(c.landlord_signature || c.tenant_signature || coTenants.some((ct) => ct.signature)) && (
         <div className="surface-card">
           <p className="mb-4 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
             Signatures
           </p>
           <div className="grid gap-6 sm:grid-cols-2">
+            {c.tenant_signature && (
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                  Tenant — {c.tenant?.full_name}
+                </p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={c.tenant_signature}
+                  alt="Tenant signature"
+                  className="h-20 w-full rounded-xl object-contain"
+                  style={{ background: "var(--surface-container)" }}
+                />
+              </div>
+            )}
+            {coTenants.filter((ct) => ct.signature).map((ct, i) => (
+              <div key={ct.id}>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                  Co-Tenant {i + 2} — {ct.full_name}
+                </p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={ct.signature!}
+                  alt={`${ct.full_name} signature`}
+                  className="h-20 w-full rounded-xl object-contain"
+                  style={{ background: "var(--surface-container)" }}
+                />
+              </div>
+            ))}
             {c.landlord_signature && (
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
                   Landlord
                 </p>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={c.landlord_signature}
                   alt="Landlord signature"
-                  className="h-20 w-full rounded-xl object-contain"
-                  style={{ background: "var(--surface-container)" }}
-                />
-              </div>
-            )}
-            {c.tenant_signature && (
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                  Tenant
-                </p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={c.tenant_signature}
-                  alt="Tenant signature"
                   className="h-20 w-full rounded-xl object-contain"
                   style={{ background: "var(--surface-container)" }}
                 />

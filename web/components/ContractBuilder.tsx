@@ -13,7 +13,7 @@ import {
 import SignaturePad from "@/components/SignaturePad";
 import { createClient } from "@/lib/supabase";
 import type { Property, Tenant, ContractFormValues, ContractTemplate } from "@/lib/types";
-import { Loader2, Download, Send, Check } from "lucide-react";
+import { Loader2, Download, Send, Check, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContractBuilderProps {
@@ -77,6 +77,8 @@ export default function ContractBuilder({
   const [savedId, setSavedId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [landlordEmailInput, setLandlordEmailInput] = useState(landlordEmail);
+  const [additionalTenantIds, setAdditionalTenantIds] = useState<string[]>([]);
+  const [coTenantSignatures, setCoTenantSignatures] = useState<string[]>([]);
 
   const {
     register,
@@ -179,7 +181,13 @@ export default function ContractBuilder({
         property_id: data.property_id,
         tenant_id: data.tenant_id,
         contract_type: data.contract_type,
-        status: "draft" as const,
+        status: (
+          data.landlord_signature &&
+          data.tenant_signature &&
+          additionalTenantIds.filter(Boolean).every((_, i) => !!coTenantSignatures[i])
+            ? "signed"
+            : "draft"
+        ) as "signed" | "draft",
         unit_number: data.unit_number || null,
         lease_start: data.lease_start || null,
         lease_end: data.lease_end || null,
@@ -199,7 +207,9 @@ export default function ContractBuilder({
         landlord_signature: data.landlord_signature || null,
         tenant_signature: data.tenant_signature || null,
         signed_at:
-          data.landlord_signature && data.tenant_signature
+          data.landlord_signature &&
+          data.tenant_signature &&
+          additionalTenantIds.filter(Boolean).every((_, i) => !!coTenantSignatures[i])
             ? new Date().toISOString()
             : null,
         late_fee_type: data.late_fee_type,
@@ -234,9 +244,11 @@ export default function ContractBuilder({
           property_snapshot: selectedProperty ? {
             name: selectedProperty.name,
             address: selectedProperty.address,
+            unit: selectedProperty.unit ?? null,
             city: selectedProperty.city,
             state: selectedProperty.state,
             zip: selectedProperty.zip ?? null,
+            country: selectedProperty.country ?? null,
             unit_count: selectedProperty.unit_count,
             bathroom_count: selectedProperty.bathroom_count ?? data.bathroom_count,
             parking_available: selectedProperty.parking_available ?? data.parking_available,
@@ -257,6 +269,54 @@ export default function ContractBuilder({
             emergency_contact_phone: selectedTenant.emergency_contact_phone ?? null,
           } : null,
         }).eq("id", contractId!);
+      }
+
+      // Sync co-tenants to contract_occupants (clean slate then re-insert)
+      await supabase
+        .from("contract_occupants")
+        .delete()
+        .eq("contract_id", contractId!)
+        .eq("role", "co_tenant");
+
+      const validCoTenants = additionalTenantIds.filter(Boolean);
+      if (validCoTenants.length > 0) {
+        const occupantRows = validCoTenants.map((tid, i) => {
+          const t = tenants.find((t) => t.id === tid);
+          if (!t) return null;
+          const sig = coTenantSignatures[i] || null;
+          return {
+            contract_id: contractId!,
+            owner_id: userId,
+            role: "co_tenant" as const,
+            tenant_id: tid,
+            full_name: t.full_name,
+            email: t.email ?? null,
+            phone: t.phone ?? null,
+            ssn_last4: t.ssn_last4 ?? null,
+            license_number: t.license_number ?? null,
+            current_address: t.current_address ?? null,
+            date_of_birth: t.date_of_birth ?? null,
+            signature: sig,
+            signed_at: sig ? new Date().toISOString() : null,
+            snapshot: {
+              full_name: t.full_name,
+              email: t.email ?? null,
+              phone: t.phone ?? null,
+              ssn_last4: t.ssn_last4 ?? null,
+              license_number: t.license_number ?? null,
+              current_address: t.current_address ?? null,
+              date_of_birth: t.date_of_birth ?? null,
+              employer_name: t.employer_name ?? null,
+              employer_phone: t.employer_phone ?? null,
+              monthly_income: t.monthly_income ?? null,
+              emergency_contact_name: t.emergency_contact_name ?? null,
+              emergency_contact_phone: t.emergency_contact_phone ?? null,
+            },
+          };
+        }).filter(Boolean);
+        if (occupantRows.length > 0) {
+          await supabase.from("contract_occupants").insert(occupantRows);
+        }
       }
 
       return contractId!;
@@ -462,6 +522,65 @@ export default function ContractBuilder({
                   />
                   {errors.tenant_id && <p className="text-xs text-destructive mt-1">{errors.tenant_id.message}</p>}
                 </div>
+              </div>
+            </Section>
+
+            <Section title="Co-Tenants">
+              <div className="space-y-3">
+                {additionalTenantIds.map((tid, i) => {
+                  const taken = new Set([values.tenant_id, ...additionalTenantIds.filter((_, j) => j !== i)]);
+                  return (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <Select
+                          value={tid}
+                          onValueChange={(v) => {
+                            const next = [...additionalTenantIds];
+                            next[i] = v;
+                            setAdditionalTenantIds(next);
+                            const sigs = [...coTenantSignatures];
+                            sigs[i] = "";
+                            setCoTenantSignatures(sigs);
+                          }}
+                        >
+                          <SelectTrigger className="input-tonal border-none h-auto">
+                            <SelectValue placeholder="Select co-tenant…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {tenants.filter((t) => !taken.has(t.id)).map((t) => (
+                              <SelectItem key={t.id} value={t.id}>{t.full_name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAdditionalTenantIds((ids) => ids.filter((_, j) => j !== i));
+                          setCoTenantSignatures((sigs) => sigs.filter((_, j) => j !== i));
+                        }}
+                        className="flex h-8 w-8 items-center justify-center rounded-xl shrink-0 transition-colors"
+                        style={{ background: "var(--surface-container)" }}
+                      >
+                        <X className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
+                      </button>
+                    </div>
+                  );
+                })}
+                {additionalTenantIds.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAdditionalTenantIds((ids) => [...ids, ""]);
+                      setCoTenantSignatures((sigs) => [...sigs, ""]);
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-medium"
+                    style={{ color: "#007aff" }}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add Co-Tenant
+                  </button>
+                )}
               </div>
             </Section>
 
@@ -868,10 +987,35 @@ export default function ContractBuilder({
             <Controller
               control={control}
               name="tenant_signature"
-              render={({ field }) => (
-                <SignaturePad label="Tenant Signature" value={field.value} onChange={field.onChange} />
-              )}
+              render={({ field }) => {
+                const primaryTenant = tenants.find((t) => t.id === values.tenant_id);
+                return (
+                  <SignaturePad
+                    label={primaryTenant ? `Tenant Signature — ${primaryTenant.full_name}` : "Tenant Signature"}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                );
+              }}
             />
+
+            {additionalTenantIds.filter(Boolean).map((tid, i) => {
+              const ct = tenants.find((t) => t.id === tid);
+              return (
+                <div key={tid}>
+                  <div className="h-px" style={{ background: "var(--surface-container)" }} />
+                  <SignaturePad
+                    label={ct ? `Co-Tenant Signature — ${ct.full_name}` : `Co-Tenant ${i + 2} Signature`}
+                    value={coTenantSignatures[i] ?? ""}
+                    onChange={(v) => {
+                      const next = [...coTenantSignatures];
+                      next[i] = v;
+                      setCoTenantSignatures(next);
+                    }}
+                  />
+                </div>
+              );
+            })}
 
             <div className="flex gap-3 pt-2">
               <button
@@ -953,6 +1097,19 @@ export default function ContractBuilder({
                       </p>
                     );
                   })()}
+                  {additionalTenantIds.filter(Boolean).map((tid) => {
+                    const ct = tenants.find((t) => t.id === tid);
+                    if (!ct) return null;
+                    return ct.email?.trim() ? (
+                      <p key={tid} className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                        Co-tenant: {ct.email}
+                      </p>
+                    ) : (
+                      <p key={tid} className="text-sm pill-expired inline-block mt-1">
+                        Co-tenant {ct.full_name}: no email on file
+                      </p>
+                    );
+                  })}
                 </div>
               </div>
             </Section>
