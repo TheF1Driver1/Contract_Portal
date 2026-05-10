@@ -14,6 +14,8 @@ interface OccupantEntry {
   phone: string | null;
   ssn_last4: string | null;
   license_number: string | null;
+  current_address: string | null;
+  date_of_birth: string | null;
   tenant_id: string | null;
   include: boolean;
 }
@@ -50,7 +52,7 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
   const [lateFeeFixed, setLateFeeFixed] = useState(String(contract.late_fee_fixed_amount));
   const [lateFeeDaily, setLateFeeDaily] = useState(String(contract.late_fee_daily_amount));
 
-  // Tenants: primary + co-tenants
+  // Tenants: primary + co-tenants (all toggleable — any can become primary)
   const [occupants, setOccupants] = useState<OccupantEntry[]>([
     {
       id: contract.tenant_id,
@@ -59,6 +61,8 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
       phone: contract.tenant?.phone ?? null,
       ssn_last4: contract.tenant?.ssn_last4 ?? null,
       license_number: contract.tenant?.license_number ?? null,
+      current_address: contract.tenant?.current_address ?? null,
+      date_of_birth: contract.tenant?.date_of_birth ?? null,
       tenant_id: contract.tenant_id,
       include: true,
     },
@@ -71,6 +75,8 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
         phone: o.phone,
         ssn_last4: o.ssn_last4,
         license_number: o.license_number,
+        current_address: o.current_address,
+        date_of_birth: o.date_of_birth,
         tenant_id: o.tenant_id,
         include: true,
       })),
@@ -105,6 +111,8 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
       phone: t.phone,
       ssn_last4: t.ssn_last4,
       license_number: t.license_number,
+      current_address: t.current_address,
+      date_of_birth: t.date_of_birth,
       tenant_id: t.id,
       include: true,
     }]);
@@ -166,7 +174,7 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
       return;
     }
 
-    // Insert co-occupants
+    // Insert co-occupants with full data for PDF rendering
     if (coOccupants.length > 0) {
       await supabase.from("contract_occupants").insert(
         coOccupants.map((o) => ({
@@ -179,6 +187,17 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
           phone: o.phone,
           ssn_last4: o.ssn_last4,
           license_number: o.license_number,
+          current_address: o.current_address,
+          date_of_birth: o.date_of_birth,
+          snapshot: {
+            full_name: o.full_name,
+            email: o.email,
+            phone: o.phone,
+            ssn_last4: o.ssn_last4,
+            license_number: o.license_number,
+            current_address: o.current_address,
+            date_of_birth: o.date_of_birth,
+          },
         }))
       );
     }
@@ -361,36 +380,40 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
               )}
 
               <div className="space-y-2">
-                {occupants.map((o, idx) => (
-                  <label
-                    key={o.id}
-                    className="flex items-center gap-3 rounded-xl p-3 cursor-pointer"
-                    style={{
-                      background: o.include ? "rgba(0,122,255,0.06)" : "var(--surface-container)",
-                      border: `1px solid ${o.include ? "rgba(0,122,255,0.20)" : "transparent"}`,
-                      opacity: o.include ? 1 : 0.55,
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded accent-[#007aff]"
-                      checked={o.include}
-                      disabled={idx === 0}
-                      onChange={() => toggleOccupant(o.id)}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                        {o.full_name}
-                        {idx === 0 && (
-                          <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ background: "rgba(0,122,255,0.12)", color: "#007aff" }}>
-                            Primary
-                          </span>
-                        )}
-                      </p>
-                      {o.email && <p className="text-xs" style={{ color: "var(--text-muted)" }}>{o.email}</p>}
-                    </div>
-                  </label>
-                ))}
+                {occupants.map((o) => {
+                  const firstIncludedId = occupants.find((x) => x.include)?.id;
+                  const isPrimary = o.include && o.id === firstIncludedId;
+                  return (
+                    <label
+                      key={o.id}
+                      className="flex items-center gap-3 rounded-xl p-3 cursor-pointer"
+                      style={{
+                        background: o.include ? "rgba(0,122,255,0.06)" : "var(--surface-container)",
+                        border: `1px solid ${o.include ? "rgba(0,122,255,0.20)" : "transparent"}`,
+                        opacity: o.include ? 1 : 0.55,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded accent-[#007aff]"
+                        checked={o.include}
+                        onChange={() => toggleOccupant(o.id)}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                          {o.full_name}
+                          {isPrimary && (
+                            <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ background: "rgba(0,122,255,0.12)", color: "#007aff" }}>
+                              Primary
+                            </span>
+                          )}
+                        </p>
+                        {o.email && <p className="text-xs" style={{ color: "var(--text-muted)" }}>{o.email}</p>}
+                        {o.current_address && <p className="text-xs" style={{ color: "var(--text-muted)" }}>{o.current_address}</p>}
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
