@@ -4,6 +4,7 @@ export type ContractType = "lease" | "rental" | "addendum";
 export interface Profile {
   id: string;
   full_name: string | null;
+  username: string | null;
   company_name: string | null;
   phone: string | null;
   email: string;
@@ -15,9 +16,11 @@ export interface Property {
   owner_id: string;
   name: string;
   address: string;
+  unit: string | null;
   city: string;
   state: string;
   zip: string | null;
+  country: string | null;
   unit_count: number;
   bathroom_count: number;
   parking_available: boolean;
@@ -36,6 +39,18 @@ export interface Tenant {
   ssn_last4: string | null;
   license_number: string | null;
   current_address: string | null;
+  current_street: string | null;
+  current_unit: string | null;
+  current_city: string | null;
+  current_state: string | null;
+  current_zip: string | null;
+  current_country: string | null;
+  previous_street: string | null;
+  previous_unit: string | null;
+  previous_city: string | null;
+  previous_state: string | null;
+  previous_zip: string | null;
+  previous_country: string | null;
   date_of_birth: string | null;
   employer_name: string | null;
   employer_phone: string | null;
@@ -107,10 +122,15 @@ export interface Contract {
   tenant_snapshot: TenantSnapshot | null;
   property_snapshot: PropertySnapshot | null;
 
+  // Renewal chain
+  parent_contract_id: string | null;
+  is_renewal: boolean;
+
   // Joined fields
   property?: Property;
   tenant?: Tenant;
   template?: ContractTemplate;
+  occupants?: ContractOccupant[];
 }
 
 export interface MarketProperty {
@@ -217,9 +237,11 @@ export interface TenantSnapshot {
 export interface PropertySnapshot {
   name: string;
   address: string;
+  unit: string | null;
   city: string;
   state: string;
   zip: string | null;
+  country: string | null;
   unit_count: number;
   bathroom_count: number;
   parking_available: boolean;
@@ -238,6 +260,10 @@ export interface ContractOccupant {
   license_number: string | null;
   current_address: string | null;
   date_of_birth: string | null;
+  tenant_id: string | null;
+  signature: string | null;
+  signed_at: string | null;
+  snapshot: TenantSnapshot | null;
   created_at: string;
 }
 
@@ -250,6 +276,73 @@ export interface ContractTemplate {
   contract_type: "all" | ContractType;
   is_default: boolean;
   created_at: string;
+}
+
+export interface PropertyCoOwner {
+  id: string;
+  property_id: string;
+  owner_id: string;
+  co_owner_id: string;
+  ownership_pct: number;
+  status: 'pending' | 'accepted' | 'declined';
+  invited_at: string;
+  accepted_at: string | null;
+  // Joined
+  co_owner?: { id: string; full_name: string | null; email: string };
+  property?: Property;
+}
+
+export interface BusinessGroup {
+  id: string;
+  name: string;
+  created_by: string;
+  created_at: string;
+  // Joined
+  members?: BusinessGroupMember[];
+  properties?: BusinessGroupProperty[];
+}
+
+export interface BusinessGroupMember {
+  id: string;
+  group_id: string;
+  user_id: string;
+  role: 'owner' | 'admin' | 'member';
+  status: 'pending' | 'accepted' | 'declined';
+  invited_by: string | null;
+  invited_at: string | null;
+  joined_at: string;
+  // Joined
+  profile?: { id: string; full_name: string | null; username: string | null; email: string };
+  group?: { id: string; name: string };
+}
+
+export interface BusinessGroupProperty {
+  id: string;
+  group_id: string;
+  property_id: string;
+  added_by: string | null;
+  added_at: string;
+  // Joined
+  property?: Property;
+}
+
+export interface GroupPropertyOwnership {
+  id: string;
+  group_id: string;
+  property_id: string;
+  user_id: string;
+  ownership_pct: number;
+  // Joined
+  profile?: { id: string; full_name: string | null; email: string };
+}
+
+export interface ContractAlert {
+  id: string;
+  contract_id: string;
+  owner_id: string;
+  alert_type: 'expiry_60' | 'expiry_30' | 'expiry_14' | 'renewal_sent';
+  sent_at: string;
+  dismissed_at: string | null;
 }
 
 // Form values for contract builder

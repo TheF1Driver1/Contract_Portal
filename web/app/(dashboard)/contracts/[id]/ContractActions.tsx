@@ -2,11 +2,18 @@
 
 import { useState } from "react";
 import { Download, Loader2, Trash2 } from "lucide-react";
-import type { Contract } from "@/lib/types";
+import type { Contract, Tenant } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import RenewalModal from "@/components/RenewalModal";
 
-export default function ContractActions({ contract }: { contract: Contract }) {
+export default function ContractActions({
+  contract,
+  availableTenants = [],
+}: {
+  contract: Contract;
+  availableTenants?: Tenant[];
+}) {
   const [generatingDocx, setGeneratingDocx] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const router = useRouter();
@@ -44,8 +51,13 @@ export default function ContractActions({ contract }: { contract: Contract }) {
     router.push("/contracts");
   }
 
+  const showRenew = contract.status === "signed" || contract.status === "expired";
+
   return (
     <div className="flex items-center gap-2">
+      {showRenew && (
+        <RenewalModal contract={contract} availableTenants={availableTenants} />
+      )}
       <button
         className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium disabled:opacity-50"
         onClick={() => handleDownload("docx")}
