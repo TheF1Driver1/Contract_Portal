@@ -4,7 +4,6 @@ import { Building2 } from "lucide-react";
 import type { Property } from "@/lib/types";
 import AddPropertyModal from "./AddPropertyModal";
 import EditPropertyModal from "./EditPropertyModal";
-import CoOwnersModal from "./CoOwnersModal";
 import PropertyMap from "@/components/PropertyMap";
 
 export default async function PropertiesPage() {
@@ -15,29 +14,16 @@ export default async function PropertiesPage() {
 
   if (!user) redirect("/login");
 
-  const [{ data: properties }, { data: coOwnedRows }] = await Promise.all([
-    supabase.from("properties").select("*").eq("owner_id", user.id).order("name"),
-    supabase
-      .from("property_co_owners")
-      .select("ownership_pct, property:properties(*)")
-      .eq("co_owner_id", user.id)
-      .eq("status", "accepted"),
-  ]);
+  const { data: properties } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("owner_id", user.id)
+    .order("name");
 
-  const ownedProperties = (properties ?? []) as Property[];
-  const coOwnedProperties = ((coOwnedRows ?? []) as any[]).map((row) => ({
-    ...(row.property as Property),
-    _ownership_pct: row.ownership_pct as number,
-    _is_co_owned: true,
-  }));
-
-  const all = [
-    ...ownedProperties.map((p) => ({ ...p, _ownership_pct: 100, _is_co_owned: false })),
-    ...coOwnedProperties,
-  ];
+  const all = (properties ?? []) as Property[];
   const mapped = all.filter(
     (p) => p.latitude && p.longitude
-  ) as (Property & { latitude: number; longitude: number; _ownership_pct: number; _is_co_owned: boolean })[];
+  ) as (Property & { latitude: number; longitude: number })[];
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -106,24 +92,14 @@ export default async function PropertiesPage() {
               <div className="flex items-start gap-3">
                 <div
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                  style={{ background: (p as any)._is_co_owned ? "rgba(139,92,246,0.10)" : "rgba(0,122,255,0.10)" }}
+                  style={{ background: "rgba(0,122,255,0.10)" }}
                 >
-                  <Building2 className="h-5 w-5" style={{ color: (p as any)._is_co_owned ? "#8b5cf6" : "#007aff" }} strokeWidth={2} />
+                  <Building2 className="h-5 w-5" style={{ color: "#007aff" }} strokeWidth={2} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-                      {p.name}
-                    </p>
-                    {(p as any)._ownership_pct < 100 && (
-                      <span
-                        className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
-                        style={{ background: "rgba(139,92,246,0.12)", color: "#8b5cf6" }}
-                      >
-                        {(p as any)._ownership_pct}%
-                      </span>
-                    )}
-                  </div>
+                  <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+                    {p.name}
+                  </p>
                   <p className="truncate text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                     {p.address}
                   </p>
@@ -136,9 +112,8 @@ export default async function PropertiesPage() {
                     {p.parking_available ? " · Parking" : ""}
                   </p>
                 </div>
-                <div className="shrink-0 flex gap-1.5">
-                  {!(p as any)._is_co_owned && <CoOwnersModal property={p} />}
-                  {!(p as any)._is_co_owned && <EditPropertyModal property={p} />}
+                <div className="shrink-0">
+                  <EditPropertyModal property={p} />
                 </div>
               </div>
             </div>

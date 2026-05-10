@@ -14,7 +14,6 @@ import {
   Heart,
   X,
   Settings,
-  Briefcase,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -24,7 +23,6 @@ const navItems = [
   { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
   { href: "/contracts",  label: "Contracts",   icon: FileText },
   { href: "/properties", label: "Properties",  icon: Building2 },
-  { href: "/groups",     label: "Groups",      icon: Briefcase },
   { href: "/tenants",    label: "Tenants",     icon: Users },
   { href: "/market",     label: "Market",      icon: Map },
   { href: "/watchlist",  label: "Watchlist",   icon: Heart },
