@@ -36,11 +36,17 @@ export default function CreateGroupModal() {
     }
 
     // Auto-add creator as owner member
-    await supabase.from("business_group_members").insert({
+    const { error: memberErr } = await supabase.from("business_group_members").insert({
       group_id: group.id,
       user_id: user.id,
       role: "owner",
+      status: "accepted",
     });
+    if (memberErr) {
+      setError(memberErr.message);
+      setSaving(false);
+      return;
+    }
 
     setSaving(false);
     setOpen(false);
