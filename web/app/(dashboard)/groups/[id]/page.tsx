@@ -7,6 +7,7 @@ import InviteMemberModal from "./InviteMemberModal";
 import AddPropertyToGroupModal from "./AddPropertyToGroupModal";
 import OwnershipTable from "./OwnershipTable";
 import DeleteGroupButton from "./DeleteGroupButton";
+import MemberActions from "./MemberActions";
 
 const ROLE_ICON: Record<string, React.ElementType> = {
   owner: Crown,
@@ -112,6 +113,7 @@ export default async function GroupDetailPage({ params }: { params: { id: string
           <div className="space-y-2">
             {members.map((m) => {
               const RoleIcon = ROLE_ICON[m.role] ?? User;
+              const isSelf = m.user_id === user.id;
               return (
                 <div
                   key={m.id}
@@ -121,7 +123,7 @@ export default async function GroupDetailPage({ params }: { params: { id: string
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
                       {m.profile?.username ? `@${m.profile.username}` : m.profile?.full_name ?? m.profile?.email}
-                      {m.user_id === user.id && (
+                      {isSelf && (
                         <span className="ml-1.5 text-[10px]" style={{ color: "var(--text-muted)" }}>(you)</span>
                       )}
                     </p>
@@ -132,6 +134,13 @@ export default async function GroupDetailPage({ params }: { params: { id: string
                     <span className="text-xs font-medium capitalize" style={{ color: ROLE_COLOR[m.role] }}>
                       {m.role}
                     </span>
+                    {isAdmin && !isSelf && (
+                      <MemberActions
+                        memberId={m.id}
+                        currentRole={m.role as "owner" | "admin" | "member"}
+                        groupId={params.id}
+                      />
+                    )}
                   </div>
                 </div>
               );
