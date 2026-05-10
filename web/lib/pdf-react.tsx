@@ -19,7 +19,6 @@ import type {
   TenantSnapshot,
   Property,
   PropertySnapshot,
-  ContractOccupant,
 } from "@/lib/types";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -187,7 +186,6 @@ function ContractDocument({ contract, profile }: Props) {
   // Occupants
   const occupantNames = contract.occupant_names ?? [];
   const occupantCount = contract.occupant_count ?? 1;
-  const coTenants: ContractOccupant[] = (contract.occupants ?? []).filter((o) => o.role === "co_tenant");
 
   // Signatures
   const signedDate = contract.signed_at ? fmtDate(contract.signed_at.split("T")[0]) : "";
@@ -251,19 +249,6 @@ function ContractDocument({ contract, profile }: Props) {
             </View>
           </View>
         </SectionBlock>
-
-        {/* ── Co-Tenants ── */}
-        {coTenants.length > 0 ? coTenants.map((ct, i) => (
-          <SectionBlock key={ct.id} title={`Co-Tenant ${i + 2}`}>
-            <Row label="Full Name"    value={ct.full_name} />
-            <Row label="Email"        value={ct.email ?? ""} />
-            <Row label="Phone"        value={ct.phone ?? ""} />
-            <Row label="License / ID" value={ct.license_number ?? ""} />
-            {ct.ssn_last4 ? <Row label="SSN (Last 4)" value={`xxx-xx-${ct.ssn_last4}`} /> : null}
-            <Row label="Date of Birth"    value={fmtDate(ct.date_of_birth ?? "")} />
-            <Row label="Current Address"  value={ct.current_address ?? ""} />
-          </SectionBlock>
-        )) : null}
 
         {/* ── Additional Tenant Details ── */}
         {(hasEmployer || hasEmergency) ? (
@@ -373,15 +358,6 @@ function ContractDocument({ contract, profile }: Props) {
             <Text style={S.sectionTitle}>Signatures</Text>
           </View>
           <View style={S.sigGrid}>
-            {/* Primary Tenant */}
-            <View style={S.sigBlock}>
-              <Text style={S.sigRole}>Tenant</Text>
-              {contract.tenant_signature
-                ? <Image style={S.sigImage} src={contract.tenant_signature} />
-                : <View style={S.sigLine} />}
-              <Text style={S.sigName}>{String(ten?.full_name ?? "")}</Text>
-              <Text style={S.sigDate}>Date: {signedDate || "_________________"}</Text>
-            </View>
             {/* Landlord */}
             <View style={S.sigBlock}>
               <Text style={S.sigRole}>Landlord</Text>
@@ -391,22 +367,16 @@ function ContractDocument({ contract, profile }: Props) {
               <Text style={S.sigName}>{landlordName}</Text>
               <Text style={S.sigDate}>Date: {signedDate || "_________________"}</Text>
             </View>
-          </View>
-          {/* Co-Tenant Signatures */}
-          {coTenants.length > 0 ? (
-            <View style={{ ...S.sigGrid, marginTop: 16 }}>
-              {coTenants.map((ct, i) => (
-                <View key={ct.id} style={S.sigBlock}>
-                  <Text style={S.sigRole}>Co-Tenant {i + 2}</Text>
-                  {ct.signature
-                    ? <Image style={S.sigImage} src={ct.signature} />
-                    : <View style={S.sigLine} />}
-                  <Text style={S.sigName}>{ct.full_name}</Text>
-                  <Text style={S.sigDate}>Date: {ct.signed_at ? fmtDate(ct.signed_at.split("T")[0]) : "_________________"}</Text>
-                </View>
-              ))}
+            {/* Tenant */}
+            <View style={S.sigBlock}>
+              <Text style={S.sigRole}>Tenant</Text>
+              {contract.tenant_signature
+                ? <Image style={S.sigImage} src={contract.tenant_signature} />
+                : <View style={S.sigLine} />}
+              <Text style={S.sigName}>{String(ten?.full_name ?? "")}</Text>
+              <Text style={S.sigDate}>Date: {signedDate || "_________________"}</Text>
             </View>
-          ) : null}
+          </View>
         </View>
 
         {/* ── Footer ── */}

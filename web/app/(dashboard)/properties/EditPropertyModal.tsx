@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Pencil, Loader2, X, AlertTriangle } from "lucide-react";
 import type { Property } from "@/lib/types";
-import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
 
 export default function EditPropertyModal({ property }: { property: Property }) {
   const [open, setOpen] = useState(false);
@@ -14,11 +13,9 @@ export default function EditPropertyModal({ property }: { property: Property }) 
   const [form, setForm] = useState({
     name: property.name,
     address: property.address,
-    unit: property.unit ?? "",
     city: property.city,
     state: property.state,
     zip: property.zip ?? "",
-    country: property.country ?? "US",
     unit_count: property.unit_count,
     bathroom_count: property.bathroom_count ?? 1,
     parking_available: property.parking_available ?? false,
@@ -35,11 +32,9 @@ export default function EditPropertyModal({ property }: { property: Property }) 
       .update({
         name: form.name,
         address: form.address,
-        unit: form.unit || null,
         city: form.city,
         state: form.state,
         zip: form.zip || null,
-        country: form.country || null,
         unit_count: form.unit_count,
         bathroom_count: form.bathroom_count,
         parking_available: form.parking_available,
@@ -52,8 +47,6 @@ export default function EditPropertyModal({ property }: { property: Property }) 
       router.refresh();
     }
   }
-
-  const lbl = { color: "var(--text-secondary)" } as const;
 
   return (
     <>
@@ -76,6 +69,7 @@ export default function EditPropertyModal({ property }: { property: Property }) 
             className="surface-card w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Header */}
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
                 Edit Property
@@ -89,6 +83,7 @@ export default function EditPropertyModal({ property }: { property: Property }) 
               </button>
             </div>
 
+            {/* Warning */}
             <div
               className="flex items-start gap-2 rounded-xl p-3 mb-4 text-xs"
               style={{ background: "rgba(255,204,0,0.10)", color: "var(--text-secondary)" }}
@@ -99,7 +94,9 @@ export default function EditPropertyModal({ property }: { property: Property }) 
 
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={lbl}>Property Name</label>
+                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                  Property Name
+                </label>
                 <input
                   className="input-tonal"
                   value={form.name}
@@ -107,38 +104,22 @@ export default function EditPropertyModal({ property }: { property: Property }) 
                   required
                 />
               </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
-                  <AddressAutocomplete
-                    label="Street Address"
-                    value={form.address}
-                    onChange={(v) => setForm((f) => ({ ...f, address: v }))}
-                    onSelect={(parts) => setForm((f) => ({
-                      ...f,
-                      address: parts.street,
-                      city: parts.city || f.city,
-                      state: parts.state || f.state,
-                      zip: parts.zip || f.zip,
-                      country: parts.country || f.country,
-                    }))}
-                    required
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={lbl}>Unit / Apt</label>
-                  <input
-                    className="input-tonal"
-                    placeholder="Apt 2B"
-                    value={form.unit}
-                    onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                  Street Address
+                </label>
+                <input
+                  className="input-tonal"
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  required
+                />
               </div>
-
-              <div className="grid grid-cols-4 gap-3">
-                <div className="col-span-2 space-y-1.5">
-                  <label className="text-xs font-medium" style={lbl}>City</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    City
+                  </label>
                   <input
                     className="input-tonal"
                     value={form.city}
@@ -147,35 +128,31 @@ export default function EditPropertyModal({ property }: { property: Property }) 
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={lbl}>State</label>
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    State
+                  </label>
                   <input
                     className="input-tonal"
                     value={form.state}
                     onChange={(e) => setForm({ ...form, state: e.target.value })}
                   />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={lbl}>ZIP</label>
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    ZIP
+                  </label>
                   <input
                     className="input-tonal"
                     value={form.zip}
                     onChange={(e) => setForm({ ...form, zip: e.target.value })}
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={lbl}>Country</label>
-                  <input
-                    className="input-tonal"
-                    placeholder="US"
-                    value={form.country}
-                    onChange={(e) => setForm({ ...form, country: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={lbl}>Units</label>
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    Units
+                  </label>
                   <input
                     className="input-tonal"
                     type="number"
@@ -184,8 +161,12 @@ export default function EditPropertyModal({ property }: { property: Property }) 
                     onChange={(e) => setForm({ ...form, unit_count: parseInt(e.target.value) || 1 })}
                   />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={lbl}>Bathrooms</label>
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    Bathrooms
+                  </label>
                   <input
                     className="input-tonal"
                     type="number"
@@ -195,26 +176,29 @@ export default function EditPropertyModal({ property }: { property: Property }) 
                     onChange={(e) => setForm({ ...form, bathroom_count: parseInt(e.target.value) || 1 })}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium" style={lbl}>Parking</label>
-                <label
-                  className="flex items-center gap-2.5 rounded-xl p-3 cursor-pointer transition-colors h-[42px]"
-                  style={{ background: "var(--surface-container)" }}
-                >
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded accent-[#007aff]"
-                    checked={form.parking_available}
-                    onChange={(e) => setForm({ ...form, parking_available: e.target.checked })}
-                  />
-                  <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Included</span>
-                </label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    Parking
+                  </label>
+                  <label
+                    className="flex items-center gap-2.5 rounded-xl p-3 cursor-pointer transition-colors h-[42px]"
+                    style={{ background: "var(--surface-container)" }}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded accent-[#007aff]"
+                      checked={form.parking_available}
+                      onChange={(e) => setForm({ ...form, parking_available: e.target.checked })}
+                    />
+                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Included</span>
+                  </label>
+                </div>
               </div>
               {form.parking_available && (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium" style={lbl}>Parking Spaces</label>
+                  <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                    Parking Spaces
+                  </label>
                   <input
                     className="input-tonal"
                     type="number"

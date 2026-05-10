@@ -15,11 +15,9 @@ export interface Property {
   owner_id: string;
   name: string;
   address: string;
-  unit: string | null;
   city: string;
   state: string;
   zip: string | null;
-  country: string | null;
   unit_count: number;
   bathroom_count: number;
   parking_available: boolean;
@@ -38,18 +36,6 @@ export interface Tenant {
   ssn_last4: string | null;
   license_number: string | null;
   current_address: string | null;
-  current_street: string | null;
-  current_unit: string | null;
-  current_city: string | null;
-  current_state: string | null;
-  current_zip: string | null;
-  current_country: string | null;
-  previous_street: string | null;
-  previous_unit: string | null;
-  previous_city: string | null;
-  previous_state: string | null;
-  previous_zip: string | null;
-  previous_country: string | null;
   date_of_birth: string | null;
   employer_name: string | null;
   employer_phone: string | null;
@@ -125,7 +111,6 @@ export interface Contract {
   property?: Property;
   tenant?: Tenant;
   template?: ContractTemplate;
-  occupants?: ContractOccupant[];
 }
 
 export interface MarketProperty {
@@ -232,11 +217,9 @@ export interface TenantSnapshot {
 export interface PropertySnapshot {
   name: string;
   address: string;
-  unit: string | null;
   city: string;
   state: string;
   zip: string | null;
-  country: string | null;
   unit_count: number;
   bathroom_count: number;
   parking_available: boolean;
@@ -255,10 +238,6 @@ export interface ContractOccupant {
   license_number: string | null;
   current_address: string | null;
   date_of_birth: string | null;
-  tenant_id: string | null;
-  signature: string | null;
-  signed_at: string | null;
-  snapshot: TenantSnapshot | null;
   created_at: string;
 }
 
