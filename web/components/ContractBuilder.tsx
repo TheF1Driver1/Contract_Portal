@@ -181,7 +181,13 @@ export default function ContractBuilder({
         property_id: data.property_id,
         tenant_id: data.tenant_id,
         contract_type: data.contract_type,
-        status: "draft" as const,
+        status: (
+          data.landlord_signature &&
+          data.tenant_signature &&
+          additionalTenantIds.filter(Boolean).every((_, i) => !!coTenantSignatures[i])
+            ? "signed"
+            : "draft"
+        ) as "signed" | "draft",
         unit_number: data.unit_number || null,
         lease_start: data.lease_start || null,
         lease_end: data.lease_end || null,
