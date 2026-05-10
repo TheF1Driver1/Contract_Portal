@@ -19,7 +19,9 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setIsRecovery(params.get("type") === "recover");
+    const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
+    const type = params.get("type") ?? hashParams.get("type");
+    setIsRecovery(type === "recovery" || type === "recover");
   }, []);
 
   async function handleSubmit(e: FormEvent) {
