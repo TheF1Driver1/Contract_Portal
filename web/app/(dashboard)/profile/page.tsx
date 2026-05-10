@@ -190,14 +190,24 @@ export default function ProfilePage() {
     setResetLoading(false);
   }
 
+  function toE164(raw: string): string {
+    const digits = raw.replace(/\D/g, "");
+    if (raw.trimStart().startsWith("+")) return "+" + digits;
+    // default to +1 (US/PR) if no country code prefix
+    return digits.length === 10 ? "+1" + digits : "+" + digits;
+  }
+
   async function handlePhoneUpdate(e: React.FormEvent) {
     e.preventDefault();
+    const normalized = toE164(phone.trim());
+    if (!normalized || normalized === "+") return;
     setPhoneLoading(true);
     setPhoneStatus(null);
-    const { error } = await supabase.auth.updateUser({ phone: phone.trim() || undefined });
+    const { error } = await supabase.auth.updateUser({ phone: normalized });
     if (error) {
       setPhoneStatus({ type: "error", message: error.message });
     } else {
+      setPhone(normalized);
       setPhoneStatus({ type: "success", message: "Phone number updated." });
     }
     setPhoneLoading(false);
@@ -276,9 +286,12 @@ export default function ProfilePage() {
               type="tel"
               value={phone}
               onChange={setPhone}
-              placeholder="+1 (555) 000-0000"
+              placeholder="5551234567 or +15551234567"
               autoComplete="tel"
             />
+            <p className="text-[11px] mt-1.5" style={{ color: S.muted }}>
+              10-digit US numbers auto-formatted. Include country code for international (e.g. +44...).
+            </p>
           </div>
           {phoneStatus && <StatusBanner {...phoneStatus} />}
           <SubmitButton loading={phoneLoading} label="Save Phone" />
