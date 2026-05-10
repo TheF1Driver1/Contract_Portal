@@ -89,6 +89,7 @@ export default async function DashboardPage() {
       iconColor: "#fff",
       iconGlow: "0 4px 14px rgba(20,184,166,0.40)",
       valueColor: "var(--text-primary)",
+      href: "/properties",
     },
     {
       label: "Tenants",
@@ -99,6 +100,7 @@ export default async function DashboardPage() {
       iconColor: "#fff",
       iconGlow: "0 4px 14px rgba(139,92,246,0.40)",
       valueColor: "var(--text-primary)",
+      href: "/tenants",
     },
     {
       label: "Expiring Soon",
@@ -144,34 +146,44 @@ export default async function DashboardPage() {
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map(({ label, value, sub, icon: Icon, iconBg, iconColor, iconGlow, valueColor }, i) => (
-          <div
-            key={label}
-            className="surface-card animate-slide-up"
-            style={{ animationDelay: `${i * 0.06}s`, animationFillMode: "both" }}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{ background: iconBg, boxShadow: iconGlow }}
-              >
-                <Icon className="h-4.5 w-4.5" style={{ color: iconColor }} strokeWidth={2.5} />
+        {stats.map(({ label, value, sub, icon: Icon, iconBg, iconColor, iconGlow, valueColor, href }, i) => {
+          const cardClass = `surface-card animate-slide-up${href ? " hover:ring-1 hover:ring-white/10 cursor-pointer transition-all" : ""}`;
+          const cardStyle = { animationDelay: `${i * 0.06}s`, animationFillMode: "both" as const };
+          const inner = (
+            <>
+              <div className="flex items-start justify-between mb-4">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl"
+                  style={{ background: iconBg, boxShadow: iconGlow }}
+                >
+                  <Icon className="h-4.5 w-4.5" style={{ color: iconColor }} strokeWidth={2.5} />
+                </div>
+                {href && <ArrowRight className="h-3.5 w-3.5 opacity-30" style={{ color: "var(--text-muted)" }} />}
               </div>
+              <p
+                className="text-3xl font-bold"
+                style={{ color: valueColor, letterSpacing: "-0.03em" }}
+              >
+                {value}
+              </p>
+              <p className="text-xs mt-1 font-semibold" style={{ color: "var(--text-secondary)" }}>
+                {label}
+              </p>
+              <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                {sub}
+              </p>
+            </>
+          );
+          return href ? (
+            <Link key={label} href={href} className={cardClass} style={cardStyle}>
+              {inner}
+            </Link>
+          ) : (
+            <div key={label} className={cardClass} style={cardStyle}>
+              {inner}
             </div>
-            <p
-              className="text-3xl font-bold"
-              style={{ color: valueColor, letterSpacing: "-0.03em" }}
-            >
-              {value}
-            </p>
-            <p className="text-xs mt-1 font-semibold" style={{ color: "var(--text-secondary)" }}>
-              {label}
-            </p>
-            <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
-              {sub}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ── Main grid ── */}
