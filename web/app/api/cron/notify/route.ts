@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { sendTwilioSms, sendResendEmail, buildExpiryNotification } from "@/lib/notify";
+import { sendResendEmail, buildExpiryNotification } from "@/lib/notify";
 import type { NotificationTrigger } from "@/lib/types";
 
 export const dynamic   = "force-dynamic";
@@ -79,7 +79,6 @@ export async function POST(req: Request) {
 
   // ── 5. Send notifications ──────────────────────────────────────────────────
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://localhost:3000";
-  let sentSms   = 0;
   let sentEmail = 0;
   const errors: string[] = [];
   const newLogs: {
@@ -104,7 +103,7 @@ export async function POST(req: Request) {
     const tenantName = c.tenant?.full_name ?? "";
     const contractUrl = `${appUrl}/contracts/${c.id}`;
 
-    const { sms, subject, emailHtml } = buildExpiryNotification({
+    const { subject, emailHtml } = buildExpiryNotification({
       tenantName,
       propertyName: propName,
       daysLeft,
@@ -112,31 +111,6 @@ export async function POST(req: Request) {
     });
 
     for (const trigger of matchingTriggers) {
-      // SMS to landlord
-      if (trigger.send_sms) {
-        const key = `${c.id}:${trigger.id}:sms`;
-        if (!alreadySent.has(key)) {
-          const landlordPhone = c.owner?.phone ?? null;
-          let err: string | null = null;
-          if (landlordPhone) {
-            try {
-              await sendTwilioSms(landlordPhone, sms);
-              sentSms++;
-            } catch (e) {
-              err = (e as Error).message;
-              errors.push(`sms ${c.id}: ${err}`);
-            }
-          } else {
-            err = "no phone";
-          }
-          newLogs.push({
-            contract_id: c.id, owner_id: c.owner_id, trigger_id: trigger.id,
-            days_before: trigger.days_before, channel: "sms",
-            status: err ? "failed" : "sent", error_message: err,
-          });
-        }
-      }
-
       // Email to landlord
       if (trigger.send_email) {
         const key = `${c.id}:${trigger.id}:email`;
@@ -174,7 +148,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     processed: (contracts ?? []).length,
-    sent_sms:  sentSms,
     sent_email: sentEmail,
     expired,
     errors,

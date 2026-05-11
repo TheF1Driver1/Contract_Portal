@@ -50,7 +50,6 @@ export default async function ContractDetailPage({
   const daysLeft = daysUntil(c.lease_end);
   const coTenants = (c.occupants ?? []).filter((o) => o.role === "co_tenant") as ContractOccupant[];
   const logs = (notifLogs ?? []) as ContractNotificationLog[];
-  const hasTenantPhone = !!(c.tenant as { phone?: string | null } | undefined)?.phone;
 
   return (
     <div className="space-y-6">
@@ -181,7 +180,6 @@ export default async function ContractDetailPage({
         <NotificationPanel
           contractId={c.id}
           initialSuppressed={c.suppress_notifications ?? false}
-          hasTenantPhone={hasTenantPhone}
           initialLogs={logs}
         />
       </div>

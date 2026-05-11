@@ -1,24 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Plus, Trash2, Loader2, MessageSquare, Mail } from "lucide-react";
+import { Bell, Plus, Trash2, Loader2, Mail } from "lucide-react";
 import type { NotificationTrigger } from "@/lib/types";
 
 export default function NotificationsSettingsPage() {
   const [triggers, setTriggers] = useState<NotificationTrigger[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [error, setError]       = useState<string | null>(null);
 
-  // Form state
   const [daysBefore, setDaysBefore] = useState<number | "">(30);
-  const [sendSms, setSendSms] = useState(true);
-  const [sendEmail, setSendEmail] = useState(true);
-  const [label, setLabel] = useState("");
+  const [label, setLabel]           = useState("");
 
-  useEffect(() => {
-    fetchTriggers();
-  }, []);
+  useEffect(() => { fetchTriggers(); }, []);
 
   async function fetchTriggers() {
     setLoading(true);
@@ -43,8 +38,8 @@ export default function NotificationsSettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           days_before: Number(daysBefore),
-          send_sms:    sendSms,
-          send_email:  sendEmail,
+          send_sms:    false,
+          send_email:  true,
           label:       label.trim() || null,
         }),
       });
@@ -86,7 +81,7 @@ export default function NotificationsSettingsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Expiry Notifications</h1>
         </div>
         <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-          Get notified via SMS and email before a lease expires. Add as many triggers as you need.
+          Get emailed before a lease expires. Add as many triggers as you need.
         </p>
       </div>
 
@@ -109,9 +104,9 @@ export default function NotificationsSettingsPage() {
               onChange={(e) => setDaysBefore(e.target.value === "" ? "" : Number(e.target.value))}
               className="w-28 rounded-lg border px-3 py-2 text-sm"
               style={{
-                background: "var(--surface-container)",
-                borderColor: "var(--surface-border)",
-                color: "var(--text-primary)",
+                background:   "var(--surface-container)",
+                borderColor:  "var(--surface-border)",
+                color:        "var(--text-primary)",
               }}
               placeholder="30"
             />
@@ -128,28 +123,13 @@ export default function NotificationsSettingsPage() {
               onChange={(e) => setLabel(e.target.value)}
               className="w-44 rounded-lg border px-3 py-2 text-sm"
               style={{
-                background: "var(--surface-container)",
+                background:  "var(--surface-container)",
                 borderColor: "var(--surface-border)",
-                color: "var(--text-primary)",
+                color:       "var(--text-primary)",
               }}
               placeholder="e.g. 30-day warning"
             />
           </div>
-        </div>
-
-        <div className="flex flex-wrap gap-4">
-          <ChannelToggle
-            icon={<MessageSquare className="h-3.5 w-3.5" />}
-            label="SMS"
-            enabled={sendSms}
-            onToggle={() => setSendSms((v) => !v)}
-          />
-          <ChannelToggle
-            icon={<Mail className="h-3.5 w-3.5" />}
-            label="Email"
-            enabled={sendEmail}
-            onToggle={() => setSendEmail((v) => !v)}
-          />
         </div>
 
         {error && (
@@ -188,18 +168,13 @@ export default function NotificationsSettingsPage() {
         )}
 
         {triggers.map((trigger) => (
-          <div
-            key={trigger.id}
-            className="surface-card flex items-center justify-between gap-4"
-          >
+          <div key={trigger.id} className="surface-card flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              {/* Active pill */}
+              {/* Active toggle */}
               <button
                 onClick={() => handleToggleActive(trigger)}
                 className="flex h-5 w-9 shrink-0 items-center rounded-full transition-colors"
-                style={{
-                  background: trigger.is_active ? "var(--accent)" : "var(--surface-container)",
-                }}
+                style={{ background: trigger.is_active ? "var(--accent)" : "var(--surface-container)" }}
                 aria-label={trigger.is_active ? "Deactivate" : "Activate"}
               >
                 <span
@@ -217,18 +192,9 @@ export default function NotificationsSettingsPage() {
                     </span>
                   )}
                 </p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  {trigger.send_sms && (
-                    <span className="flex items-center gap-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                      <MessageSquare className="h-3 w-3" /> SMS
-                    </span>
-                  )}
-                  {trigger.send_email && (
-                    <span className="flex items-center gap-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                      <Mail className="h-3 w-3" /> Email
-                    </span>
-                  )}
-                </div>
+                <span className="flex items-center gap-1 text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                  <Mail className="h-3 w-3" /> Email
+                </span>
               </div>
             </div>
 
@@ -244,33 +210,5 @@ export default function NotificationsSettingsPage() {
         ))}
       </div>
     </div>
-  );
-}
-
-function ChannelToggle({
-  icon,
-  label,
-  enabled,
-  onToggle,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  enabled: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors"
-      style={{
-        borderColor: enabled ? "var(--accent)" : "var(--surface-border)",
-        background:  enabled ? "rgba(0,122,255,0.12)" : "transparent",
-        color:       enabled ? "var(--accent)" : "var(--text-muted)",
-      }}
-    >
-      {icon}
-      {label}
-    </button>
   );
 }

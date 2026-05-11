@@ -1,26 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquare, Mail, Loader2, BellOff } from "lucide-react";
+import { Mail, BellOff } from "lucide-react";
 import type { ContractNotificationLog } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
 export default function NotificationPanel({
   contractId,
   initialSuppressed,
-  hasTenantPhone,
   initialLogs,
 }: {
   contractId: string;
   initialSuppressed: boolean;
-  hasTenantPhone: boolean;
   initialLogs: ContractNotificationLog[];
 }) {
-  const [suppressed, setSuppressed]   = useState(initialSuppressed);
+  const [suppressed, setSuppressed]         = useState(initialSuppressed);
   const [togglingSuppress, setTogglingSuppress] = useState(false);
-  const [sendingQuickSms, setSendingQuickSms]   = useState(false);
-  const [quickSmsMsg, setQuickSmsMsg]           = useState<string | null>(null);
-  const [logs, setLogs]               = useState<ContractNotificationLog[]>(initialLogs);
+  const [logs]                              = useState<ContractNotificationLog[]>(initialLogs);
 
   async function handleSuppressToggle() {
     setTogglingSuppress(true);
@@ -33,27 +29,9 @@ export default function NotificationPanel({
         body: JSON.stringify({ suppress_notifications: next }),
       });
     } catch {
-      setSuppressed(!next); // revert on error
+      setSuppressed(!next);
     } finally {
       setTogglingSuppress(false);
-    }
-  }
-
-  async function handleQuickSms() {
-    setSendingQuickSms(true);
-    setQuickSmsMsg(null);
-    try {
-      const res = await fetch(`/api/contracts/${contractId}/quick-sms`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? res.statusText);
-      setQuickSmsMsg(`SMS sent to ${data.phone}`);
-      // Refresh logs
-      const logsRes = await fetch(`/api/contracts/${contractId}/notification-logs`);
-      if (logsRes.ok) setLogs(await logsRes.json());
-    } catch (e) {
-      setQuickSmsMsg(`Failed: ${(e as Error).message}`);
-    } finally {
-      setSendingQuickSms(false);
     }
   }
 
@@ -71,9 +49,7 @@ export default function NotificationPanel({
           onClick={handleSuppressToggle}
           disabled={togglingSuppress}
           className="flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50"
-          style={{
-            background: suppressed ? "var(--accent)" : "var(--surface-container)",
-          }}
+          style={{ background: suppressed ? "var(--accent)" : "var(--surface-container)" }}
           aria-label={suppressed ? "Resume notifications" : "Suppress notifications"}
         >
           <span
@@ -82,32 +58,6 @@ export default function NotificationPanel({
           />
         </button>
       </div>
-
-      {/* Quick SMS */}
-      {hasTenantPhone && (
-        <div className="space-y-1.5">
-          <button
-            onClick={handleQuickSms}
-            disabled={sendingQuickSms}
-            className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50"
-            style={{ background: "rgba(0,122,255,0.12)", color: "var(--accent)" }}
-          >
-            {sendingQuickSms
-              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              : <MessageSquare className="h-3.5 w-3.5" />
-            }
-            Send SMS to Tenant
-          </button>
-          {quickSmsMsg && (
-            <p
-              className="text-xs pl-1"
-              style={{ color: quickSmsMsg.startsWith("Failed") ? "#ff3b30" : "#34c759" }}
-            >
-              {quickSmsMsg}
-            </p>
-          )}
-        </div>
-      )}
 
       {/* Notification log */}
       <div className="space-y-2 pt-1">
@@ -129,18 +79,12 @@ export default function NotificationPanel({
 }
 
 function LogRow({ log }: { log: ContractNotificationLog }) {
-  const isEmail = log.channel === "email";
-  const label   = log.days_before === 0
-    ? "Manual"
-    : `${log.days_before}d before`;
+  const label = log.days_before === 0 ? "Manual" : `${log.days_before}d before`;
 
   return (
     <div className="flex items-center justify-between gap-3 text-xs">
       <div className="flex items-center gap-2">
-        {isEmail
-          ? <Mail className="h-3 w-3 shrink-0" style={{ color: "var(--text-muted)" }} />
-          : <MessageSquare className="h-3 w-3 shrink-0" style={{ color: "var(--text-muted)" }} />
-        }
+        <Mail className="h-3 w-3 shrink-0" style={{ color: "var(--text-muted)" }} />
         <span style={{ color: "var(--text-muted)" }}>{label}</span>
         <span
           className="rounded-full px-2 py-0.5 font-medium capitalize"
