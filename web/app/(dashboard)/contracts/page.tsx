@@ -4,6 +4,7 @@ import { Plus, FileText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import ExpiryReminderBar from "./ExpiryReminderBar";
 
 const STATUS_PILL: Record<string, string> = {
   signed:  "pill-active",
@@ -74,6 +75,9 @@ export default async function ContractsPage({
           New Contract
         </Link>
       </div>
+
+      {/* ── Expiry Reminders ── */}
+      <ExpiryReminderBar />
 
       {/* ── Filters ── */}
       <div

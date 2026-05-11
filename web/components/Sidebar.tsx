@@ -15,7 +15,6 @@ import {
   X,
   Settings,
   UserCircle,
-  Bell,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -29,7 +28,6 @@ const navItems = [
   { href: "/market",     label: "Market",      icon: Map },
   { href: "/watchlist",  label: "Watchlist",   icon: Heart },
   { href: "/settings/templates",      label: "Templates",      icon: Settings },
-  { href: "/settings/notifications",   label: "Notifications",   icon: Bell },
 ];
 
 const mobileNavItems = navItems.slice(0, 5);
