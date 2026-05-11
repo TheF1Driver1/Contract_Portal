@@ -27,7 +27,7 @@ const navItems = [
   { href: "/tenants",    label: "Tenants",     icon: Users },
   { href: "/market",     label: "Market",      icon: Map },
   { href: "/watchlist",  label: "Watchlist",   icon: Heart },
-  { href: "/settings/templates", label: "Templates", icon: Settings },
+  { href: "/settings/templates",      label: "Templates",      icon: Settings },
 ];
 
 const mobileNavItems = navItems.slice(0, 5);

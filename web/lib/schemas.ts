@@ -40,7 +40,9 @@ export const ContractCreateSchema = z.object({
   property_snapshot: z.record(z.unknown()).optional().nullable(),
 });
 
-export const ContractUpdateSchema = ContractCreateSchema.partial();
+export const ContractUpdateSchema = ContractCreateSchema.partial().extend({
+  suppress_notifications: z.boolean().optional(),
+});
 
 // ── Send contract ────────────────────────────────────────────────────────────
 
@@ -147,6 +149,18 @@ export const TemplateCreateSchema = z.object({
 export const TemplateSetDefaultSchema = z.object({
   id: uuid,
 });
+
+// ── Notification triggers ─────────────────────────────────────────────────────
+
+export const NotificationTriggerCreateSchema = z.object({
+  days_before: z.number().int().min(1).max(365),
+  send_sms:    z.boolean().default(true),
+  send_email:  z.boolean().default(true),
+  label:       z.string().max(100).optional().nullable(),
+  is_active:   z.boolean().default(true),
+});
+
+export const NotificationTriggerUpdateSchema = NotificationTriggerCreateSchema.partial();
 
 // ── Property update ──────────────────────────────────────────────────────────
 

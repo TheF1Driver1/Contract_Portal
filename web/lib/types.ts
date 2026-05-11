@@ -126,6 +126,9 @@ export interface Contract {
   parent_contract_id: string | null;
   is_renewal: boolean;
 
+  // Notification control
+  suppress_notifications: boolean;
+
   // Joined fields
   property?: Property;
   tenant?: Tenant;
@@ -336,13 +339,30 @@ export interface GroupPropertyOwnership {
   profile?: { id: string; full_name: string | null; email: string };
 }
 
-export interface ContractAlert {
+export interface NotificationTrigger {
+  id: string;
+  owner_id: string;
+  days_before: number;
+  send_sms: boolean;
+  send_email: boolean;
+  label: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export type NotificationChannel = 'sms' | 'email';
+export type NotificationStatus  = 'sent' | 'failed' | 'suppressed';
+
+export interface ContractNotificationLog {
   id: string;
   contract_id: string;
   owner_id: string;
-  alert_type: 'expiry_60' | 'expiry_30' | 'expiry_14' | 'renewal_sent';
+  trigger_id: string | null;
+  days_before: number;
+  channel: NotificationChannel;
+  status: NotificationStatus;
+  error_message: string | null;
   sent_at: string;
-  dismissed_at: string | null;
 }
 
 // Form values for contract builder
