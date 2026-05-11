@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, BellOff } from "lucide-react";
+import { Mail, Bell, BellOff } from "lucide-react";
 import type { ContractNotificationLog } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -14,47 +14,60 @@ export default function NotificationPanel({
   initialSuppressed: boolean;
   initialLogs: ContractNotificationLog[];
 }) {
-  const [suppressed, setSuppressed]         = useState(initialSuppressed);
-  const [togglingSuppress, setTogglingSuppress] = useState(false);
-  const [logs]                              = useState<ContractNotificationLog[]>(initialLogs);
+  // remindersOn = true means notifications are ENABLED (suppress_notifications = false in DB)
+  const [remindersOn, setRemindersOn]           = useState(!initialSuppressed);
+  const [toggling, setToggling]                 = useState(false);
+  const [logs]                                  = useState<ContractNotificationLog[]>(initialLogs);
 
-  async function handleSuppressToggle() {
-    setTogglingSuppress(true);
-    const next = !suppressed;
-    setSuppressed(next);
+  async function handleToggle() {
+    setToggling(true);
+    const next = !remindersOn;
+    setRemindersOn(next);
     try {
       await fetch(`/api/contracts/${contractId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ suppress_notifications: next }),
+        body: JSON.stringify({ suppress_notifications: !next }),
       });
     } catch {
-      setSuppressed(!next);
+      setRemindersOn(!next);
     } finally {
-      setTogglingSuppress(false);
+      setToggling(false);
     }
   }
 
   return (
     <div className="space-y-4">
-      {/* Suppress toggle */}
+      {/* Reminders toggle */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <BellOff className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
-          <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-            Suppress renewal notifications
+          {remindersOn
+            ? <Bell    className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
+            : <BellOff className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
+          }
+          <span className="text-sm" style={{ color: remindersOn ? "var(--text-primary)" : "var(--text-muted)" }}>
+            Renewal reminders
+          </span>
+          <span
+            className="rounded-full px-2 py-0.5 text-xs font-semibold"
+            style={{
+              background: remindersOn ? "rgba(52,199,89,0.15)" : "rgba(255,59,48,0.12)",
+              color:      remindersOn ? "#34c759"               : "#ff3b30",
+            }}
+          >
+            {remindersOn ? "ON" : "OFF"}
           </span>
         </div>
         <button
-          onClick={handleSuppressToggle}
-          disabled={togglingSuppress}
-          className="flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50"
-          style={{ background: suppressed ? "var(--accent)" : "var(--surface-container)" }}
-          aria-label={suppressed ? "Resume notifications" : "Suppress notifications"}
+          onClick={handleToggle}
+          disabled={toggling}
+          className="flex h-5 w-9 shrink-0 items-center rounded-full transition-all duration-200 disabled:opacity-50"
+          style={{ background: remindersOn ? "#34c759" : "var(--surface-container)" }}
+          aria-label={remindersOn ? "Turn off reminders" : "Turn on reminders"}
         >
           <span
-            className="h-4 w-4 rounded-full bg-white shadow transition-transform"
-            style={{ transform: suppressed ? "translateX(18px)" : "translateX(2px)" }}
+            className="h-4 w-4 rounded-full bg-white shadow transition-transform duration-200"
+            style={{ transform: remindersOn ? "translateX(18px)" : "translateX(2px)" }}
           />
         </button>
       </div>
@@ -89,16 +102,12 @@ function LogRow({ log }: { log: ContractNotificationLog }) {
         <span
           className="rounded-full px-2 py-0.5 font-medium capitalize"
           style={{
-            background: log.status === "sent"
-              ? "rgba(52,199,89,0.12)"
-              : log.status === "failed"
-              ? "rgba(255,59,48,0.12)"
-              : "rgba(255,255,255,0.06)",
-            color: log.status === "sent"
-              ? "#34c759"
-              : log.status === "failed"
-              ? "#ff3b30"
-              : "var(--text-muted)",
+            background: log.status === "sent"   ? "rgba(52,199,89,0.12)"
+                      : log.status === "failed" ? "rgba(255,59,48,0.12)"
+                      : "rgba(255,255,255,0.06)",
+            color:      log.status === "sent"   ? "#34c759"
+                      : log.status === "failed" ? "#ff3b30"
+                      : "var(--text-muted)",
           }}
         >
           {log.status}

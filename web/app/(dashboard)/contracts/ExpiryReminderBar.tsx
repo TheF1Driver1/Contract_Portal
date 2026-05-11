@@ -112,14 +112,23 @@ export default function ExpiryReminderBar() {
               <button
                 onClick={() => handleToggle(t)}
                 title={t.is_active ? "Click to pause" : "Click to activate"}
-                className="flex items-center gap-1 leading-none"
+                className="flex items-center gap-1.5 leading-none"
               >
                 <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ background: t.is_active ? "var(--accent)" : "var(--text-muted)" }}
+                  className="h-1.5 w-1.5 rounded-full shrink-0"
+                  style={{ background: t.is_active ? "#34c759" : "var(--text-muted)" }}
                 />
                 {t.days_before} {t.days_before === 1 ? "day" : "days"} before
                 {t.label && <span className="opacity-60 ml-0.5">· {t.label}</span>}
+                <span
+                  className="ml-1 rounded px-1 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                  style={{
+                    background: t.is_active ? "rgba(52,199,89,0.15)"    : "rgba(255,255,255,0.06)",
+                    color:      t.is_active ? "#34c759"                  : "var(--text-muted)",
+                  }}
+                >
+                  {t.is_active ? "on" : "off"}
+                </span>
               </button>
               <button
                 onClick={() => handleDelete(t.id)}
