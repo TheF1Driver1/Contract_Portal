@@ -3,9 +3,10 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
-import { ArrowLeft, User, Building2, DollarSign, Calendar, Key, AlertTriangle, Users } from "lucide-react";
-import type { ContractOccupant } from "@/lib/types";
+import { ArrowLeft, User, Building2, DollarSign, Calendar, Key, AlertTriangle, Users, Bell } from "lucide-react";
+import type { ContractOccupant, ContractNotificationLog } from "@/lib/types";
 import ContractActions from "./ContractActions";
+import NotificationPanel from "./NotificationPanel";
 
 const STATUS_PILL: Record<string, string> = {
   signed:  "pill-active",
@@ -26,7 +27,7 @@ export default async function ContractDetailPage({
 
   if (!user) redirect("/login");
 
-  const [{ data: contract, error }, { data: tenantsData }] = await Promise.all([
+  const [{ data: contract, error }, { data: tenantsData }, { data: notifLogs }] = await Promise.all([
     supabase
       .from("contracts")
       .select("*, property:properties(*), tenant:tenants(*), occupants:contract_occupants(*)")
@@ -34,6 +35,13 @@ export default async function ContractDetailPage({
       .eq("owner_id", user.id)
       .single(),
     supabase.from("tenants").select("*").eq("owner_id", user.id).order("full_name"),
+    supabase
+      .from("contract_notification_logs")
+      .select("*")
+      .eq("contract_id", params.id)
+      .eq("owner_id", user.id)
+      .order("sent_at", { ascending: false })
+      .limit(20),
   ]);
 
   if (error || !contract) notFound();
@@ -41,6 +49,8 @@ export default async function ContractDetailPage({
   const c = contract as Contract;
   const daysLeft = daysUntil(c.lease_end);
   const coTenants = (c.occupants ?? []).filter((o) => o.role === "co_tenant") as ContractOccupant[];
+  const logs = (notifLogs ?? []) as ContractNotificationLog[];
+  const hasTenantPhone = !!(c.tenant as { phone?: string | null } | undefined)?.phone;
 
   return (
     <div className="space-y-6">
@@ -163,6 +173,17 @@ export default async function ContractDetailPage({
           {c.sent_at    && <InfoRow label="Sent"    value={formatDate(c.sent_at)} />}
           {c.opened_at  && <InfoRow label="Opened"  value={formatDate(c.opened_at)} />}
         </div>
+      </div>
+
+      {/* Notifications */}
+      <div className="surface-card space-y-3">
+        <SectionLabel icon={<Bell className="h-3.5 w-3.5" />} label="Notifications" />
+        <NotificationPanel
+          contractId={c.id}
+          initialSuppressed={c.suppress_notifications ?? false}
+          hasTenantPhone={hasTenantPhone}
+          initialLogs={logs}
+        />
       </div>
 
       {/* Signatures */}
