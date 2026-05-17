@@ -3,7 +3,5 @@ streamlit-drawable-canvas
 pillow
 docxtpl
 numpy
-openpyxl
-reportlab
 docx2pdf
 watchdog
