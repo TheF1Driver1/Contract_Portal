@@ -119,6 +119,9 @@ export async function POST(req: Request) {
               attachments,
             })
           );
+        } else {
+          results.tenantEmail = "skipped: tenant email not set";
+          console.warn("[send] tenant email is blank — tenant will not receive a copy");
         }
 
         const sendResults = await Promise.allSettled(sends);
@@ -126,7 +129,7 @@ export async function POST(req: Request) {
         if (failed.length) {
           const reasons = failed.map((r) => (r as PromiseRejectedResult).reason?.message ?? String(r));
           console.error("[send] Resend errors:", reasons);
-          results.email = `partial failure: ${reasons.join("; ")}`;
+          return NextResponse.json({ success: false, results: { ...results, email: `partial failure: ${reasons.join("; ")}` } }, { status: 500 });
         } else {
           results.email = "sent";
         }
