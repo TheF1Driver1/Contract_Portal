@@ -30,9 +30,16 @@ export async function POST(req: Request) {
   const limited = await rateLimitWrite(user.id);
   if (limited) return limited;
 
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+  console.log("[user-sections POST] body:", JSON.stringify(body));
   const parsed = UserSectionTemplateCreateSchema.safeParse(body);
   if (!parsed.success) {
+    console.log("[user-sections POST] validation error:", JSON.stringify(parsed.error.flatten()));
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 

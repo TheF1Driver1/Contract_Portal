@@ -9,6 +9,7 @@ export default function SectionTemplatesPage() {
   const [newTitle,  setNewTitle]  = useState("");
   const [newBody,   setNewBody]   = useState("");
   const [adding,    setAdding]    = useState(false);
+  const [addError,  setAddError]  = useState("");
   const [editId,    setEditId]    = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editBody,  setEditBody]  = useState("");
@@ -24,18 +25,23 @@ export default function SectionTemplatesPage() {
   async function add() {
     if (!newTitle.trim()) return;
     setAdding(true);
+    setAddError("");
     try {
       const res = await fetch("/api/user-sections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTitle, body: newBody }),
+        body: JSON.stringify({ title: newTitle.trim(), body: newBody }),
       });
       const data = await res.json();
       if (res.ok) {
         setTemplates((prev) => [data, ...prev]);
         setNewTitle("");
         setNewBody("");
+      } else {
+        setAddError(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
       }
+    } catch (e) {
+      setAddError((e as Error).message);
     } finally {
       setAdding(false);
     }
@@ -109,6 +115,11 @@ export default function SectionTemplatesPage() {
             {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             Add Template
           </button>
+          {addError && (
+            <p className="text-xs rounded-lg px-3 py-2" style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}>
+              {addError}
+            </p>
+          )}
         </div>
       </div>
 
