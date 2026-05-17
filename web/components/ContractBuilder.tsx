@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/select";
 import SignaturePad from "@/components/SignaturePad";
 import { createClient } from "@/lib/supabase";
-import type { Property, Tenant, ContractFormValues, ContractTemplate } from "@/lib/types";
-import { Loader2, Download, Send, Check, Plus, X } from "lucide-react";
+import type { Property, Tenant, ContractFormValues, ContractTemplate, Contract } from "@/lib/types";
+import { Loader2, Download, Send, Check, Plus, X, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContractBuilderProps {
@@ -22,6 +22,7 @@ interface ContractBuilderProps {
   templates: ContractTemplate[];
   userId: string;
   landlordEmail: string;
+  initialData?: Contract | null;
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -69,16 +70,19 @@ export default function ContractBuilder({
   templates,
   userId,
   landlordEmail,
+  initialData,
 }: ContractBuilderProps) {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
-  const [savedId, setSavedId] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(initialData?.id ?? null);
   const [generating, setGenerating] = useState(false);
   const [landlordEmailInput, setLandlordEmailInput] = useState(landlordEmail);
   const [additionalTenantIds, setAdditionalTenantIds] = useState<string[]>([]);
   const [coTenantSignatures, setCoTenantSignatures] = useState<string[]>([]);
+  const [draftToast, setDraftToast] = useState<"saved" | null>(null);
+  const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     register,
@@ -86,8 +90,9 @@ export default function ContractBuilder({
     control,
     watch,
     setValue,
+    reset,
     trigger,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<ContractFormValues>({
     defaultValues: {
       contract_type: "lease",
@@ -154,6 +159,81 @@ export default function ContractBuilder({
     setValue("parking_available", prop.parking_available ?? false);
     setValue("parking_count", prop.parking_count ?? 0);
   }, [values.property_id]);
+
+  // Pre-populate form when editing a draft
+  useEffect(() => {
+    if (!initialData) return;
+    const d = initialData;
+    const am = (d.amenities ?? {}) as Record<string, string | number | boolean>;
+    reset({
+      contract_type: d.contract_type ?? "lease",
+      property_id: d.property_id ?? "",
+      unit_number: d.unit_number ?? "",
+      tenant_id: d.tenant_id ?? "",
+      lease_start: d.lease_start ?? "",
+      lease_end: d.lease_end ?? "",
+      lease_months: d.lease_months ?? 12,
+      rent_amount: d.rent_amount ?? 0,
+      rent_amount_verbal: d.rent_amount_verbal ?? "",
+      security_deposit: d.security_deposit ?? 0,
+      payment_due_day: d.payment_due_day ?? 1,
+      late_fee_day: d.late_fee_day ?? 5,
+      occupant_names: (d.occupant_names ?? []).join(", "),
+      occupant_count: d.occupant_count ?? 1,
+      room_count: (am.room_count as number) ?? 2,
+      fan_count: (am.fan_count as number) ?? 2,
+      stool_count: (am.stool_count as number) ?? 2,
+      stove_count: (am.stove_count as number) ?? 1,
+      key_count: d.key_count ?? 2,
+      mirror_doors: Boolean(am.mirror_doors),
+      renovated_bathroom: Boolean(am.renovated_bathroom),
+      microwave: Boolean(am.microwave),
+      fridge: am.fridge !== false,
+      ac: Boolean(am.ac),
+      mini_blinds: Boolean(am.mini_blinds),
+      sofa: Boolean(am.sofa),
+      futon: Boolean(am.futon),
+      wall_art: Boolean(am.wall_art),
+      parking: Boolean(am.parking),
+      bathroom_count: 1,
+      parking_available: Boolean(am.parking),
+      parking_count: 0,
+      parking_spot: (am.parking_spot as string) ?? "",
+      late_fee_type: d.late_fee_type ?? "fixed",
+      late_fee_grace_period_days: d.late_fee_grace_period_days ?? 0,
+      late_fee_fixed_amount: d.late_fee_fixed_amount ?? 0,
+      late_fee_daily_amount: d.late_fee_daily_amount ?? 0,
+      template_id: d.template_id ?? "",
+      landlord_signature: d.landlord_signature ?? "",
+      tenant_signature: d.tenant_signature ?? "",
+      send_email: false,
+      send_sms: false,
+      recipient_email: "",
+      recipient_phone: "",
+    });
+  }, [initialData?.id]);
+
+  // Autosave after 60s of inactivity (only when contract already has an id)
+  useEffect(() => {
+    if (!savedId || !isDirty) return;
+    if (autosaveRef.current) clearTimeout(autosaveRef.current);
+    autosaveRef.current = setTimeout(() => {
+      handleSubmit(async (data) => {
+        await saveDraft(data);
+        setDraftToast("saved");
+        setTimeout(() => setDraftToast(null), 3000);
+      })();
+    }, 60_000);
+    return () => {
+      if (autosaveRef.current) clearTimeout(autosaveRef.current);
+    };
+  }, [values, savedId, isDirty]);
+
+  async function saveDraftAndNotify(data: ContractFormValues) {
+    await saveDraft(data);
+    setDraftToast("saved");
+    setTimeout(() => setDraftToast(null), 3000);
+  }
 
   async function saveDraft(data: ContractFormValues) {
     setLoading(true);
@@ -462,6 +542,17 @@ export default function ContractBuilder({
       >
         Step {step + 1} of {STEPS.length}: {STEPS[step].label}
       </p>
+
+      {/* Draft saved toast */}
+      {draftToast === "saved" && (
+        <div
+          className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium animate-fade-in"
+          style={{ background: "rgba(52,199,89,0.12)", color: "#34c759" }}
+        >
+          <Check className="h-4 w-4" />
+          Draft saved
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(sendContract)}>
         {/* ── Step 0: Contract Details ── */}
@@ -1162,7 +1253,7 @@ export default function ContractBuilder({
         )}
 
         {/* ── Navigation ── */}
-        <div className="flex justify-between pt-4">
+        <div className="flex justify-between items-center pt-4">
           <button
             type="button"
             className="btn-tonal"
@@ -1172,27 +1263,41 @@ export default function ContractBuilder({
           >
             Back
           </button>
-          {step < STEPS.length - 1 && (
-            <button
-              type="button"
-              className="btn-primary-gradient"
-              onClick={async () => {
-                const stepFields: Record<number, (keyof ContractFormValues)[]> = {
-                  0: ["tenant_id", "lease_start"],
-                  1: ["property_id"],
-                  2: ["rent_amount"],
-                };
-                const fields = stepFields[step];
-                if (fields) {
-                  const valid = await trigger(fields);
-                  if (!valid) return;
-                }
-                setStep((s) => s + 1);
-              }}
-            >
-              Continue
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Save Draft — visible on all steps */}
+            {step < STEPS.length - 1 && (
+              <button
+                type="button"
+                className="btn-tonal flex items-center gap-1.5 text-sm"
+                disabled={loading}
+                onClick={handleSubmit(saveDraftAndNotify)}
+              >
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                Save Draft
+              </button>
+            )}
+            {step < STEPS.length - 1 && (
+              <button
+                type="button"
+                className="btn-primary-gradient"
+                onClick={async () => {
+                  const stepFields: Record<number, (keyof ContractFormValues)[]> = {
+                    0: ["tenant_id", "lease_start"],
+                    1: ["property_id"],
+                    2: ["rent_amount"],
+                  };
+                  const fields = stepFields[step];
+                  if (fields) {
+                    const valid = await trigger(fields);
+                    if (!valid) return;
+                  }
+                  setStep((s) => s + 1);
+                }}
+              >
+                Continue
+              </button>
+            )}
+          </div>
         </div>
       </form>
     </div>

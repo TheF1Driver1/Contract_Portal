@@ -22,23 +22,27 @@ export async function POST(req: Request) {
   const { contractId, landlordEmail, phone } = parsed.data;
 
   // Full contract fetch including snapshots and all joined relations
-  const { data: contract, error } = await supabase
-    .from("contracts")
-    .select("*, property:properties(*), tenant:tenants(*), pdf_url")
-    .eq("id", contractId)
-    .eq("owner_id", user.id)
-    .single();
+  const [{ data: contract, error }, { data: profile }, { data: sectionsData }] = await Promise.all([
+    supabase
+      .from("contracts")
+      .select("*, property:properties(*), tenant:tenants(*), pdf_url")
+      .eq("id", contractId)
+      .eq("owner_id", user.id)
+      .single(),
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase
+      .from("contract_custom_sections")
+      .select("title, body")
+      .eq("contract_id", contractId)
+      .eq("owner_id", user.id)
+      .order("order_index", { ascending: true }),
+  ]);
 
   if (error || !contract) {
     return NextResponse.json({ error: "Contract not found" }, { status: 404 });
   }
 
-  // Fetch landlord profile for the document header
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const sections = (sectionsData ?? []) as { title: string; body: string }[];
 
   const host = req.headers.get("host") ?? "localhost:3000";
   const protocol = host.includes("localhost") ? "http" : "https";
@@ -63,7 +67,7 @@ export async function POST(req: Request) {
 
   // 2. If no stored PDF, generate fresh
   if (!pdfBuffer) {
-    pdfBuffer = await renderContractPdf(contract as Contract, profile as Profile | null);
+    pdfBuffer = await renderContractPdf(contract as Contract, profile as Profile | null, sections);
   }
 
   const attachments: { filename: string; content: Buffer }[] =

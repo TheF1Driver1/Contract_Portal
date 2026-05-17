@@ -75,7 +75,15 @@ export async function POST(req: Request) {
   }
 
   // ── PDF — programmatic clean document ─────────────────────────────────────
-  const pdfBuffer = await renderContractPdf(contract as Contract, profile as Profile | null);
+  const { data: sectionsData } = await supabase
+    .from("contract_custom_sections")
+    .select("title, body")
+    .eq("contract_id", contractId)
+    .eq("owner_id", user.id)
+    .order("order_index", { ascending: true });
+
+  const sections = (sectionsData ?? []) as { title: string; body: string }[];
+  const pdfBuffer = await renderContractPdf(contract as Contract, profile as Profile | null, sections);
 
   if (!pdfBuffer) {
     return NextResponse.json({ error: "PDF generation failed" }, { status: 500 });
