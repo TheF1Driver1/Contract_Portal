@@ -13,8 +13,9 @@ import {
 import SignaturePad from "@/components/SignaturePad";
 import { createClient } from "@/lib/supabase";
 import type { Property, Tenant, ContractFormValues, ContractTemplate, Contract } from "@/lib/types";
-import { Loader2, Download, Send, Check, Plus, X, Save } from "lucide-react";
+import { Loader2, Download, Send, Check, Plus, X, Save, BookOpen, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ContractCustomSection, UserSectionTemplate } from "@/lib/types";
 
 interface ContractBuilderProps {
   properties: Property[];
@@ -60,8 +61,9 @@ const STEPS = [
   { id: 0, label: "Details" },
   { id: 1, label: "Property" },
   { id: 2, label: "Payment" },
-  { id: 3, label: "Signatures" },
-  { id: 4, label: "Send" },
+  { id: 3, label: "Sections" },
+  { id: 4, label: "Signatures" },
+  { id: 5, label: "Send" },
 ];
 
 export default function ContractBuilder({
@@ -83,6 +85,16 @@ export default function ContractBuilder({
   const [coTenantSignatures, setCoTenantSignatures] = useState<string[]>([]);
   const [draftToast, setDraftToast] = useState<"saved" | null>(null);
   const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Custom sections (local state, synced to DB on save)
+  const [localSections, setLocalSections] = useState<{ title: string; body: string }[]>([]);
+  const [newSecTitle, setNewSecTitle] = useState("");
+  const [newSecBody, setNewSecBody] = useState("");
+  const [secEditIdx, setSecEditIdx] = useState<number | null>(null);
+  const [secEditTitle, setSecEditTitle] = useState("");
+  const [secEditBody, setSecEditBody] = useState("");
+  const [userTemplates, setUserTemplates] = useState<UserSectionTemplate[]>([]);
+  const [showSecTemplates, setShowSecTemplates] = useState(false);
 
   const {
     register,
@@ -211,6 +223,25 @@ export default function ContractBuilder({
       recipient_email: "",
       recipient_phone: "",
     });
+  }, [initialData?.id]);
+
+  // Fetch user section templates once
+  useEffect(() => {
+    fetch("/api/user-sections")
+      .then((r) => r.json())
+      .then(setUserTemplates)
+      .catch(() => {});
+  }, []);
+
+  // Pre-load existing sections when editing a draft
+  useEffect(() => {
+    if (!initialData?.id) return;
+    fetch(`/api/contracts/${initialData.id}/sections`)
+      .then((r) => r.json())
+      .then((data: ContractCustomSection[]) =>
+        setLocalSections(data.map((s) => ({ title: s.title, body: s.body })))
+      )
+      .catch(() => {});
   }, [initialData?.id]);
 
   // Autosave after 60s of inactivity (only when contract already has an id)
@@ -397,6 +428,23 @@ export default function ContractBuilder({
         if (occupantRows.length > 0) {
           await supabase.from("contract_occupants").insert(occupantRows);
         }
+      }
+
+      // Sync custom sections (full replace)
+      await supabase
+        .from("contract_custom_sections")
+        .delete()
+        .eq("contract_id", contractId!);
+      if (localSections.length > 0) {
+        await supabase.from("contract_custom_sections").insert(
+          localSections.map((s, i) => ({
+            contract_id: contractId!,
+            owner_id: userId,
+            title: s.title,
+            body: s.body,
+            order_index: i,
+          }))
+        );
       }
 
       return contractId!;
@@ -1053,8 +1101,182 @@ export default function ContractBuilder({
           </div>
         )}
 
-        {/* ── Step 3: Signatures ── */}
+        {/* ── Step 3: Sections ── */}
         {step === 3 && (
+          <div className="surface-card p-6 space-y-5 animate-scale-in">
+            <div>
+              <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+                Additional Sections
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Optional clauses inserted before the signature block. Leave empty to skip.
+              </p>
+            </div>
+
+            {/* Existing sections */}
+            {localSections.map((sec, i) => (
+              <div key={i} className="rounded-xl p-4 space-y-2" style={{ background: "var(--surface-low)" }}>
+                {secEditIdx === i ? (
+                  <>
+                    <input
+                      className="input-tonal w-full text-sm font-semibold"
+                      value={secEditTitle}
+                      onChange={(e) => setSecEditTitle(e.target.value)}
+                      placeholder="Section title"
+                    />
+                    <textarea
+                      className="input-tonal w-full text-sm resize-none"
+                      rows={4}
+                      value={secEditBody}
+                      onChange={(e) => setSecEditBody(e.target.value)}
+                      placeholder="Section content…"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!secEditTitle.trim()) return;
+                          setLocalSections((prev) => prev.map((s, j) => j === i ? { title: secEditTitle, body: secEditBody } : s));
+                          setSecEditIdx(null);
+                        }}
+                        className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg"
+                        style={{ background: "#007aff", color: "#fff" }}
+                      >
+                        <Check className="h-3 w-3" /> Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSecEditIdx(null)}
+                        className="text-xs font-medium px-3 py-1.5 rounded-lg"
+                        style={{ background: "var(--surface-container)", color: "var(--text-muted)" }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                        {sec.title}
+                      </p>
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => { setSecEditIdx(i); setSecEditTitle(sec.title); setSecEditBody(sec.body); }}
+                          className="flex h-6 w-6 items-center justify-center rounded-md"
+                          style={{ background: "var(--surface-container)" }}
+                        >
+                          <Pencil className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLocalSections((prev) => prev.filter((_, j) => j !== i))}
+                          className="flex h-6 w-6 items-center justify-center rounded-md"
+                          style={{ background: "rgba(255,59,48,0.1)" }}
+                        >
+                          <Trash2 className="h-3 w-3" style={{ color: "#ff3b30" }} />
+                        </button>
+                      </div>
+                    </div>
+                    {sec.body && (
+                      <p className="text-sm whitespace-pre-wrap" style={{ color: "var(--text-secondary)" }}>
+                        {sec.body}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+
+            {/* Template picker */}
+            {showSecTemplates && userTemplates.length > 0 && (
+              <div className="rounded-xl p-4 space-y-2" style={{ background: "var(--surface-low)" }}>
+                <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                  Add from template
+                </p>
+                {userTemplates.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      setLocalSections((prev) => [...prev, { title: t.title, body: t.body }]);
+                      setShowSecTemplates(false);
+                    }}
+                    className="w-full text-left rounded-lg px-3 py-2 text-sm transition-colors"
+                    style={{ background: "var(--surface-card)", color: "var(--text-primary)" }}
+                  >
+                    {t.title}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setShowSecTemplates(false)}
+                  className="text-xs font-medium"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {/* Add new section */}
+            <div className="rounded-xl p-4 space-y-3" style={{ border: "1.5px dashed var(--surface-container)" }}>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                New section
+              </p>
+              <input
+                className="input-tonal w-full text-sm"
+                placeholder="Section title"
+                value={newSecTitle}
+                onChange={(e) => setNewSecTitle(e.target.value)}
+              />
+              <textarea
+                className="input-tonal w-full text-sm resize-none"
+                rows={3}
+                placeholder="Section content…"
+                value={newSecBody}
+                onChange={(e) => setNewSecBody(e.target.value)}
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!newSecTitle.trim()}
+                  onClick={() => {
+                    if (!newSecTitle.trim()) return;
+                    setLocalSections((prev) => [...prev, { title: newSecTitle.trim(), body: newSecBody }]);
+                    setNewSecTitle("");
+                    setNewSecBody("");
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50"
+                  style={{ background: "#007aff", color: "#fff" }}
+                >
+                  <Plus className="h-3 w-3" /> Add Section
+                </button>
+                {userTemplates.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowSecTemplates((v) => !v)}
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg"
+                    style={{ background: "var(--surface-container)", color: "var(--text-muted)" }}
+                  >
+                    <BookOpen className="h-3 w-3" /> From template
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              Sections appear before the signature block.{" "}
+              <a href="/settings/sections" className="underline" style={{ color: "#007aff" }}>
+                Manage templates →
+              </a>
+            </p>
+          </div>
+        )}
+
+        {/* ── Step 4: Signatures ── */}
+        {step === 4 && (
           <div className="surface-card p-6 space-y-6 animate-scale-in">
             <div>
               <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
@@ -1148,8 +1370,8 @@ export default function ContractBuilder({
           </div>
         )}
 
-        {/* ── Step 4: Send ── */}
-        {step === 4 && (
+        {/* ── Step 5: Send ── */}
+        {step === 5 && (
           <div className="surface-card p-6 space-y-5 animate-scale-in">
             <div>
               <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
@@ -1285,6 +1507,7 @@ export default function ContractBuilder({
                     0: ["tenant_id", "lease_start"],
                     1: ["property_id"],
                     2: ["rent_amount"],
+                    3: [], // Sections — optional, no required fields
                   };
                   const fields = stepFields[step];
                   if (fields) {
