@@ -183,7 +183,7 @@ export const ContractAttachmentCreateSchema = z.object({
 
 export const ContractCustomSectionCreateSchema = z.object({
   title: z.string().min(1).max(200),
-  body: z.string().max(10_000).default(""),
+  body: z.string().max(100_000).default(""),
   order_index: z.number().int().min(0).optional().default(0),
 });
 
@@ -193,7 +193,7 @@ export const ContractCustomSectionUpdateSchema = ContractCustomSectionCreateSche
 
 export const UserSectionTemplateCreateSchema = z.object({
   title: z.string().min(1).max(200),
-  body: z.string().max(10_000).default(""),
+  body: z.string().max(100_000).default(""),
 });
 
 export const UserSectionTemplateUpdateSchema = UserSectionTemplateCreateSchema.partial();
