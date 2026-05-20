@@ -1,16 +1,22 @@
 import { createClient } from "@/lib/supabase-server";
 import ContractBuilder from "@/components/ContractBuilder";
 import { redirect } from "next/navigation";
-import type { Property, Tenant, ContractTemplate } from "@/lib/types";
+import type { Property, Tenant, ContractTemplate, Contract } from "@/lib/types";
 import { AlertTriangle } from "lucide-react";
 
-export default async function NewContractPage() {
+export default async function NewContractPage({
+  searchParams,
+}: {
+  searchParams: { edit?: string };
+}) {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  const editId = searchParams.edit ?? null;
 
   const [{ data: properties }, { data: tenants }, { data: profile }, { data: templates }] = await Promise.all([
     supabase.from("properties").select("*").eq("owner_id", user.id).order("name"),
@@ -19,7 +25,20 @@ export default async function NewContractPage() {
     supabase.from("contract_templates").select("*").eq("owner_id", user.id).order("created_at", { ascending: false }),
   ]);
 
+  let draftContract: Contract | null = null;
+  if (editId) {
+    const { data } = await supabase
+      .from("contracts")
+      .select("*")
+      .eq("id", editId)
+      .eq("owner_id", user.id)
+      .eq("status", "draft")
+      .single();
+    draftContract = (data as Contract | null) ?? null;
+  }
+
   const landlordEmail = (profile as { email?: string } | null)?.email ?? user.email ?? "";
+  const isEditing = !!draftContract;
 
   return (
     <div className="space-y-6">
@@ -29,10 +48,10 @@ export default async function NewContractPage() {
           Contracts
         </p>
         <h1 className="text-4xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
-          New Contract
+          {isEditing ? "Edit Contract" : "New Contract"}
         </h1>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-          Fill out the form to generate a rental contract
+          {isEditing ? "Resume editing your draft contract" : "Fill out the form to generate a rental contract"}
         </p>
       </div>
 
@@ -60,6 +79,7 @@ export default async function NewContractPage() {
         templates={(templates ?? []) as ContractTemplate[]}
         userId={user.id}
         landlordEmail={landlordEmail}
+        initialData={draftContract}
       />
     </div>
   );

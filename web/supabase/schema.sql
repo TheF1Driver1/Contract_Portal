@@ -174,6 +174,76 @@ create index if not exists properties_owner_id_idx on properties(owner_id);
 create index if not exists tenants_owner_id_idx on tenants(owner_id);
 
 -- =============================================
+-- CONTRACT ATTACHMENTS
+-- =============================================
+create table if not exists contract_attachments (
+  id uuid primary key default uuid_generate_v4(),
+  contract_id uuid not null references contracts(id) on delete cascade,
+  owner_id uuid not null references profiles(id) on delete cascade,
+  name text not null,
+  storage_path text not null,
+  file_size integer,
+  created_at timestamptz default now()
+);
+
+alter table contract_attachments enable row level security;
+
+create policy "attachments_all_own" on contract_attachments
+  for all using (auth.uid() = owner_id);
+
+create index if not exists contract_attachments_contract_id_idx on contract_attachments(contract_id);
+
+-- =============================================
+-- CONTRACT CUSTOM SECTIONS (user-written clauses)
+-- Named contract_custom_sections to avoid conflict
+-- with existing contract_sections (section_code/enabled) table
+-- =============================================
+create table if not exists contract_custom_sections (
+  id uuid primary key default uuid_generate_v4(),
+  contract_id uuid not null references contracts(id) on delete cascade,
+  owner_id uuid not null references profiles(id) on delete cascade,
+  title text not null,
+  body text not null default '',
+  order_index integer not null default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table contract_sections enable row level security;
+
+create policy "custom_sections_all_own" on contract_custom_sections
+  for all using (auth.uid() = owner_id);
+
+create trigger contract_custom_sections_updated_at
+  before update on contract_custom_sections
+  for each row execute procedure update_updated_at();
+
+create index if not exists contract_custom_sections_contract_id_idx on contract_custom_sections(contract_id);
+
+-- =============================================
+-- USER SECTION TEMPLATES
+-- =============================================
+create table if not exists user_section_templates (
+  id uuid primary key default uuid_generate_v4(),
+  owner_id uuid not null references profiles(id) on delete cascade,
+  title text not null,
+  body text not null default '',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table user_section_templates enable row level security;
+
+create policy "section_templates_all_own" on user_section_templates
+  for all using (auth.uid() = owner_id);
+
+create trigger user_section_templates_updated_at
+  before update on user_section_templates
+  for each row execute procedure update_updated_at();
+
+create index if not exists user_section_templates_owner_id_idx on user_section_templates(owner_id);
+
+-- =============================================
 -- STORAGE BUCKETS (run in dashboard or via API)
 -- =============================================
 -- Create bucket "contracts" with public=false

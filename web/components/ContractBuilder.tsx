@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/select";
 import SignaturePad from "@/components/SignaturePad";
 import { createClient } from "@/lib/supabase";
-import type { Property, Tenant, ContractFormValues, ContractTemplate } from "@/lib/types";
-import { Loader2, Download, Send, Check, Plus, X } from "lucide-react";
+import type { Property, Tenant, ContractFormValues, ContractTemplate, Contract } from "@/lib/types";
+import { Loader2, Download, Send, Check, Plus, X, Save, BookOpen, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ContractCustomSection, UserSectionTemplate } from "@/lib/types";
 
 interface ContractBuilderProps {
   properties: Property[];
@@ -22,6 +23,7 @@ interface ContractBuilderProps {
   templates: ContractTemplate[];
   userId: string;
   landlordEmail: string;
+  initialData?: Contract | null;
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -59,8 +61,9 @@ const STEPS = [
   { id: 0, label: "Details" },
   { id: 1, label: "Property" },
   { id: 2, label: "Payment" },
-  { id: 3, label: "Signatures" },
-  { id: 4, label: "Send" },
+  { id: 3, label: "Sections" },
+  { id: 4, label: "Signatures" },
+  { id: 5, label: "Send" },
 ];
 
 export default function ContractBuilder({
@@ -69,16 +72,29 @@ export default function ContractBuilder({
   templates,
   userId,
   landlordEmail,
+  initialData,
 }: ContractBuilderProps) {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
-  const [savedId, setSavedId] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(initialData?.id ?? null);
   const [generating, setGenerating] = useState(false);
   const [landlordEmailInput, setLandlordEmailInput] = useState(landlordEmail);
   const [additionalTenantIds, setAdditionalTenantIds] = useState<string[]>([]);
   const [coTenantSignatures, setCoTenantSignatures] = useState<string[]>([]);
+  const [draftToast, setDraftToast] = useState<"saved" | null>(null);
+  const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Custom sections (local state, synced to DB on save)
+  const [localSections, setLocalSections] = useState<{ title: string; body: string }[]>([]);
+  const [newSecTitle, setNewSecTitle] = useState("");
+  const [newSecBody, setNewSecBody] = useState("");
+  const [secEditIdx, setSecEditIdx] = useState<number | null>(null);
+  const [secEditTitle, setSecEditTitle] = useState("");
+  const [secEditBody, setSecEditBody] = useState("");
+  const [userTemplates, setUserTemplates] = useState<UserSectionTemplate[]>([]);
+  const [showSecTemplates, setShowSecTemplates] = useState(false);
 
   const {
     register,
@@ -86,8 +102,9 @@ export default function ContractBuilder({
     control,
     watch,
     setValue,
+    reset,
     trigger,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<ContractFormValues>({
     defaultValues: {
       contract_type: "lease",
@@ -154,6 +171,100 @@ export default function ContractBuilder({
     setValue("parking_available", prop.parking_available ?? false);
     setValue("parking_count", prop.parking_count ?? 0);
   }, [values.property_id]);
+
+  // Pre-populate form when editing a draft
+  useEffect(() => {
+    if (!initialData) return;
+    const d = initialData;
+    const am = (d.amenities ?? {}) as Record<string, string | number | boolean>;
+    reset({
+      contract_type: d.contract_type ?? "lease",
+      property_id: d.property_id ?? "",
+      unit_number: d.unit_number ?? "",
+      tenant_id: d.tenant_id ?? "",
+      lease_start: d.lease_start ?? "",
+      lease_end: d.lease_end ?? "",
+      lease_months: d.lease_months ?? 12,
+      rent_amount: d.rent_amount ?? 0,
+      rent_amount_verbal: d.rent_amount_verbal ?? "",
+      security_deposit: d.security_deposit ?? 0,
+      payment_due_day: d.payment_due_day ?? 1,
+      late_fee_day: d.late_fee_day ?? 5,
+      occupant_names: (d.occupant_names ?? []).join(", "),
+      occupant_count: d.occupant_count ?? 1,
+      room_count: (am.room_count as number) ?? 2,
+      fan_count: (am.fan_count as number) ?? 2,
+      stool_count: (am.stool_count as number) ?? 2,
+      stove_count: (am.stove_count as number) ?? 1,
+      key_count: d.key_count ?? 2,
+      mirror_doors: Boolean(am.mirror_doors),
+      renovated_bathroom: Boolean(am.renovated_bathroom),
+      microwave: Boolean(am.microwave),
+      fridge: am.fridge !== false,
+      ac: Boolean(am.ac),
+      mini_blinds: Boolean(am.mini_blinds),
+      sofa: Boolean(am.sofa),
+      futon: Boolean(am.futon),
+      wall_art: Boolean(am.wall_art),
+      parking: Boolean(am.parking),
+      bathroom_count: 1,
+      parking_available: Boolean(am.parking),
+      parking_count: 0,
+      parking_spot: (am.parking_spot as string) ?? "",
+      late_fee_type: d.late_fee_type ?? "fixed",
+      late_fee_grace_period_days: d.late_fee_grace_period_days ?? 0,
+      late_fee_fixed_amount: d.late_fee_fixed_amount ?? 0,
+      late_fee_daily_amount: d.late_fee_daily_amount ?? 0,
+      template_id: d.template_id ?? "",
+      landlord_signature: d.landlord_signature ?? "",
+      tenant_signature: d.tenant_signature ?? "",
+      send_email: false,
+      send_sms: false,
+      recipient_email: "",
+      recipient_phone: "",
+    });
+  }, [initialData?.id]);
+
+  // Fetch user section templates once
+  useEffect(() => {
+    fetch("/api/user-sections")
+      .then((r) => r.json())
+      .then(setUserTemplates)
+      .catch(() => {});
+  }, []);
+
+  // Pre-load existing sections when editing a draft
+  useEffect(() => {
+    if (!initialData?.id) return;
+    fetch(`/api/contracts/${initialData.id}/sections`)
+      .then((r) => r.json())
+      .then((data: ContractCustomSection[]) =>
+        setLocalSections(data.map((s) => ({ title: s.title, body: s.body })))
+      )
+      .catch(() => {});
+  }, [initialData?.id]);
+
+  // Autosave after 60s of inactivity (only when contract already has an id)
+  useEffect(() => {
+    if (!savedId || !isDirty) return;
+    if (autosaveRef.current) clearTimeout(autosaveRef.current);
+    autosaveRef.current = setTimeout(() => {
+      handleSubmit(async (data) => {
+        await saveDraft(data);
+        setDraftToast("saved");
+        setTimeout(() => setDraftToast(null), 3000);
+      })();
+    }, 60_000);
+    return () => {
+      if (autosaveRef.current) clearTimeout(autosaveRef.current);
+    };
+  }, [values, savedId, isDirty]);
+
+  async function saveDraftAndNotify(data: ContractFormValues) {
+    await saveDraft(data);
+    setDraftToast("saved");
+    setTimeout(() => setDraftToast(null), 3000);
+  }
 
   async function saveDraft(data: ContractFormValues) {
     setLoading(true);
@@ -319,6 +430,23 @@ export default function ContractBuilder({
         }
       }
 
+      // Sync custom sections (full replace)
+      await supabase
+        .from("contract_custom_sections")
+        .delete()
+        .eq("contract_id", contractId!);
+      if (localSections.length > 0) {
+        await supabase.from("contract_custom_sections").insert(
+          localSections.map((s, i) => ({
+            contract_id: contractId!,
+            owner_id: userId,
+            title: s.title,
+            body: s.body,
+            order_index: i,
+          }))
+        );
+      }
+
       return contractId!;
     } finally {
       setLoading(false);
@@ -462,6 +590,17 @@ export default function ContractBuilder({
       >
         Step {step + 1} of {STEPS.length}: {STEPS[step].label}
       </p>
+
+      {/* Draft saved toast */}
+      {draftToast === "saved" && (
+        <div
+          className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium animate-fade-in"
+          style={{ background: "rgba(52,199,89,0.12)", color: "#34c759" }}
+        >
+          <Check className="h-4 w-4" />
+          Draft saved
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(sendContract)}>
         {/* ── Step 0: Contract Details ── */}
@@ -962,8 +1101,182 @@ export default function ContractBuilder({
           </div>
         )}
 
-        {/* ── Step 3: Signatures ── */}
+        {/* ── Step 3: Sections ── */}
         {step === 3 && (
+          <div className="surface-card p-6 space-y-5 animate-scale-in">
+            <div>
+              <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+                Additional Sections
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Optional clauses inserted before the signature block. Leave empty to skip.
+              </p>
+            </div>
+
+            {/* Existing sections */}
+            {localSections.map((sec, i) => (
+              <div key={i} className="rounded-xl p-4 space-y-2" style={{ background: "var(--surface-low)" }}>
+                {secEditIdx === i ? (
+                  <>
+                    <input
+                      className="input-tonal w-full text-sm font-semibold"
+                      value={secEditTitle}
+                      onChange={(e) => setSecEditTitle(e.target.value)}
+                      placeholder="Section title"
+                    />
+                    <textarea
+                      className="input-tonal w-full text-sm resize-none"
+                      rows={4}
+                      value={secEditBody}
+                      onChange={(e) => setSecEditBody(e.target.value)}
+                      placeholder="Section content…"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!secEditTitle.trim()) return;
+                          setLocalSections((prev) => prev.map((s, j) => j === i ? { title: secEditTitle, body: secEditBody } : s));
+                          setSecEditIdx(null);
+                        }}
+                        className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg"
+                        style={{ background: "#007aff", color: "#fff" }}
+                      >
+                        <Check className="h-3 w-3" /> Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSecEditIdx(null)}
+                        className="text-xs font-medium px-3 py-1.5 rounded-lg"
+                        style={{ background: "var(--surface-container)", color: "var(--text-muted)" }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                        {sec.title}
+                      </p>
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => { setSecEditIdx(i); setSecEditTitle(sec.title); setSecEditBody(sec.body); }}
+                          className="flex h-6 w-6 items-center justify-center rounded-md"
+                          style={{ background: "var(--surface-container)" }}
+                        >
+                          <Pencil className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLocalSections((prev) => prev.filter((_, j) => j !== i))}
+                          className="flex h-6 w-6 items-center justify-center rounded-md"
+                          style={{ background: "rgba(255,59,48,0.1)" }}
+                        >
+                          <Trash2 className="h-3 w-3" style={{ color: "#ff3b30" }} />
+                        </button>
+                      </div>
+                    </div>
+                    {sec.body && (
+                      <p className="text-sm whitespace-pre-wrap" style={{ color: "var(--text-secondary)" }}>
+                        {sec.body}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+
+            {/* Template picker */}
+            {showSecTemplates && userTemplates.length > 0 && (
+              <div className="rounded-xl p-4 space-y-2" style={{ background: "var(--surface-low)" }}>
+                <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                  Add from template
+                </p>
+                {userTemplates.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      setLocalSections((prev) => [...prev, { title: t.title, body: t.body }]);
+                      setShowSecTemplates(false);
+                    }}
+                    className="w-full text-left rounded-lg px-3 py-2 text-sm transition-colors"
+                    style={{ background: "var(--surface-card)", color: "var(--text-primary)" }}
+                  >
+                    {t.title}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setShowSecTemplates(false)}
+                  className="text-xs font-medium"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {/* Add new section */}
+            <div className="rounded-xl p-4 space-y-3" style={{ border: "1.5px dashed var(--surface-container)" }}>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                New section
+              </p>
+              <input
+                className="input-tonal w-full text-sm"
+                placeholder="Section title"
+                value={newSecTitle}
+                onChange={(e) => setNewSecTitle(e.target.value)}
+              />
+              <textarea
+                className="input-tonal w-full text-sm resize-none"
+                rows={3}
+                placeholder="Section content…"
+                value={newSecBody}
+                onChange={(e) => setNewSecBody(e.target.value)}
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!newSecTitle.trim()}
+                  onClick={() => {
+                    if (!newSecTitle.trim()) return;
+                    setLocalSections((prev) => [...prev, { title: newSecTitle.trim(), body: newSecBody }]);
+                    setNewSecTitle("");
+                    setNewSecBody("");
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50"
+                  style={{ background: "#007aff", color: "#fff" }}
+                >
+                  <Plus className="h-3 w-3" /> Add Section
+                </button>
+                {userTemplates.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowSecTemplates((v) => !v)}
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg"
+                    style={{ background: "var(--surface-container)", color: "var(--text-muted)" }}
+                  >
+                    <BookOpen className="h-3 w-3" /> From template
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              Sections appear before the signature block.{" "}
+              <a href="/settings/sections" className="underline" style={{ color: "#007aff" }}>
+                Manage templates →
+              </a>
+            </p>
+          </div>
+        )}
+
+        {/* ── Step 4: Signatures ── */}
+        {step === 4 && (
           <div className="surface-card p-6 space-y-6 animate-scale-in">
             <div>
               <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
@@ -1057,8 +1370,8 @@ export default function ContractBuilder({
           </div>
         )}
 
-        {/* ── Step 4: Send ── */}
-        {step === 4 && (
+        {/* ── Step 5: Send ── */}
+        {step === 5 && (
           <div className="surface-card p-6 space-y-5 animate-scale-in">
             <div>
               <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
@@ -1162,7 +1475,7 @@ export default function ContractBuilder({
         )}
 
         {/* ── Navigation ── */}
-        <div className="flex justify-between pt-4">
+        <div className="flex justify-between items-center pt-4">
           <button
             type="button"
             className="btn-tonal"
@@ -1172,27 +1485,42 @@ export default function ContractBuilder({
           >
             Back
           </button>
-          {step < STEPS.length - 1 && (
-            <button
-              type="button"
-              className="btn-primary-gradient"
-              onClick={async () => {
-                const stepFields: Record<number, (keyof ContractFormValues)[]> = {
-                  0: ["tenant_id", "lease_start"],
-                  1: ["property_id"],
-                  2: ["rent_amount"],
-                };
-                const fields = stepFields[step];
-                if (fields) {
-                  const valid = await trigger(fields);
-                  if (!valid) return;
-                }
-                setStep((s) => s + 1);
-              }}
-            >
-              Continue
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Save Draft — visible on all steps */}
+            {step < STEPS.length - 1 && (
+              <button
+                type="button"
+                className="btn-tonal flex items-center gap-1.5 text-sm"
+                disabled={loading}
+                onClick={handleSubmit(saveDraftAndNotify)}
+              >
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                Save Draft
+              </button>
+            )}
+            {step < STEPS.length - 1 && (
+              <button
+                type="button"
+                className="btn-primary-gradient"
+                onClick={async () => {
+                  const stepFields: Record<number, (keyof ContractFormValues)[]> = {
+                    0: ["tenant_id", "lease_start"],
+                    1: ["property_id"],
+                    2: ["rent_amount"],
+                    3: [], // Sections — optional, no required fields
+                  };
+                  const fields = stepFields[step];
+                  if (fields) {
+                    const valid = await trigger(fields);
+                    if (!valid) return;
+                  }
+                  setStep((s) => s + 1);
+                }}
+              >
+                Continue
+              </button>
+            )}
+          </div>
         </div>
       </form>
     </div>

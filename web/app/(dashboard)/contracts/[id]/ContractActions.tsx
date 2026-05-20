@@ -1,23 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Loader2, Trash2 } from "lucide-react";
+import { Download, Loader2, Trash2, Mail, Pencil } from "lucide-react";
 import type { Contract, Tenant } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
 import RenewalModal from "@/components/RenewalModal";
+import SendEmailModal from "@/components/SendEmailModal";
 
 export default function ContractActions({
   contract,
   availableTenants = [],
+  landlordEmail = "",
 }: {
   contract: Contract;
   availableTenants?: Tenant[];
+  landlordEmail?: string;
 }) {
   const [generatingDocx, setGeneratingDocx] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   async function handleDownload(format: "docx" | "pdf") {
     format === "pdf" ? setGeneratingPdf(true) : setGeneratingDocx(true);
@@ -47,17 +49,43 @@ export default function ContractActions({
 
   async function handleDelete() {
     if (!confirm("Delete this contract? This cannot be undone.")) return;
-    await supabase.from("contracts").delete().eq("id", contract.id);
+    const res = await fetch(`/api/contracts/${contract.id}`, { method: "DELETE" });
+    if (!res.ok) { alert("Failed to delete contract. Please try again."); return; }
+    router.refresh();
     router.push("/contracts");
   }
 
   const showRenew = contract.status === "signed" || contract.status === "expired";
 
   return (
-    <div className="flex items-center gap-2">
+    <>
+    {showEmail && (
+      <SendEmailModal
+        contract={contract}
+        landlordEmail={landlordEmail}
+        onClose={() => setShowEmail(false)}
+      />
+    )}
+    <div className="flex flex-wrap items-center gap-2">
+      {contract.status === "draft" && (
+        <a
+          href={`/contracts/new?edit=${contract.id}`}
+          className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+          Edit
+        </a>
+      )}
       {showRenew && (
         <RenewalModal contract={contract} availableTenants={availableTenants} />
       )}
+      <button
+        className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+        onClick={() => setShowEmail(true)}
+      >
+        <Mail className="h-3.5 w-3.5" />
+        Email
+      </button>
       <button
         className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium disabled:opacity-50"
         onClick={() => handleDownload("docx")}
@@ -83,5 +111,6 @@ export default function ContractActions({
         Delete
       </button>
     </div>
+    </>
   );
 }

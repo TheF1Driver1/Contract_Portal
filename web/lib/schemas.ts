@@ -162,6 +162,42 @@ export const NotificationTriggerCreateSchema = z.object({
 
 export const NotificationTriggerUpdateSchema = NotificationTriggerCreateSchema.partial();
 
+// ── Ad-hoc email send ─────────────────────────────────────────────────────────
+
+export const SendAdHocEmailSchema = z.object({
+  landlordEmail: z.string().email().max(254).optional(),
+  tenantEmail: z.string().email().max(254).optional(),
+}).refine((d) => d.landlordEmail || d.tenantEmail, {
+  message: "At least one recipient required",
+});
+
+// ── Contract attachments ──────────────────────────────────────────────────────
+
+export const ContractAttachmentCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  storage_path: z.string().min(1).max(500),
+  file_size: z.number().int().min(0).optional().nullable(),
+});
+
+// ── Contract sections ─────────────────────────────────────────────────────────
+
+export const ContractCustomSectionCreateSchema = z.object({
+  title: z.string().min(1).max(200),
+  body: z.string().max(100_000).default(""),
+  order_index: z.number().int().min(0).optional().default(0),
+});
+
+export const ContractCustomSectionUpdateSchema = ContractCustomSectionCreateSchema.partial();
+
+// ── User section templates ────────────────────────────────────────────────────
+
+export const UserSectionTemplateCreateSchema = z.object({
+  title: z.string().min(1).max(200),
+  body: z.string().max(100_000).default(""),
+});
+
+export const UserSectionTemplateUpdateSchema = UserSectionTemplateCreateSchema.partial();
+
 // ── Property update ──────────────────────────────────────────────────────────
 
 export const PropertyUpdateSchema = z.object({

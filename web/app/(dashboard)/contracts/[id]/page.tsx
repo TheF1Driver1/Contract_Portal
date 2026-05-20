@@ -3,10 +3,11 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
-import { ArrowLeft, User, Building2, DollarSign, Calendar, Key, AlertTriangle, Users, Bell } from "lucide-react";
+import { ArrowLeft, User, Building2, DollarSign, Calendar, Key, AlertTriangle, Users, Bell, FileText } from "lucide-react";
 import type { ContractOccupant, ContractNotificationLog } from "@/lib/types";
 import ContractActions from "./ContractActions";
 import NotificationPanel from "./NotificationPanel";
+import ContractDocumentsPanel from "@/components/ContractDocumentsPanel";
 
 const STATUS_PILL: Record<string, string> = {
   signed:  "pill-active",
@@ -27,7 +28,7 @@ export default async function ContractDetailPage({
 
   if (!user) redirect("/login");
 
-  const [{ data: contract, error }, { data: tenantsData }, { data: notifLogs }] = await Promise.all([
+  const [{ data: contract, error }, { data: tenantsData }, { data: notifLogs }, { data: profile }] = await Promise.all([
     supabase
       .from("contracts")
       .select("*, property:properties(*), tenant:tenants(*), occupants:contract_occupants(*)")
@@ -42,6 +43,7 @@ export default async function ContractDetailPage({
       .eq("owner_id", user.id)
       .order("sent_at", { ascending: false })
       .limit(20),
+    supabase.from("profiles").select("email").eq("id", user.id).single(),
   ]);
 
   if (error || !contract) notFound();
@@ -50,6 +52,7 @@ export default async function ContractDetailPage({
   const daysLeft = daysUntil(c.lease_end);
   const coTenants = (c.occupants ?? []).filter((o) => o.role === "co_tenant") as ContractOccupant[];
   const logs = (notifLogs ?? []) as ContractNotificationLog[];
+  const landlordEmail = (profile as { email?: string } | null)?.email ?? user.email ?? "";
 
   return (
     <div className="space-y-6">
@@ -75,7 +78,7 @@ export default async function ContractDetailPage({
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>{c.property?.name}</p>
           </div>
         </div>
-        <ContractActions contract={c} availableTenants={tenantsData ?? []} />
+        <ContractActions contract={c} availableTenants={tenantsData ?? []} landlordEmail={landlordEmail} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -182,6 +185,12 @@ export default async function ContractDetailPage({
           initialSuppressed={c.suppress_notifications ?? false}
           initialLogs={logs}
         />
+      </div>
+
+      {/* Documents & Sections */}
+      <div className="surface-card space-y-3">
+        <SectionLabel icon={<FileText className="h-3.5 w-3.5" />} label="Documents" />
+        <ContractDocumentsPanel contractId={c.id} />
       </div>
 
       {/* Signatures */}
