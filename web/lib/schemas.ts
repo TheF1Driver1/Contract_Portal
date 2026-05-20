@@ -212,6 +212,12 @@ export const PropertyUpdateSchema = z.object({
   parking_count: z.number().int().min(0).max(500).optional().nullable(),
 });
 
+// ── Tenant portal signing ─────────────────────────────────────────────────────
+
+export const TenantSignatureSchema = z.object({
+  tenant_signature: z.string().min(100).max(100_000).startsWith('data:image/'),
+});
+
 // ── Tenant update ────────────────────────────────────────────────────────────
 
 export const TenantUpdateSchema = z.object({

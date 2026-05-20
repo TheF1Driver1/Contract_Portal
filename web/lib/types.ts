@@ -8,6 +8,21 @@ export interface Profile {
   company_name: string | null;
   phone: string | null;
   email: string;
+  role: 'landlord' | 'tenant';
+  created_at: string;
+}
+
+export interface TenantInvite {
+  id: string;
+  token: string;
+  contract_id: string;
+  owner_id: string;
+  tenant_email: string;
+  tenant_name: string;
+  used: boolean;
+  used_by: string | null;
+  used_at: string | null;
+  expires_at: string;
   created_at: string;
 }
 
