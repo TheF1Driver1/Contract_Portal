@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Download, Loader2, Trash2, Mail, Pencil } from "lucide-react";
 import type { Contract, Tenant } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
 import RenewalModal from "@/components/RenewalModal";
 import SendEmailModal from "@/components/SendEmailModal";
 
@@ -21,7 +20,6 @@ export default function ContractActions({
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   async function handleDownload(format: "docx" | "pdf") {
     format === "pdf" ? setGeneratingPdf(true) : setGeneratingDocx(true);
@@ -51,7 +49,9 @@ export default function ContractActions({
 
   async function handleDelete() {
     if (!confirm("Delete this contract? This cannot be undone.")) return;
-    await supabase.from("contracts").delete().eq("id", contract.id);
+    const res = await fetch(`/api/contracts/${contract.id}`, { method: "DELETE" });
+    if (!res.ok) { alert("Failed to delete contract. Please try again."); return; }
+    router.refresh();
     router.push("/contracts");
   }
 

@@ -61,8 +61,7 @@ function AttachmentsTab({ contractId }: { contractId: string }) {
 
   useEffect(() => {
     fetch(`/api/contracts/${contractId}/attachments`)
-      .then((r) => r.json())
-      .then(setAttachments)
+      .then(async (r) => { if (r.ok) setAttachments(await r.json()); })
       .catch(() => {});
   }, [contractId]);
 
@@ -187,12 +186,10 @@ function SectionsTab({ contractId }: { contractId: string }) {
 
   useEffect(() => {
     fetch(`/api/contracts/${contractId}/sections`)
-      .then((r) => r.json())
-      .then(setSections)
+      .then(async (r) => { if (r.ok) setSections(await r.json()); })
       .catch(() => {});
     fetch("/api/user-sections")
-      .then((r) => r.json())
-      .then(setTemplates)
+      .then(async (r) => { if (r.ok) setTemplates(await r.json()); })
       .catch(() => {});
   }, [contractId]);
 
