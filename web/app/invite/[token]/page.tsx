@@ -43,7 +43,7 @@ export default async function InvitePage({ params }: { params: { token: string }
     );
   }
 
-  const property = (invite.contract as { property: { name: string } | null } | null)?.property;
+  const property = (invite.contract as unknown as { property: { name: string } | null } | null)?.property;
 
   const data: InviteData = {
     tenantEmail: invite.tenant_email,

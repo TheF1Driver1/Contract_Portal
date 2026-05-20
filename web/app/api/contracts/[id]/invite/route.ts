@@ -31,7 +31,7 @@ export async function POST(
     return NextResponse.json({ error: "Contract is already signed" }, { status: 409 });
   }
 
-  const tenant = contract.tenant as { full_name: string; email: string | null } | null;
+  const tenant = contract.tenant as unknown as { full_name: string; email: string | null } | null;
   const tenantEmail = tenant?.email;
   const tenantName = tenant?.full_name ?? "";
 
@@ -43,7 +43,7 @@ export async function POST(
     return NextResponse.json({ error: "Email not configured" }, { status: 503 });
   }
 
-  const property = contract.property as { name: string } | null;
+  const property = contract.property as unknown as { name: string } | null;
   const propertyName = property?.name ?? "your property";
 
   const { data: landlordProfile } = await supabase

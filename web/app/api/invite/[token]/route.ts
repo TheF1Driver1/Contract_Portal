@@ -21,7 +21,7 @@ export async function GET(
     return NextResponse.json({ error: "This invite link has expired or already been used" }, { status: 410 });
   }
 
-  const property = (invite.contract as { property: { name: string } | null } | null)?.property;
+  const property = (invite.contract as unknown as { property: { name: string } | null } | null)?.property;
   const propertyName = property?.name ?? "your property";
 
   return NextResponse.json({
