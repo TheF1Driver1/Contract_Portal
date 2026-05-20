@@ -382,6 +382,38 @@ export interface ContractNotificationLog {
   sent_at: string;
 }
 
+export interface ContractAttachment {
+  id: string;
+  contract_id: string;
+  owner_id: string;
+  name: string;
+  storage_path: string;
+  file_size: number | null;
+  created_at: string;
+  // Injected on fetch
+  signed_url?: string | null;
+}
+
+export interface ContractCustomSection {
+  id: string;
+  contract_id: string;
+  owner_id: string;
+  title: string;
+  body: string;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserSectionTemplate {
+  id: string;
+  owner_id: string;
+  title: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Form values for contract builder
 export interface ContractFormValues {
   // Contract meta

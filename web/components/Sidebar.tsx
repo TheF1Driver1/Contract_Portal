@@ -16,6 +16,7 @@ import {
   Settings,
   UserCircle,
   Receipt,
+  BookOpen,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/market",             label: "Market",     icon: Map },
   { href: "/watchlist",          label: "Watchlist",  icon: Heart },
   { href: "/settings/templates", label: "Templates",  icon: Settings },
+  { href: "/settings/sections",  label: "Sections",   icon: BookOpen },
 ];
 
 const mobileNavItems = navItems.slice(0, 5);
