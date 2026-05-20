@@ -31,6 +31,8 @@ npm install -D @types/leaflet
 | 13 | Apple-style UI Redesign (Stitch) | ✅ DONE | `PLANS/13-ui-redesign.md` |
 | 14 | CRIM Tax Integration (PR municipalities) | ✅ DONE | `PLANS/14-crim-taxes.md` |
 | 15 | Seller Desperation Score | ✅ DONE | `PLANS/15-desperation-score.md` |
+| 16 | Email + PDF/DOCX Gap Execution | ✅ DONE | `PLANS/16-email-pdf-execution.md` |
+| 17 | Enhancement UX (caching, skeletons, tooltips, expenses) | ✅ DONE | `PLANS/17-enhancement-ux.md` |
 
 ## Supabase
 | Schema | Tables |
