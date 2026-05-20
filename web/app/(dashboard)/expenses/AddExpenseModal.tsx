@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import type { Property } from "@/lib/types";
@@ -27,6 +28,8 @@ export default function AddExpenseModal({ properties }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const [form, setForm] = useState({
     property_id: properties[0]?.id ?? "",
@@ -71,19 +74,9 @@ export default function AddExpenseModal({ properties }: Props) {
     }
   }
 
-  return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="btn-primary-gradient flex items-center gap-2"
-      >
-        <Plus className="h-4 w-4" />
-        Add Expense
-      </button>
-
-      {open && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in"
+  const modalContent = open && (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in"
           style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
           onClick={() => setOpen(false)}
         >
@@ -237,7 +230,18 @@ export default function AddExpenseModal({ properties }: Props) {
             </form>
           </div>
         </div>
-      )}
+  );
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="btn-primary-gradient flex items-center gap-2"
+      >
+        <Plus className="h-4 w-4" />
+        Add Expense
+      </button>
+      {mounted && createPortal(modalContent, document.body)}
     </>
   );
 }
