@@ -83,7 +83,7 @@ export default function AddExpenseModal({ properties }: Props) {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in"
           style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
           onClick={() => setOpen(false)}
         >
