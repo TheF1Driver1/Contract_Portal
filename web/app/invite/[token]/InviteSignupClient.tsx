@@ -11,7 +11,6 @@ interface Props {
   tenantName: string;
   contractId: string;
   propertyName: string;
-  expiresAt: string;
 }
 
 type Tab = "signup" | "signin";
@@ -20,7 +19,7 @@ export default function InviteSignupClient({
   token,
   tenantEmail,
   tenantName,
-  contractId,
+  contractId: _contractId,
   propertyName,
 }: Props) {
   const router = useRouter();

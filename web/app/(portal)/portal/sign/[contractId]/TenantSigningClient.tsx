@@ -6,11 +6,6 @@ import SignaturePad from "@/components/SignaturePad";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import type { Contract } from "@/lib/types";
 
-interface ContractWithJoins extends Contract {
-  property?: { name: string; address: string; city: string; state: string } | null;
-  tenant?: { full_name: string } | null;
-}
-
 function fmt(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
@@ -19,7 +14,7 @@ function fmtCurrency(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
 }
 
-export default function TenantSigningClient({ contract }: { contract: ContractWithJoins }) {
+export default function TenantSigningClient({ contract }: { contract: Contract }) {
   const router = useRouter();
   const [signature, setSignature] = useState("");
   const [submitting, setSubmitting] = useState(false);

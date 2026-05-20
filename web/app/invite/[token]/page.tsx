@@ -6,7 +6,6 @@ interface InviteData {
   tenantName: string;
   contractId: string;
   propertyName: string;
-  expiresAt: string;
 }
 
 export default async function InvitePage({ params }: { params: { token: string } }) {
@@ -51,7 +50,6 @@ export default async function InvitePage({ params }: { params: { token: string }
     tenantName: invite.tenant_name,
     contractId: invite.contract_id,
     propertyName: property?.name ?? "your property",
-    expiresAt: invite.expires_at,
   };
 
   return (
