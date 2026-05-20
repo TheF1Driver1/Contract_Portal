@@ -124,9 +124,10 @@ function SectionBlock({ title, children }: { title: string; children: React.Reac
 
 // ─── document ────────────────────────────────────────────────────────────────
 
-interface Props { contract: Contract; profile: Profile | null }
+interface CustomSection { title: string; body: string }
+interface Props { contract: Contract; profile: Profile | null; sections?: CustomSection[] }
 
-function ContractDocument({ contract, profile }: Props) {
+function ContractDocument({ contract, profile, sections = [] }: Props) {
   const amenities = (contract.amenities ?? {}) as Record<string, string | number | boolean>;
   const tenant    = (contract.tenant_snapshot ?? contract.tenant) as (TenantSnapshot | Tenant) | null;
   const property  = (contract.property_snapshot ?? contract.property) as (PropertySnapshot | Property) | null;
@@ -352,6 +353,13 @@ function ContractDocument({ contract, profile }: Props) {
           </SectionBlock>
         ) : null}
 
+        {/* ── Custom Sections ── */}
+        {sections.map((sec, i) => (
+          <SectionBlock key={i} title={sec.title}>
+            <Text style={{ fontSize: 10, lineHeight: 1.5 }}>{sec.body}</Text>
+          </SectionBlock>
+        ))}
+
         {/* ── Signatures ── */}
         <View style={S.sigSection}>
           <View style={S.sectionTitleWrap}>
@@ -397,10 +405,11 @@ function ContractDocument({ contract, profile }: Props) {
 export async function renderContractPdf(
   contract: Contract,
   profile: Profile | null,
+  sections: CustomSection[] = [],
 ): Promise<Buffer | null> {
   try {
     const buf = await renderToBuffer(
-      <ContractDocument contract={contract} profile={profile} />
+      <ContractDocument contract={contract} profile={profile} sections={sections} />
     );
     return Buffer.from(buf);
   } catch (err) {
