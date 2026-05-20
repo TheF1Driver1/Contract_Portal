@@ -350,6 +350,23 @@ export interface NotificationTrigger {
   created_at: string;
 }
 
+export interface PropertyExpense {
+  id: string;
+  property_id: string;
+  user_id: string;
+  category: 'maintenance'|'utilities'|'insurance'|'taxes'|'hoa'|
+            'repairs'|'management'|'advertising'|'mortgage'|'other';
+  amount: number;
+  expense_date: string;
+  description: string | null;
+  vendor: string | null;
+  is_tax_deductible: boolean;
+  receipt_url: string | null;
+  created_at: string;
+  // Joined
+  property?: Property;
+}
+
 export type NotificationChannel = 'sms' | 'email';
 export type NotificationStatus  = 'sent' | 'failed' | 'suppressed';
 

@@ -11,7 +11,9 @@ import {
 } from "lucide-react";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
+import { HelpTooltip } from "@/components/ui/help-tooltip";
 import CashflowChart from "@/components/CashflowChart";
+import ExpenseIncomeChart from "@/components/ExpenseIncomeChart";
 import MarketStatsWidget from "@/components/MarketStatsWidget";
 import RentVsMarketChart from "@/components/RentVsMarketChart";
 
@@ -28,7 +30,9 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [contractsResult, propertiesResult, tenantsResult] = await Promise.all([
+  const thisYear = new Date().getFullYear().toString();
+
+  const [contractsResult, propertiesResult, tenantsResult, expensesResult, propertiesWithNameResult] = await Promise.all([
     supabase
       .from("contracts")
       .select("*, property:properties(name, address), tenant:tenants(full_name, email)")
@@ -36,11 +40,20 @@ export default async function DashboardPage() {
       .order("created_at", { ascending: false }),
     supabase.from("properties").select("id").eq("owner_id", user!.id),
     supabase.from("tenants").select("id").eq("owner_id", user!.id),
+    supabase
+      .from("property_expenses")
+      .select("property_id, amount, is_tax_deductible")
+      .eq("user_id", user!.id)
+      .gte("expense_date", `${thisYear}-01-01`)
+      .lte("expense_date", `${thisYear}-12-31`),
+    supabase.from("properties").select("id, name").eq("owner_id", user!.id).order("name"),
   ]);
 
   const contracts = (contractsResult.data ?? []) as Contract[];
   const propertyCount = propertiesResult.data?.length ?? 0;
   const tenantCount = tenantsResult.data?.length ?? 0;
+  const allExpenses = expensesResult.data ?? [];
+  const allPropertiesNamed = propertiesWithNameResult.data ?? [];
 
   const activeContracts = contracts.filter((c) => c.status === "signed");
   const draftContracts = contracts.filter((c) => c.status === "draft");
@@ -69,9 +82,28 @@ export default async function DashboardPage() {
   });
   const cashflowData = months.map(({ label, income }) => ({ label, income }));
 
+  const taxDeductibleTotal = allExpenses.filter((e) => e.is_tax_deductible).reduce((s, e) => s + e.amount, 0);
+
+  const expenseByProperty: Record<string, number> = {};
+  for (const e of allExpenses) {
+    expenseByProperty[e.property_id] = (expenseByProperty[e.property_id] ?? 0) + e.amount;
+  }
+  const incomeByProperty: Record<string, number> = {};
+  for (const c of activeContracts) {
+    incomeByProperty[c.property_id] = (incomeByProperty[c.property_id] ?? 0) + c.rent_amount * 12;
+  }
+  const expenseIncomeData = allPropertiesNamed
+    .map((p) => ({
+      label: p.name.length > 12 ? p.name.slice(0, 11) + "…" : p.name,
+      income: incomeByProperty[p.id] ?? 0,
+      expenses: expenseByProperty[p.id] ?? 0,
+    }))
+    .filter((d) => d.income > 0 || d.expenses > 0);
+
   const stats = [
     {
       label: "Monthly Revenue",
+      tooltip: "Sum of rent from all active (signed) leases this month.",
       value: formatCurrency(monthlyRevenue),
       sub: `${activeContracts.length} active lease${activeContracts.length !== 1 ? "s" : ""}`,
       icon: TrendingUp,
@@ -82,6 +114,7 @@ export default async function DashboardPage() {
     },
     {
       label: "Properties",
+      tooltip: "Total properties in your portfolio.",
       value: propertyCount,
       sub: "in portfolio",
       icon: Building2,
@@ -93,6 +126,7 @@ export default async function DashboardPage() {
     },
     {
       label: "Tenants",
+      tooltip: "Total tenants registered across all contracts.",
       value: tenantCount,
       sub: "registered",
       icon: Users,
@@ -104,6 +138,7 @@ export default async function DashboardPage() {
     },
     {
       label: "Expiring Soon",
+      tooltip: "Active leases ending within the next 60 days.",
       value: expiringContracts.length,
       sub: "within 60 days",
       icon: AlertTriangle,
@@ -146,7 +181,7 @@ export default async function DashboardPage() {
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map(({ label, value, sub, icon: Icon, iconBg, iconColor, iconGlow, valueColor, href }, i) => {
+        {stats.map(({ label, tooltip, value, sub, icon: Icon, iconBg, iconColor, iconGlow, valueColor, href }, i) => {
           const cardClass = `surface-card animate-slide-up${href ? " hover:ring-1 hover:ring-white/10 cursor-pointer transition-all" : ""}`;
           const cardStyle = { animationDelay: `${i * 0.06}s`, animationFillMode: "both" as const };
           const inner = (
@@ -166,8 +201,9 @@ export default async function DashboardPage() {
               >
                 {value}
               </p>
-              <p className="text-xs mt-1 font-semibold" style={{ color: "var(--text-secondary)" }}>
+              <p className="flex items-center gap-1 text-xs mt-1 font-semibold" style={{ color: "var(--text-secondary)" }}>
                 {label}
+                {tooltip && <HelpTooltip text={tooltip} side="bottom" />}
               </p>
               <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
                 {sub}
@@ -322,8 +358,42 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* ── Income vs Expenses ── */}
+      {expenseIncomeData.length > 0 && (
+        <div
+          className="surface-card p-6 animate-slide-up"
+          style={{ animationDelay: "0.42s", animationFillMode: "both" }}
+        >
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <p
+                className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Finance
+              </p>
+              <h2
+                className="text-xl font-bold"
+                style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}
+              >
+                Income vs Expenses
+              </h2>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold" style={{ color: "#14b8a6" }}>
+                {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(taxDeductibleTotal)} deductible
+              </p>
+              <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                {thisYear} YTD
+              </p>
+            </div>
+          </div>
+          <ExpenseIncomeChart data={expenseIncomeData} />
+        </div>
+      )}
+
       {/* ── Market Stats Widget ── */}
-      <div className="animate-slide-up" style={{ animationDelay: "0.42s", animationFillMode: "both" }}>
+      <div className="animate-slide-up" style={{ animationDelay: "0.48s", animationFillMode: "both" }}>
         <MarketStatsWidget />
       </div>
 

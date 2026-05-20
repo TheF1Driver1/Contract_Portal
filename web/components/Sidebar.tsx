@@ -15,19 +15,21 @@ import {
   X,
   Settings,
   UserCircle,
+  Receipt,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const navItems = [
-  { href: "/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/contracts",  label: "Contracts",   icon: FileText },
-  { href: "/properties", label: "Properties",  icon: Building2 },
-  { href: "/tenants",    label: "Tenants",     icon: Users },
-  { href: "/market",     label: "Market",      icon: Map },
-  { href: "/watchlist",  label: "Watchlist",   icon: Heart },
-  { href: "/settings/templates",      label: "Templates",      icon: Settings },
+  { href: "/dashboard",          label: "Dashboard",  icon: LayoutDashboard },
+  { href: "/contracts",          label: "Contracts",  icon: FileText },
+  { href: "/properties",         label: "Properties", icon: Building2 },
+  { href: "/tenants",            label: "Tenants",    icon: Users },
+  { href: "/expenses",           label: "Expenses",   icon: Receipt },
+  { href: "/market",             label: "Market",     icon: Map },
+  { href: "/watchlist",          label: "Watchlist",  icon: Heart },
+  { href: "/settings/templates", label: "Templates",  icon: Settings },
 ];
 
 const mobileNavItems = navItems.slice(0, 5);
@@ -281,6 +283,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
                 }}
                 onMouseEnter={e => {
                   if (!active) e.currentTarget.style.background = S.hoverBg;
+                  router.prefetch(href);
                 }}
                 onMouseLeave={e => {
                   if (!active) e.currentTarget.style.background = "transparent";
