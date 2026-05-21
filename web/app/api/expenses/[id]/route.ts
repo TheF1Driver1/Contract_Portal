@@ -10,6 +10,7 @@ const ExpenseUpdateSchema = z.object({
   description: z.string().max(1000).nullable().optional(),
   vendor: z.string().max(200).nullable().optional(),
   is_tax_deductible: z.boolean().optional(),
+  receipt_url: z.string().max(500).nullable().optional(),
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {

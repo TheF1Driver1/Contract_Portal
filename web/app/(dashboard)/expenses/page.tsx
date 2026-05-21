@@ -1,10 +1,11 @@
-import { createClient } from "@/lib/supabase-server";
+import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { Receipt, TrendingDown, DollarSign, FileCheck } from "lucide-react";
+import { Receipt, TrendingDown, DollarSign, FileCheck, ImageIcon } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { PropertyExpense, Property } from "@/lib/types";
 import AddExpenseModal from "./AddExpenseModal";
 import DeleteExpenseButton from "./DeleteExpenseButton";
+import EditExpenseButton from "./EditExpenseButton";
 
 const CATEGORY_LABELS: Record<string, string> = {
   maintenance: "Maintenance",
@@ -64,6 +65,21 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
 
   const { data: expenses } = await query;
   const all = (expenses ?? []) as (PropertyExpense & { property: { id: string; name: string } | null })[];
+
+  // Generate 1-hour signed URLs for any expenses that have a receipt
+  const receiptPaths = all.filter((e) => e.receipt_url).map((e) => e.receipt_url!);
+  const receiptSignedUrls: Record<string, string> = {};
+  if (receiptPaths.length > 0) {
+    const supabaseAdmin = createAdminClient();
+    const { data: signed } = await supabaseAdmin.storage
+      .from("expense-receipts")
+      .createSignedUrls(receiptPaths, 3600);
+    if (signed) {
+      signed.forEach((s, i) => {
+        if (s.signedUrl) receiptSignedUrls[receiptPaths[i]] = s.signedUrl;
+      });
+    }
+  }
 
   const totalExpenses = all.reduce((s, e) => s + e.amount, 0);
   const taxDeductible = all.filter((e) => e.is_tax_deductible).reduce((s, e) => s + e.amount, 0);
@@ -254,6 +270,16 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
                           {new Date(e.expense_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         </p>
                       </div>
+                      {e.receipt_url && (
+                        <span title="Receipt attached" className="flex h-5 w-5 items-center justify-center rounded-md" style={{ background: "rgba(139,92,246,0.15)" }}>
+                          <ImageIcon className="h-3 w-3" style={{ color: "#8b5cf6" }} />
+                        </span>
+                      )}
+                      <EditExpenseButton
+                        expense={e}
+                        properties={allProps}
+                        receiptPreviewUrl={e.receipt_url ? (receiptSignedUrls[e.receipt_url] ?? null) : null}
+                      />
                       <DeleteExpenseButton id={e.id} />
                     </div>
                   </div>
