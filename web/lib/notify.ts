@@ -26,6 +26,50 @@ export async function sendResendEmail(
   if (error) throw new Error(error.message);
 }
 
+export async function sendTenantInviteEmail(
+  to: string,
+  tenantName: string,
+  propertyName: string,
+  inviteUrl: string,
+  landlordName: string
+): Promise<void> {
+  const greeting = tenantName ? `Hello ${tenantName},` : "Hello,";
+  const subject = `Sign your lease for ${propertyName}`;
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+        <tr><td style="background:#111;padding:24px 32px;">
+          <p style="margin:0;color:#fff;font-size:18px;font-weight:bold;letter-spacing:0.04em;">LEASE AGREEMENT — SIGNATURE REQUIRED</p>
+        </td></tr>
+        <tr><td style="padding:28px 32px 8px;">
+          <p style="margin:0 0 16px;font-size:15px;color:#222;">${greeting}</p>
+          <p style="margin:0 0 16px;font-size:14px;color:#444;line-height:1.6;">
+            ${landlordName ? `<strong>${landlordName}</strong> has sent you a lease agreement for <strong>${propertyName}</strong> that requires your signature.` : `A lease agreement for <strong>${propertyName}</strong> has been sent to you for signature.`}
+          </p>
+          <p style="margin:0 0 16px;font-size:14px;color:#444;line-height:1.6;">
+            Click the button below to review and sign your lease. You will be asked to create a secure account to access the document.
+          </p>
+        </td></tr>
+        <tr><td style="padding:8px 32px 28px;">
+          <a href="${inviteUrl}" style="display:inline-block;background:#007aff;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
+            Review &amp; Sign Lease
+          </a>
+        </td></tr>
+        <tr><td style="padding:16px 32px;border-top:1px solid #eee;">
+          <p style="margin:0;font-size:11px;color:#999;line-height:1.5;">
+            This link expires in 7 days. If you did not expect this email, you can safely ignore it.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+  await sendResendEmail(to, subject, html);
+}
+
 export function buildExpiryNotification(opts: {
   tenantName: string;
   propertyName: string;
