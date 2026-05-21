@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Pencil, Loader2, X, ScanLine, Receipt, ImageIcon } from "lucide-react";
+import { Pencil, Loader2, X } from "lucide-react";
 import type { Property, PropertyExpense } from "@/lib/types";
 
 const CATEGORIES = [
@@ -20,19 +20,15 @@ const CATEGORIES = [
 ] as const;
 
 interface Props {
-  expense: Pick<PropertyExpense, "id" | "property_id" | "category" | "amount" | "expense_date" | "description" | "vendor" | "is_tax_deductible" | "receipt_url">;
+  expense: Pick<PropertyExpense, "id" | "property_id" | "category" | "amount" | "expense_date" | "description" | "vendor" | "is_tax_deductible">;
   properties: Pick<Property, "id" | "name">[];
-  receiptPreviewUrl?: string | null;
 }
 
-export default function EditExpenseButton({ expense, properties, receiptPreviewUrl }: Props) {
+export default function EditExpenseButton({ expense, properties }: Props) {
   const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [newReceipt, setNewReceipt] = useState<{ storage_path: string; preview_url: string | null } | null>(null);
 
   const [form, setForm] = useState({
     property_id: expense.property_id,
@@ -54,7 +50,6 @@ export default function EditExpenseButton({ expense, properties, receiptPreviewU
       vendor: expense.vendor ?? "",
       is_tax_deductible: expense.is_tax_deductible,
     });
-    setNewReceipt(null);
     setError(null);
     setOpen(true);
   }
@@ -63,51 +58,20 @@ export default function EditExpenseButton({ expense, properties, receiptPreviewU
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  async function handleReceiptUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setScanning(true);
-    setError(null);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/expenses/scan-receipt", { method: "POST", body: fd });
-      if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.error ?? "Failed to scan receipt");
-      }
-      const data = await res.json();
-      setNewReceipt({ storage_path: data.storage_path, preview_url: data.preview_url });
-      const ex = data.extracted ?? {};
-      if (ex.amount != null) set("amount", String(ex.amount));
-      if (ex.vendor) set("vendor", ex.vendor);
-      if (ex.expense_date) set("expense_date", ex.expense_date);
-      if (ex.category) set("category", ex.category);
-      if (ex.description) set("description", ex.description);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setScanning(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  }
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      const body: Record<string, unknown> = {
-        ...form,
-        amount: parseFloat(form.amount),
-        description: form.description || null,
-        vendor: form.vendor || null,
-      };
-      if (newReceipt) body.receipt_url = newReceipt.storage_path;
       const res = await fetch(`/api/expenses/${expense.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          ...form,
+          amount: parseFloat(form.amount),
+          description: form.description || null,
+          vendor: form.vendor || null,
+        }),
       });
       if (!res.ok) {
         const d = await res.json();
@@ -121,9 +85,6 @@ export default function EditExpenseButton({ expense, properties, receiptPreviewU
       setLoading(false);
     }
   }
-
-  const currentPreview = newReceipt?.preview_url ?? receiptPreviewUrl;
-  const hasReceipt = !!(newReceipt?.storage_path ?? expense.receipt_url);
 
   return (
     <>
@@ -157,46 +118,6 @@ export default function EditExpenseButton({ expense, properties, receiptPreviewU
                 <X className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
               </button>
             </div>
-
-            {/* Receipt scan area */}
-            <div className="mb-4 rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
-              {currentPreview ? (
-                <div className="relative">
-                  <img src={currentPreview} alt="Receipt" className="w-full max-h-32 object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={scanning}
-                    className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium"
-                    style={{ background: "rgba(0,0,0,0.70)", color: "#fff" }}
-                  >
-                    {scanning ? <Loader2 className="h-3 w-3 animate-spin" /> : <ScanLine className="h-3 w-3" />}
-                    {scanning ? "Scanning…" : "Replace"}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  disabled={scanning}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-xs font-medium transition-opacity hover:opacity-70"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  {scanning ? (
-                    <><Loader2 className="h-3.5 w-3.5 animate-spin" />Scanning receipt…</>
-                  ) : (
-                    <><ScanLine className="h-3.5 w-3.5" />{hasReceipt ? "Receipt attached" : "Scan Receipt"} — auto-fill fields</>
-                  )}
-                </button>
-              )}
-            </div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleReceiptUpload}
-            />
 
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-1.5">

@@ -11,7 +11,6 @@ const ExpenseCreateSchema = z.object({
   description: z.string().max(1000).nullable().optional(),
   vendor: z.string().max(200).nullable().optional(),
   is_tax_deductible: z.boolean().default(true),
-  receipt_url: z.string().max(500).nullable().optional(),
 });
 
 export async function GET(req: NextRequest) {
