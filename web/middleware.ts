@@ -33,14 +33,43 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/forgot-password") || pathname.startsWith("/reset-password");
   const isApiRoute = pathname.startsWith("/api");
   const isLandingPage = pathname === "/";
+  const isInvitePage = pathname.startsWith("/invite");
+  const isPortalPage = pathname.startsWith("/portal");
+  const isResetPassword = pathname.startsWith("/reset-password");
 
-  if (!user && !isAuthPage && !isApiRoute && !isLandingPage) {
+  // Public routes — no auth required
+  if (!user && (isAuthPage || isApiRoute || isLandingPage || isInvitePage)) {
+    return supabaseResponse;
+  }
+
+  // Unauthenticated user hitting a protected route
+  if (!user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const isResetPassword = pathname.startsWith("/reset-password");
-  if (user && isAuthPage && !isResetPassword) {
+  // Fetch role for authenticated users on non-API routes
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const role = (profile?.role as string | undefined) ?? "landlord";
+
+  // Tenants are locked to /portal
+  if (role === "tenant" && !isPortalPage && !isApiRoute && !isAuthPage) {
+    return NextResponse.redirect(new URL("/portal", request.url));
+  }
+
+  // Landlords cannot access /portal
+  if (role === "landlord" && isPortalPage) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Authenticated users on auth pages redirect to their home
+  if (user && isAuthPage && !isResetPassword) {
+    return NextResponse.redirect(
+      new URL(role === "tenant" ? "/portal" : "/dashboard", request.url)
+    );
   }
 
   return supabaseResponse;
