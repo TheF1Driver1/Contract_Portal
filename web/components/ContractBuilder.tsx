@@ -209,7 +209,7 @@ export default function ContractBuilder({
       wall_art: Boolean(am.wall_art),
       parking: Boolean(am.parking),
       bathroom_count: 1,
-      parking_available: d.parking_available ?? Boolean(am.parking),
+      parking_available: Boolean(am.parking),
       parking_count: (am.parking_count as number) ?? 1,
       parking_spot: (am.parking_spot as string) ?? "",
       custom_amenities: (am.custom_amenities as string) ?? "",
