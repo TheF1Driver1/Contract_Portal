@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { redirect, notFound } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase-server";
 import TenantSigningClient from "./TenantSigningClient";
