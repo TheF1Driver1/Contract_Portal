@@ -1,10 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { rateLimitWrite } from "@/lib/rate-limit";
-import Anthropic from "@anthropic-ai/sdk";
 
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_BYTES = 5 * 1024 * 1024;
+
+async function extractFromAzure(buffer: Buffer, mimeType: string): Promise<Record<string, unknown>> {
+  const endpoint = process.env.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT?.replace(/\/$/, "");
+  const key = process.env.AZURE_DOCUMENT_INTELLIGENCE_KEY;
+  if (!endpoint || !key) return {};
+
+  // Submit image for analysis
+  const submitRes = await fetch(
+    `${endpoint}/formrecognizer/documentModels/prebuilt-receipt:analyze?api-version=2023-07-31`,
+    {
+      method: "POST",
+      headers: { "Ocp-Apim-Subscription-Key": key, "Content-Type": mimeType },
+      body: buffer,
+    }
+  );
+  if (!submitRes.ok) return {};
+
+  const operationUrl = submitRes.headers.get("Operation-Location");
+  if (!operationUrl) return {};
+
+  // Poll until succeeded (typically 1–3 s)
+  for (let i = 0; i < 15; i++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    const pollRes = await fetch(operationUrl, { headers: { "Ocp-Apim-Subscription-Key": key } });
+    if (!pollRes.ok) break;
+    const data = await pollRes.json();
+    if (data.status === "failed") break;
+    if (data.status !== "succeeded") continue;
+
+    const doc = data.analyzeResult?.documents?.[0];
+    if (!doc) return {};
+    const f = doc.fields ?? {};
+
+    const rawAmount = f.Total?.valueCurrency?.amount ?? Number(f.Total?.content?.replace(/[^0-9.]/g, "")) ?? null;
+    const amount = rawAmount && !isNaN(Number(rawAmount)) ? Number(rawAmount) : null;
+    const vendor: string | null = f.MerchantName?.content ?? null;
+    const rawDate: string | null = f.TransactionDate?.valueDate ?? f.TransactionDate?.content ?? null;
+    const expense_date = rawDate ? rawDate.slice(0, 10) : null;
+    const category = docTypeToCategory(doc.docType as string | undefined);
+
+    return { amount, vendor, expense_date, category, description: null };
+  }
+
+  return {};
+}
+
+function docTypeToCategory(docType: string | undefined): string | null {
+  if (!docType) return null;
+  if (docType.includes("gas")) return "utilities";
+  if (docType.includes("hotel") || docType.includes("lodging")) return "management";
+  return null;
+}
 
 export async function POST(req: NextRequest) {
   const supabase = createClient();
@@ -43,48 +94,7 @@ export async function POST(req: NextRequest) {
     .from("expense-receipts")
     .createSignedUrl(storagePath, 3600);
 
-  let extracted: Record<string, unknown> = {};
-
-  if (process.env.ANTHROPIC_API_KEY) {
-    try {
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      const msg = await anthropic.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 256,
-        messages: [{
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: file.type as "image/jpeg" | "image/png" | "image/webp",
-                data: buffer.toString("base64"),
-              },
-            },
-            {
-              type: "text",
-              text: `Extract expense information from this receipt. Reply with ONLY a JSON object, no markdown fences:
-{
-  "amount": <total amount as a number, or null>,
-  "vendor": <merchant/vendor name as a string, or null>,
-  "expense_date": <date in "YYYY-MM-DD" format, or null>,
-  "category": <one of: maintenance, utilities, insurance, taxes, hoa, repairs, management, advertising, mortgage, other — pick the best match or null>,
-  "description": <brief description of what was purchased, or null>
-}`,
-            },
-          ],
-        }],
-      });
-
-      const raw = msg.content[0].type === "text" ? msg.content[0].text.trim() : "";
-      // Strip optional markdown fences if model includes them
-      const cleaned = raw.replace(/^```[a-z]*\n?/i, "").replace(/\n?```$/, "").trim();
-      extracted = JSON.parse(cleaned);
-    } catch {
-      // Extraction failed — still return the uploaded receipt path
-    }
-  }
+  const extracted = await extractFromAzure(buffer, file.type);
 
   return NextResponse.json({
     storage_path: storagePath,
