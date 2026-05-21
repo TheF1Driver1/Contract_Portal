@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { Receipt, TrendingDown, DollarSign, FileCheck } from "lucide-react";
+import { Receipt, TrendingDown, FileCheck } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { PropertyExpense, Property } from "@/lib/types";
 import AddExpenseModal from "./AddExpenseModal";
 import DeleteExpenseButton from "./DeleteExpenseButton";
+import EditExpenseButton from "./EditExpenseButton";
 
 const CATEGORY_LABELS: Record<string, string> = {
   maintenance: "Maintenance",
@@ -254,6 +255,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
                           {new Date(e.expense_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         </p>
                       </div>
+                      <EditExpenseButton expense={e} properties={allProps} />
                       <DeleteExpenseButton id={e.id} />
                     </div>
                   </div>
