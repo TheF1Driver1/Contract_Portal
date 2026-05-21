@@ -453,9 +453,9 @@ export interface ContractFormValues {
   lease_months: number;
 
   // Payment
-  rent_amount: number;
+  rent_amount: number | undefined;
   rent_amount_verbal: string;
-  security_deposit: number;
+  security_deposit: number | undefined;
   payment_due_day: number;
   late_fee_day: number;
 
@@ -479,6 +479,7 @@ export interface ContractFormValues {
   futon: boolean;
   wall_art: boolean;
   parking: boolean;
+  custom_amenities?: string;
 
   // Property counts
   bathroom_count: number;
@@ -489,8 +490,8 @@ export interface ContractFormValues {
   // Late fee policy
   late_fee_type: 'fixed' | 'daily' | 'both';
   late_fee_grace_period_days: number;
-  late_fee_fixed_amount: number;
-  late_fee_daily_amount: number;
+  late_fee_fixed_amount: number | undefined;
+  late_fee_daily_amount: number | undefined;
 
   // Template
   template_id: string;

@@ -114,9 +114,9 @@ export default function ContractBuilder({
       lease_start: "",
       lease_end: "",
       lease_months: 12,
-      rent_amount: 0,
+      rent_amount: undefined,
       rent_amount_verbal: "",
-      security_deposit: 0,
+      security_deposit: undefined,
       payment_due_day: 1,
       late_fee_day: 5,
       occupant_names: "",
@@ -138,12 +138,13 @@ export default function ContractBuilder({
       parking: false,
       bathroom_count: 1,
       parking_available: false,
-      parking_count: 0,
+      parking_count: 1,
       parking_spot: "",
+      custom_amenities: "",
       late_fee_type: "fixed" as const,
       late_fee_grace_period_days: 0,
-      late_fee_fixed_amount: 0,
-      late_fee_daily_amount: 0,
+      late_fee_fixed_amount: undefined,
+      late_fee_daily_amount: undefined,
       template_id: "",
       landlord_signature: "",
       tenant_signature: "",
@@ -169,7 +170,7 @@ export default function ContractBuilder({
     if (!prop) return;
     setValue("bathroom_count", prop.bathroom_count ?? 1);
     setValue("parking_available", prop.parking_available ?? false);
-    setValue("parking_count", prop.parking_count ?? 0);
+    setValue("parking_count", prop.parking_count ?? 1);
   }, [values.property_id]);
 
   // Pre-populate form when editing a draft
@@ -185,9 +186,9 @@ export default function ContractBuilder({
       lease_start: d.lease_start ?? "",
       lease_end: d.lease_end ?? "",
       lease_months: d.lease_months ?? 12,
-      rent_amount: d.rent_amount ?? 0,
+      rent_amount: d.rent_amount || undefined,
       rent_amount_verbal: d.rent_amount_verbal ?? "",
-      security_deposit: d.security_deposit ?? 0,
+      security_deposit: d.security_deposit || undefined,
       payment_due_day: d.payment_due_day ?? 1,
       late_fee_day: d.late_fee_day ?? 5,
       occupant_names: (d.occupant_names ?? []).join(", "),
@@ -208,13 +209,14 @@ export default function ContractBuilder({
       wall_art: Boolean(am.wall_art),
       parking: Boolean(am.parking),
       bathroom_count: 1,
-      parking_available: Boolean(am.parking),
-      parking_count: 0,
+      parking_available: d.parking_available ?? Boolean(am.parking),
+      parking_count: (am.parking_count as number) ?? 1,
       parking_spot: (am.parking_spot as string) ?? "",
+      custom_amenities: (am.custom_amenities as string) ?? "",
       late_fee_type: d.late_fee_type ?? "fixed",
       late_fee_grace_period_days: d.late_fee_grace_period_days ?? 0,
-      late_fee_fixed_amount: d.late_fee_fixed_amount ?? 0,
-      late_fee_daily_amount: d.late_fee_daily_amount ?? 0,
+      late_fee_fixed_amount: d.late_fee_fixed_amount || undefined,
+      late_fee_daily_amount: d.late_fee_daily_amount || undefined,
       template_id: d.template_id ?? "",
       landlord_signature: d.landlord_signature ?? "",
       tenant_signature: d.tenant_signature ?? "",
@@ -285,6 +287,7 @@ export default function ContractBuilder({
         wall_art: data.wall_art,
         parking: data.parking_available,
         parking_spot: data.parking_spot || null,
+        custom_amenities: data.custom_amenities || null,
       };
 
       const payload = {
@@ -303,11 +306,11 @@ export default function ContractBuilder({
         lease_start: data.lease_start || null,
         lease_end: data.lease_end || null,
         lease_months: data.lease_months,
-        rent_amount: data.rent_amount,
+        rent_amount: data.rent_amount || 0,
         rent_amount_verbal: data.rent_amount_verbal || null,
-        security_deposit: data.security_deposit,
+        security_deposit: data.security_deposit || 0,
         payment_due_day: data.payment_due_day,
-        late_fee_day: data.late_fee_day,
+        late_fee_day: (data.payment_due_day ?? 1) + (data.late_fee_grace_period_days ?? 0),
         occupant_names: data.occupant_names
           ? data.occupant_names.split(",").map((s) => s.trim())
           : [],
@@ -325,8 +328,8 @@ export default function ContractBuilder({
             : null,
         late_fee_type: data.late_fee_type,
         late_fee_grace_period_days: data.late_fee_grace_period_days,
-        late_fee_fixed_amount: data.late_fee_fixed_amount,
-        late_fee_daily_amount: data.late_fee_daily_amount,
+        late_fee_fixed_amount: data.late_fee_fixed_amount || 0,
+        late_fee_daily_amount: data.late_fee_daily_amount || 0,
       };
 
       let contractId = savedId;
@@ -723,43 +726,6 @@ export default function ContractBuilder({
               </div>
             </Section>
 
-            {templates.length > 0 && (
-              <Section title="Template">
-                <div>
-                  <FieldLabel>Contract Template</FieldLabel>
-                  <Controller
-                    control={control}
-                    name="template_id"
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)}
-                        value={field.value || "__none__"}
-                      >
-                        <SelectTrigger className="input-tonal border-none h-auto">
-                          <SelectValue placeholder="Use default template…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Default template</SelectItem>
-                          {templates.map((t) => (
-                            <SelectItem key={t.id} value={t.id}>
-                              {t.name}
-                              {t.is_default ? " ★" : ""}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  <p className="text-xs mt-1.5" style={{ color: "var(--text-muted)" }}>
-                    Manage templates in{" "}
-                    <a href="/settings/templates" className="underline" style={{ color: "#007aff" }}>
-                      Settings → Templates
-                    </a>
-                  </p>
-                </div>
-              </Section>
-            )}
-
             <Section title="Lease Period">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div>
@@ -959,6 +925,18 @@ export default function ContractBuilder({
                   </label>
                 ))}
               </div>
+              <div className="mt-3">
+                <FieldLabel>Additional Amenities</FieldLabel>
+                <textarea
+                  className="input-tonal w-full text-sm resize-none"
+                  rows={2}
+                  placeholder="e.g. washer/dryer hookup, private patio, storage unit..."
+                  {...register("custom_amenities")}
+                />
+                <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
+                  Comma-separated list of any amenities not listed above
+                </p>
+              </div>
             </Section>
           </div>
         )}
@@ -984,7 +962,8 @@ export default function ContractBuilder({
                     type="number"
                     min={0}
                     step={0.01}
-                    {...register("rent_amount", { valueAsNumber: true, required: "Monthly rent is required", min: { value: 1, message: "Rent must be greater than 0" } })}
+                    placeholder="0.00"
+                    {...register("rent_amount", { setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v), required: "Monthly rent is required", min: { value: 1, message: "Rent must be greater than 0" } })}
                   />
                   {errors.rent_amount && <p className="text-xs text-destructive mt-1">{errors.rent_amount.message}</p>}
                 </div>
@@ -1008,34 +987,28 @@ export default function ContractBuilder({
                     type="number"
                     min={0}
                     step={0.01}
-                    {...register("security_deposit", { valueAsNumber: true })}
+                    placeholder="0.00"
+                    {...register("security_deposit", { setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v) })}
                   />
                 </div>
               </div>
             </Section>
 
             <Section title="Schedule">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <FieldLabel>Rent Due Day of Month</FieldLabel>
-                  <input
-                    className="input-tonal"
-                    type="number"
-                    min={1}
-                    max={28}
-                    {...register("payment_due_day", { valueAsNumber: true })}
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Late Fee After Day</FieldLabel>
-                  <input
-                    className="input-tonal"
-                    type="number"
-                    min={1}
-                    max={28}
-                    {...register("late_fee_day", { valueAsNumber: true })}
-                  />
-                </div>
+              <div>
+                <FieldLabel>Rent Due Day of Month</FieldLabel>
+                <input
+                  className="input-tonal"
+                  type="number"
+                  min={1}
+                  max={28}
+                  {...register("payment_due_day", { valueAsNumber: true })}
+                />
+                {values.payment_due_day != null && values.late_fee_grace_period_days != null && (
+                  <p className="text-[11px] mt-1.5" style={{ color: "var(--text-muted)" }}>
+                    First late day: Day {values.payment_due_day + values.late_fee_grace_period_days} of each month
+                  </p>
+                )}
               </div>
             </Section>
 
@@ -1080,7 +1053,8 @@ export default function ContractBuilder({
                       type="number"
                       min={0}
                       step={0.01}
-                      {...register("late_fee_fixed_amount", { valueAsNumber: true })}
+                      placeholder="0.00"
+                      {...register("late_fee_fixed_amount", { setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v) })}
                     />
                   </div>
                 )}
@@ -1092,7 +1066,8 @@ export default function ContractBuilder({
                       type="number"
                       min={0}
                       step={0.01}
-                      {...register("late_fee_daily_amount", { valueAsNumber: true })}
+                      placeholder="0.00"
+                      {...register("late_fee_daily_amount", { setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v) })}
                     />
                   </div>
                 )}
@@ -1378,7 +1353,7 @@ export default function ContractBuilder({
                 Send Contract
               </p>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Deliver DOCX to both parties via email or SMS
+                Deliver DOCX to both parties via email
               </p>
             </div>
 
@@ -1425,38 +1400,6 @@ export default function ContractBuilder({
                   })}
                 </div>
               </div>
-            </Section>
-
-            <Section title="SMS (Optional)">
-              <label
-                className="flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-colors"
-                style={{ background: "var(--surface-card)" }}
-              >
-                <input
-                  type="checkbox"
-                  className="mt-0.5 h-4 w-4 accent-[#007aff]"
-                  {...register("send_sms")}
-                />
-                <div>
-                  <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                    Send via Twilio
-                  </p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                    Send contract link via text message
-                  </p>
-                </div>
-              </label>
-              {values.send_sms && (
-                <div className="mt-3">
-                  <FieldLabel>Recipient Phone</FieldLabel>
-                  <input
-                    className="input-tonal"
-                    type="tel"
-                    placeholder="+1 787 555 0100"
-                    {...register("recipient_phone")}
-                  />
-                </div>
-              )}
             </Section>
 
             <button
