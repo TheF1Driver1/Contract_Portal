@@ -23,7 +23,10 @@ export async function sendResendEmail(
   const from   = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
 
   const { error } = await resend.emails.send({ from, to, subject, html });
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[resend] Send error:", error);
+    throw new Error(error.message);
+  }
 }
 
 export async function sendTenantInviteEmail(
