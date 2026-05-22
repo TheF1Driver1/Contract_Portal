@@ -67,7 +67,10 @@ export async function POST(
   const resend = new Resend(process.env.RESEND_API_KEY);
   const from   = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
 
-  const sends: Promise<unknown>[] = [];
+  type ResendResult = { data: unknown; error: { message: string; name?: string } | null };
+  const sends: Promise<ResendResult>[] = [];
+
+  console.log(`[send-email] contract=${params.id} from=${from} landlord=${landlordEmail ?? "none"} tenant=${tenantEmail ?? "none"}`);
 
   if (landlordEmail) {
     sends.push(resend.emails.send({
@@ -81,7 +84,7 @@ export async function POST(
         hasAttachment: attachments.length > 0,
       }),
       attachments,
-    }));
+    }) as Promise<ResendResult>);
   }
 
   if (tenantEmail) {
@@ -96,16 +99,24 @@ export async function POST(
         hasAttachment: attachments.length > 0,
       }),
       attachments,
-    }));
+    }) as Promise<ResendResult>);
   }
 
   const results = await Promise.allSettled(sends);
-  const failed = results.filter((r) => r.status === "rejected");
-  if (failed.length) {
-    const reasons = failed.map((r) => (r as PromiseRejectedResult).reason?.message ?? String(r));
-    return NextResponse.json({ success: false, error: reasons.join("; ") }, { status: 500 });
+  const errors: string[] = [];
+  for (const r of results) {
+    if (r.status === "rejected") {
+      errors.push((r.reason as Error)?.message ?? String(r.reason));
+    } else if (r.value.error) {
+      errors.push(r.value.error.message ?? "Resend error");
+    }
+  }
+  if (errors.length) {
+    console.error(`[send-email] FAILED contract=${params.id}:`, errors);
+    return NextResponse.json({ success: false, error: errors.join("; ") }, { status: 500 });
   }
 
+  console.log(`[send-email] SUCCESS contract=${params.id}`);
   return NextResponse.json({ success: true });
 }
 
