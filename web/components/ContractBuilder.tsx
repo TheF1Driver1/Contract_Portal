@@ -331,6 +331,7 @@ export default function ContractBuilder({
         late_fee_grace_period_days: data.late_fee_grace_period_days,
         late_fee_fixed_amount: data.late_fee_fixed_amount || 0,
         late_fee_daily_amount: data.late_fee_daily_amount || 0,
+        governing_law: data.jurisdiction === "pr" ? "ley_14_2022" : "other",
       };
 
       let contractId = savedId;
@@ -1047,6 +1048,16 @@ export default function ContractBuilder({
                     placeholder="0.00"
                     {...register("security_deposit", { setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v) })}
                   />
+                  {values.jurisdiction === "pr" &&
+                    values.security_deposit && values.rent_amount &&
+                    values.security_deposit > values.rent_amount && (
+                    <div
+                      className="flex items-center gap-2 text-xs mt-2 p-2 rounded-lg"
+                      style={{ background: "rgba(255,69,58,0.10)", color: "#ff453a" }}
+                    >
+                      ⚠️ El depósito (${values.security_deposit}) excede el máximo permitido de 1 mes de canon (${values.rent_amount}) bajo Ley 14-2022
+                    </div>
+                  )}
                 </div>
               </div>
             </Section>
