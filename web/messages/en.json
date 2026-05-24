@@ -1,0 +1,167 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "contracts": "Contracts",
+    "properties": "Properties",
+    "tenants": "Tenants",
+    "expenses": "Expenses",
+    "market": "Market",
+    "watchlist": "Watchlist",
+    "profile": "Profile",
+    "signOut": "Sign out",
+    "navigation": "Navigation"
+  },
+  "auth": {
+    "login": "Sign In",
+    "signup": "Create Account",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "signInButton": "Sign In",
+    "signUpButton": "Create Account",
+    "sendResetLink": "Send Reset Link",
+    "backToLogin": "Back to Sign In",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "signUpLink": "Sign up",
+    "signInLink": "Sign in"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "properties": "Properties",
+    "contracts": "Contracts",
+    "tenants": "Tenants",
+    "activeLeases": "Active Leases",
+    "expiringLeases": "Expiring Soon",
+    "monthlyRevenue": "Monthly Revenue",
+    "noData": "No data yet",
+    "viewAll": "View All"
+  },
+  "contracts": {
+    "title": "Contracts",
+    "new": "New Contract",
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "signed": "Signed",
+      "expired": "Expired"
+    },
+    "type": {
+      "lease": "Lease Agreement",
+      "rental": "Rental Agreement",
+      "addendum": "Addendum"
+    },
+    "jurisdiction": {
+      "label": "Jurisdiction",
+      "pr": "Puerto Rico",
+      "us_mainland": "US Mainland",
+      "other": "Other"
+    },
+    "governingLaw": {
+      "ley_14_2022": "Ley 14 de 2022",
+      "ley_464": "Ley 464",
+      "other": "Other"
+    },
+    "compliance": {
+      "title": "PR Legal Compliance",
+      "depositWarning": "Security deposit must not exceed 1 month's rent (unfurnished) under Ley 14-2022",
+      "dacoNotice": "DACO tenant rights notice will be included",
+      "terminationClause": "60-day termination notice clause will be included"
+    }
+  },
+  "properties": {
+    "title": "Properties",
+    "new": "New Property",
+    "address": "Address",
+    "units": "Units",
+    "noProperties": "No properties yet",
+    "addFirst": "Add your first property"
+  },
+  "tenants": {
+    "title": "Tenants",
+    "new": "New Tenant",
+    "noTenants": "No tenants yet",
+    "addFirst": "Add your first tenant"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "new": "Add Expense",
+    "categories": {
+      "maintenance": "Maintenance",
+      "utilities": "Utilities",
+      "insurance": "Insurance",
+      "taxes": "Taxes",
+      "hoa": "HOA",
+      "repairs": "Repairs",
+      "management": "Management",
+      "advertising": "Advertising",
+      "mortgage": "Mortgage",
+      "other": "Other"
+    },
+    "scheduleE": "Export Schedule E",
+    "exportCSV": "Export CSV"
+  },
+  "settings": {
+    "title": "Settings",
+    "notifications": "Notifications",
+    "templates": "Templates",
+    "sections": "Custom Sections",
+    "billing": "Billing",
+    "language": "Language",
+    "languageEs": "Español",
+    "languageEn": "English"
+  },
+  "billing": {
+    "title": "Subscription & Billing",
+    "currentPlan": "Current Plan",
+    "upgrade": "Upgrade",
+    "manage": "Manage Billing",
+    "plans": {
+      "free": { "name": "Gratis", "price": "$0/month", "description": "1 property, 3 contracts/month" },
+      "propietario": { "name": "Propietario", "price": "$29/month", "description": "Up to 5 properties, unlimited contracts" },
+      "inversionista": { "name": "Inversionista", "price": "$99/month", "description": "Unlimited properties + Schedule E reports" },
+      "enterprise": { "name": "Enterprise", "price": "Custom", "description": "For property management companies" }
+    },
+    "features": {
+      "properties": "properties",
+      "contracts": "contracts/month",
+      "sms": "SMS delivery",
+      "scheduleE": "Schedule E export",
+      "managers": "property managers"
+    }
+  },
+  "pricing": {
+    "title": "Pricing",
+    "subtitle": "ContractOS — Built for Puerto Rico landlords",
+    "monthly": "Monthly",
+    "getStarted": "Get Started",
+    "contactUs": "Contact Us",
+    "mostPopular": "Most Popular"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "send": "Send",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "required": "Required",
+    "optional": "Optional",
+    "yes": "Yes",
+    "no": "No"
+  }
+}
