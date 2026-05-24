@@ -16,6 +16,7 @@ import {
   UserCircle,
   Receipt,
   Settings,
+  BarChart3,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -26,16 +27,18 @@ const navItems = [
   { href: "/contracts",          label: "Contracts",  icon: FileText },
   { href: "/properties",         label: "Properties", icon: Building2 },
   { href: "/tenants",            label: "Tenants",    icon: Users },
-  { href: "/expenses",           label: "Expenses",   icon: Receipt },
-  { href: "/market",             label: "Market",     icon: Map },
-  { href: "/watchlist",          label: "Watchlist",  icon: Heart },
-  { href: "/settings/billing",   label: "Billing",    icon: Settings },
+  { href: "/expenses",              label: "Expenses",   icon: Receipt },
+  { href: "/reports/schedule-e",   label: "Schedule E", icon: BarChart3 },
+  { href: "/market",               label: "Market",     icon: Map },
+  { href: "/watchlist",            label: "Watchlist",  icon: Heart },
+  { href: "/settings/billing",     label: "Billing",    icon: Settings },
 ];
 
 const mobileNavItems = navItems.slice(0, 5);
 
 interface SidebarProps {
   userEmail: string;
+  locale: "es" | "en";
 }
 
 const S = {
@@ -53,11 +56,26 @@ const S = {
   avatarGrad:  "linear-gradient(135deg, #0057d9, #007aff)",
 };
 
-export default function Sidebar({ userEmail }: SidebarProps) {
+export default function Sidebar({ userEmail, locale: initialLocale }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
   const [open, setOpen] = useState(false);
+  const [locale, setLocale] = useState(initialLocale);
+  const [switching, setSwitching] = useState(false);
+
+  async function switchLocale(next: "es" | "en") {
+    if (next === locale || switching) return;
+    setSwitching(true);
+    setLocale(next); // optimistic
+    await fetch("/api/locale", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locale: next }),
+    });
+    router.refresh();
+    setSwitching(false);
+  }
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -163,6 +181,25 @@ export default function Sidebar({ userEmail }: SidebarProps) {
             </nav>
 
             <div className="p-3 space-y-1" style={{ borderTop: `1px solid ${S.divider}` }}>
+              {/* Language toggle — mobile */}
+              <div className="flex items-center gap-1 px-1 pb-1">
+                {(["es", "en"] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => { switchLocale(lang); setOpen(false); }}
+                    disabled={switching}
+                    className="flex-1 rounded-lg py-1.5 text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
+                    style={{
+                      background: locale === lang ? "rgba(0,122,255,0.18)" : "transparent",
+                      color: locale === lang ? "#fff" : S.textMuted,
+                      border: `1px solid ${locale === lang ? "rgba(0,122,255,0.30)" : "transparent"}`,
+                    }}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+
               <Link
                 href="/profile"
                 onClick={() => setOpen(false)}
@@ -312,6 +349,25 @@ export default function Sidebar({ userEmail }: SidebarProps) {
           className="relative p-3 space-y-1"
           style={{ borderTop: `1px solid ${S.divider}` }}
         >
+          {/* Language toggle */}
+          <div className="flex items-center gap-1 px-1 pb-1">
+            {(["es", "en"] as const).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => switchLocale(lang)}
+                disabled={switching}
+                className="flex-1 rounded-lg py-1.5 text-xs font-semibold uppercase tracking-widest transition-all disabled:opacity-50"
+                style={{
+                  background: locale === lang ? "rgba(0,122,255,0.18)" : "transparent",
+                  color: locale === lang ? "#fff" : S.textMuted,
+                  border: `1px solid ${locale === lang ? "rgba(0,122,255,0.30)" : "transparent"}`,
+                }}
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
+
           {/* User row — click to open profile */}
           <Link
             href="/profile"

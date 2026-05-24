@@ -15,6 +15,14 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("locale")
+    .eq("id", user.id)
+    .single();
+
+  const locale = (profile?.locale as "es" | "en" | undefined) ?? "es";
+
   return (
     <div className="flex h-screen overflow-hidden flex-col md:flex-row bg-black relative">
       <MeshGradientBg />
@@ -24,7 +32,7 @@ export default async function DashboardLayout({
       <div className="orb orb-indigo" />
       <div className="orb orb-teal" />
 
-      <Sidebar userEmail={user.email ?? ""} />
+      <Sidebar userEmail={user.email ?? ""} locale={locale} />
 
       <main className="relative z-10 flex-1 overflow-y-auto pt-14 md:pt-0 pb-16 md:pb-0">
         <div className="mx-auto max-w-6xl px-6 py-8 md:py-10">{children}</div>
