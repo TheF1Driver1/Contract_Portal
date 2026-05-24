@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
-import { CreditCard, Zap, Check, ArrowUpRight } from "lucide-react";
+import { CreditCard, Zap, Check, ArrowUpRight, Users } from "lucide-react";
 import Link from "next/link";
 import type { SubscriptionPlan } from "@/lib/types";
 import { PLAN_LIMITS, planDisplayName } from "@/lib/subscription";
@@ -227,6 +227,24 @@ export default function BillingPage() {
               })}
           </div>
         </div>
+      )}
+
+      {/* Managers shortcut */}
+      {(plan === "inversionista" || plan === "enterprise") && (
+        <Link
+          href="/settings/managers"
+          className="flex items-center gap-4 rounded-2xl px-5 py-4 transition-all"
+          style={{ background: S.bg, border: `1px solid ${S.border}` }}
+        >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(0,122,255,0.12)" }}>
+            <Users size={16} style={{ color: S.accent }} />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-white">Property Managers</p>
+            <p className="text-xs mt-0.5" style={{ color: S.muted }}>Invite team members to manage properties on your behalf</p>
+          </div>
+          <ArrowUpRight size={14} style={{ color: S.muted }} />
+        </Link>
       )}
 
       {/* Legal */}
