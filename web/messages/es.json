@@ -1,0 +1,167 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "contracts": "Contratos",
+    "properties": "Propiedades",
+    "tenants": "Arrendatarios",
+    "expenses": "Gastos",
+    "market": "Mercado",
+    "watchlist": "Lista de Seguimiento",
+    "profile": "Perfil",
+    "signOut": "Cerrar sesión",
+    "navigation": "Navegación"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "signup": "Crear cuenta",
+    "forgotPassword": "Olvidé mi contraseña",
+    "resetPassword": "Restablecer contraseña",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "signInButton": "Iniciar sesión",
+    "signUpButton": "Crear cuenta",
+    "sendResetLink": "Enviar enlace de restablecimiento",
+    "backToLogin": "Volver a iniciar sesión",
+    "noAccount": "¿No tienes una cuenta?",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "signUpLink": "Regístrate",
+    "signInLink": "Inicia sesión"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "welcome": "Bienvenido",
+    "properties": "Propiedades",
+    "contracts": "Contratos",
+    "tenants": "Arrendatarios",
+    "activeLeases": "Contratos activos",
+    "expiringLeases": "Por vencer",
+    "monthlyRevenue": "Ingreso mensual",
+    "noData": "Sin datos aún",
+    "viewAll": "Ver todos"
+  },
+  "contracts": {
+    "title": "Contratos",
+    "new": "Nuevo contrato",
+    "status": {
+      "draft": "Borrador",
+      "sent": "Enviado",
+      "signed": "Firmado",
+      "expired": "Vencido"
+    },
+    "type": {
+      "lease": "Contrato de arrendamiento",
+      "rental": "Contrato de alquiler",
+      "addendum": "Adenda"
+    },
+    "jurisdiction": {
+      "label": "Jurisdicción",
+      "pr": "Puerto Rico",
+      "us_mainland": "EE.UU. Continental",
+      "other": "Otro"
+    },
+    "governingLaw": {
+      "ley_14_2022": "Ley 14 de 2022",
+      "ley_464": "Ley 464",
+      "other": "Otro"
+    },
+    "compliance": {
+      "title": "Cumplimiento Legal PR",
+      "depositWarning": "El depósito de seguridad no puede exceder 1 mes de canon bajo la Ley 14-2022",
+      "dacoNotice": "Se incluirá la notificación de derechos del arrendatario (DACO)",
+      "terminationClause": "Se incluirá la cláusula de terminación de 60 días"
+    }
+  },
+  "properties": {
+    "title": "Propiedades",
+    "new": "Nueva propiedad",
+    "address": "Dirección",
+    "units": "Unidades",
+    "noProperties": "Sin propiedades aún",
+    "addFirst": "Agrega tu primera propiedad"
+  },
+  "tenants": {
+    "title": "Arrendatarios",
+    "new": "Nuevo arrendatario",
+    "noTenants": "Sin arrendatarios aún",
+    "addFirst": "Agrega tu primer arrendatario"
+  },
+  "expenses": {
+    "title": "Gastos",
+    "new": "Agregar gasto",
+    "categories": {
+      "maintenance": "Mantenimiento",
+      "utilities": "Servicios",
+      "insurance": "Seguro",
+      "taxes": "Impuestos",
+      "hoa": "Cuota HOA",
+      "repairs": "Reparaciones",
+      "management": "Administración",
+      "advertising": "Publicidad",
+      "mortgage": "Hipoteca",
+      "other": "Otro"
+    },
+    "scheduleE": "Exportar Schedule E",
+    "exportCSV": "Exportar CSV"
+  },
+  "settings": {
+    "title": "Configuración",
+    "notifications": "Notificaciones",
+    "templates": "Plantillas",
+    "sections": "Secciones personalizadas",
+    "billing": "Facturación",
+    "language": "Idioma",
+    "languageEs": "Español",
+    "languageEn": "English"
+  },
+  "billing": {
+    "title": "Suscripción y Facturación",
+    "currentPlan": "Plan actual",
+    "upgrade": "Mejorar plan",
+    "manage": "Administrar facturación",
+    "plans": {
+      "free": { "name": "Gratis", "price": "$0/mes", "description": "1 propiedad, 3 contratos/mes" },
+      "propietario": { "name": "Propietario", "price": "$29/mes", "description": "Hasta 5 propiedades, contratos ilimitados" },
+      "inversionista": { "name": "Inversionista", "price": "$99/mes", "description": "Propiedades ilimitadas + reportes Schedule E" },
+      "enterprise": { "name": "Enterprise", "price": "Personalizado", "description": "Para administradoras de propiedades" }
+    },
+    "features": {
+      "properties": "propiedades",
+      "contracts": "contratos/mes",
+      "sms": "Envío por SMS",
+      "scheduleE": "Exportación Schedule E",
+      "managers": "administradores de propiedad"
+    }
+  },
+  "pricing": {
+    "title": "Precios",
+    "subtitle": "ContractOS — Diseñado para propietarios puertorriqueños",
+    "monthly": "Mensual",
+    "getStarted": "Comenzar",
+    "contactUs": "Contáctanos",
+    "mostPopular": "Más popular"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "download": "Descargar",
+    "upload": "Subir",
+    "send": "Enviar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "success": "Éxito",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Enviar",
+    "required": "Requerido",
+    "optional": "Opcional",
+    "yes": "Sí",
+    "no": "No"
+  }
+}

@@ -35,10 +35,11 @@ export async function middleware(request: NextRequest) {
   const isLandingPage = pathname === "/";
   const isInvitePage = pathname.startsWith("/invite");
   const isPortalPage = pathname.startsWith("/portal");
+  const isPricingPage = pathname === "/pricing";
   const isResetPassword = pathname.startsWith("/reset-password");
 
   // Public routes — no auth required
-  if (!user && (isAuthPage || isApiRoute || isLandingPage || isInvitePage)) {
+  if (!user && (isAuthPage || isApiRoute || isLandingPage || isInvitePage || isPricingPage)) {
     return supabaseResponse;
   }
 
@@ -47,13 +48,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Fetch role for authenticated users on non-API routes
+  // Fetch role and locale for authenticated users on non-API routes
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, locale, plan")
     .eq("id", user.id)
     .single();
   const role = (profile?.role as string | undefined) ?? "landlord";
+  const locale = (profile?.locale as string | undefined) ?? "es";
+
+  // Set locale cookie for next-intl (only if different from current cookie)
+  const currentLocaleCookie = request.cookies.get("NEXT_LOCALE")?.value;
+  if (currentLocaleCookie !== locale) {
+    supabaseResponse.cookies.set("NEXT_LOCALE", locale, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+    });
+  }
 
   // Tenants are locked to /portal
   if (role === "tenant" && !isPortalPage && !isApiRoute && !isAuthPage) {
