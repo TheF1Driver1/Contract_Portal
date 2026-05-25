@@ -38,6 +38,8 @@ export const ContractCreateSchema = z.object({
   late_fee_daily_amount: nonNeg.default(0),
   tenant_snapshot: z.record(z.unknown()).optional().nullable(),
   property_snapshot: z.record(z.unknown()).optional().nullable(),
+  governing_law: z.enum(['ley_14_2022', 'ley_464', 'other']).optional().nullable(),
+  template_version: z.string().max(20).optional().nullable(),
 });
 
 export const ContractUpdateSchema = ContractCreateSchema.partial().extend({
@@ -144,6 +146,9 @@ export const TemplateCreateSchema = z.object({
   description: z.string().max(500).optional().nullable(),
   contract_type: z.enum(["all", "lease", "rental", "addendum"]).default("all"),
   is_default: z.boolean().optional().default(false),
+  jurisdiction: z.enum(['pr', 'us_mainland', 'other', 'all']).optional().nullable(),
+  is_system: z.boolean().optional().default(false),
+  template_version: z.string().max(20).optional().default('1.0.0'),
 });
 
 export const TemplateSetDefaultSchema = z.object({
@@ -210,6 +215,7 @@ export const PropertyUpdateSchema = z.object({
   bathroom_count: z.number().int().min(0).max(50).optional(),
   parking_available: z.boolean().optional(),
   parking_count: z.number().int().min(0).max(500).optional().nullable(),
+  jurisdiction: z.enum(['pr', 'us_mainland', 'other']).optional(),
 });
 
 // ── Tenant portal signing ─────────────────────────────────────────────────────
@@ -233,4 +239,22 @@ export const TenantUpdateSchema = z.object({
   monthly_income: nonNeg.optional().nullable(),
   emergency_contact_name: z.string().max(200).optional().nullable(),
   emergency_contact_phone: z.string().max(30).optional().nullable(),
+});
+
+// ── Subscription ──────────────────────────────────────────────────────────────
+
+export const SubscriptionUpdateSchema = z.object({
+  plan: z.enum(['free', 'propietario', 'inversionista', 'enterprise']),
+});
+
+// ── Property manager invite ───────────────────────────────────────────────────
+
+export const PropertyManagerInviteSchema = z.object({
+  manager_email: z.string().email().max(254),
+  property_ids: z.array(z.string().uuid()).min(1).max(50),
+  permissions: z.object({
+    view: z.boolean().default(true),
+    create_contracts: z.boolean().default(true),
+    sign_contracts: z.boolean().default(false),
+  }).optional(),
 });

@@ -86,6 +86,7 @@ function makeContract(overrides: Partial<Contract> = {}): Contract {
       state: "PR",
       zip: "00901",
       country: null,
+      jurisdiction: "pr" as const,
       unit_count: 10,
       bathroom_count: 2,
       parking_available: true,

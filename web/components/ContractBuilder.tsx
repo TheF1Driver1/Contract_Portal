@@ -110,6 +110,7 @@ export default function ContractBuilder({
       contract_type: "lease",
       property_id: "",
       unit_number: "",
+      jurisdiction: "pr" as const,
       tenant_id: "",
       lease_start: "",
       lease_end: "",
@@ -330,6 +331,7 @@ export default function ContractBuilder({
         late_fee_grace_period_days: data.late_fee_grace_period_days,
         late_fee_fixed_amount: data.late_fee_fixed_amount || 0,
         late_fee_daily_amount: data.late_fee_daily_amount || 0,
+        governing_law: data.jurisdiction === "pr" ? "ley_14_2022" : "other",
       };
 
       let contractId = savedId;
@@ -667,6 +669,62 @@ export default function ContractBuilder({
               </div>
             </Section>
 
+            <Section title="Jurisdiction">
+              <div className="space-y-3">
+                <div>
+                  <FieldLabel>Jurisdiction / Jurisdicción</FieldLabel>
+                  <Controller
+                    control={control}
+                    name="jurisdiction"
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="input-tonal border-none h-auto">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pr">Puerto Rico</SelectItem>
+                          <SelectItem value="us_mainland">US Mainland</SelectItem>
+                          <SelectItem value="other">Other / Otro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                {values.jurisdiction === "pr" && (
+                  <div
+                    className="rounded-xl p-3 space-y-1.5"
+                    style={{ background: "rgba(0,122,255,0.08)", border: "1px solid rgba(0,122,255,0.20)" }}
+                  >
+                    <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#007aff" }}>
+                      Cumplimiento Ley 14-2022
+                    </p>
+                    {[
+                      "Se incluirá aviso de derechos DACO",
+                      "Cláusula de terminación de 60 días",
+                      "Política de devolución de depósito (30 días)",
+                      "Rige bajo Ley 14 de 2022",
+                    ].map((item) => (
+                      <div key={item} className="flex items-center gap-2 text-xs" style={{ color: "rgba(200,210,230,0.80)" }}>
+                        <Check className="h-3 w-3 text-[#007aff] shrink-0" />
+                        {item}
+                      </div>
+                    ))}
+                    {values.security_deposit && values.rent_amount &&
+                      values.security_deposit > values.rent_amount && (
+                      <div
+                        className="flex items-center gap-2 text-xs mt-2 p-2 rounded-lg"
+                        style={{ background: "rgba(255,69,58,0.10)", color: "#ff453a" }}
+                      >
+                        ⚠️ El depósito ($
+                        {values.security_deposit}) excede el máximo permitido de 1 mes de canon ($
+                        {values.rent_amount}) bajo Ley 14-2022
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Section>
+
             <Section title="Co-Tenants">
               <div className="space-y-3">
                 {additionalTenantIds.map((tid, i) => {
@@ -990,6 +1048,16 @@ export default function ContractBuilder({
                     placeholder="0.00"
                     {...register("security_deposit", { setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v) })}
                   />
+                  {values.jurisdiction === "pr" &&
+                    values.security_deposit && values.rent_amount &&
+                    values.security_deposit > values.rent_amount && (
+                    <div
+                      className="flex items-center gap-2 text-xs mt-2 p-2 rounded-lg"
+                      style={{ background: "rgba(255,69,58,0.10)", color: "#ff453a" }}
+                    >
+                      ⚠️ El depósito (${values.security_deposit}) excede el máximo permitido de 1 mes de canon (${values.rent_amount}) bajo Ley 14-2022
+                    </div>
+                  )}
                 </div>
               </div>
             </Section>

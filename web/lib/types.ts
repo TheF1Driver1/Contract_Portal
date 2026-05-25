@@ -1,5 +1,10 @@
 export type ContractStatus = "draft" | "sent" | "signed" | "expired";
 export type ContractType = "lease" | "rental" | "addendum";
+export type Jurisdiction = 'pr' | 'us_mainland' | 'other';
+export type GoverningLaw = 'ley_14_2022' | 'ley_464' | 'other';
+export type SubscriptionPlan = 'free' | 'propietario' | 'inversionista' | 'enterprise';
+export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing';
+export type AppLocale = 'es' | 'en';
 
 export interface Profile {
   id: string;
@@ -9,6 +14,8 @@ export interface Profile {
   phone: string | null;
   email: string;
   role: 'landlord' | 'tenant';
+  locale: AppLocale;
+  plan: SubscriptionPlan;
   created_at: string;
 }
 
@@ -43,6 +50,7 @@ export interface Property {
   created_at: string;
   latitude?: number | null;
   longitude?: number | null;
+  jurisdiction: Jurisdiction;
 }
 
 export interface Tenant {
@@ -143,6 +151,10 @@ export interface Contract {
 
   // Notification control
   suppress_notifications: boolean;
+
+  // PR Legal
+  governing_law?: GoverningLaw | null;
+  template_version?: string | null;
 
   // Joined fields
   property?: Property;
@@ -264,6 +276,7 @@ export interface PropertySnapshot {
   bathroom_count: number;
   parking_available: boolean;
   parking_count: number | null;
+  jurisdiction: Jurisdiction | null;
 }
 
 export interface ContractOccupant {
@@ -293,6 +306,9 @@ export interface ContractTemplate {
   file_url: string;
   contract_type: "all" | ContractType;
   is_default: boolean;
+  is_system: boolean;
+  jurisdiction: Jurisdiction | 'all' | null;
+  template_version: string;
   created_at: string;
 }
 
@@ -377,6 +393,7 @@ export interface PropertyExpense {
   vendor: string | null;
   is_tax_deductible: boolean;
   receipt_url: string | null;
+  is_mortgage_interest: boolean;
   created_at: string;
   // Joined
   property?: Property;
@@ -435,6 +452,7 @@ export interface ContractFormValues {
   contract_type: ContractType;
   property_id: string;
   unit_number: string;
+  jurisdiction: Jurisdiction;
 
   // Tenant
   tenant_id: string;
@@ -506,3 +524,40 @@ export interface ContractFormValues {
   recipient_email: string;
   recipient_phone: string;
 }
+
+export interface Subscription {
+  id: string;
+  owner_id: string;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  current_period_end: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PropertyManager {
+  id: string;
+  owner_id: string;
+  manager_user_id: string | null;
+  manager_email: string;
+  property_ids: string[];
+  permissions: {
+    view: boolean;
+    create_contracts: boolean;
+    sign_contracts: boolean;
+  };
+  status: 'pending' | 'accepted' | 'declined' | 'revoked';
+  invite_token: string | null;
+  invited_at: string;
+  accepted_at: string | null;
+  created_at: string;
+}
+
+export const PLAN_LIMITS = {
+  free:          { max_properties: 1,        max_contracts_per_month: 3,        sms: false, schedule_e: false, managers: 0 },
+  propietario:   { max_properties: 5,        max_contracts_per_month: Infinity, sms: true,  schedule_e: false, managers: 0 },
+  inversionista: { max_properties: Infinity, max_contracts_per_month: Infinity, sms: true,  schedule_e: true,  managers: 3 },
+  enterprise:    { max_properties: Infinity, max_contracts_per_month: Infinity, sms: true,  schedule_e: true,  managers: Infinity },
+} as const satisfies Record<SubscriptionPlan, { max_properties: number; max_contracts_per_month: number; sms: boolean; schedule_e: boolean; managers: number }>;
