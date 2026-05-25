@@ -1,7 +1,7 @@
 # Bug Tracker
 
 ## BUG-01 — Contract form inputs lose focus after single character
-**Status:** OPEN  
+\*\*Status:\*\* FIXED — FieldLabel/Section were already moved outside ContractBuilder before this was filed. watch() re-renders remain but cause no focus loss.  
 **File:** `web/components/ContractBuilder.tsx`  
 **Symptom:** Typing in any text/number field (duration, occupant names, rent, etc.) kicks cursor out after one character.
 
