@@ -59,7 +59,7 @@ const tiers = [
     ],
     cta: "Comenzar",
     ctaEn: "Get started",
-    href: "/signup?plan=propietario",
+    href: "/api/billing/checkout?plan=propietario",
     highlighted: true,
     badge: "Más popular",
     badgeEn: "Most popular",
@@ -92,7 +92,7 @@ const tiers = [
     ],
     cta: "Comenzar",
     ctaEn: "Get started",
-    href: "/signup?plan=inversionista",
+    href: "/api/billing/checkout?plan=inversionista",
     highlighted: false,
   },
 ];

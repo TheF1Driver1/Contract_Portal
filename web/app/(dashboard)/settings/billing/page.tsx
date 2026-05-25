@@ -212,7 +212,7 @@ export default function BillingPage() {
                       ))}
                     </ul>
                     <Link
-                      href="/pricing"
+                      href={`/api/billing/checkout?plan=${upgradePlan}`}
                       className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
                       style={{
                         background: upgradePlan === "inversionista" ? "#007aff" : "rgba(48,209,88,0.20)",
