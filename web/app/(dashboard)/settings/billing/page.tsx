@@ -127,7 +127,7 @@ export default function BillingPage() {
             <button
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
               style={{ background: "rgba(255,255,255,0.06)", color: S.text, border: `1px solid ${S.border}` }}
-              onClick={() => alert("Stripe Customer Portal — configurar con STRIPE_CUSTOMER_PORTAL_URL")}
+              onClick={() => { window.location.href = "/api/billing/portal"; }}
             >
               <CreditCard size={14} />
               Administrar facturación
