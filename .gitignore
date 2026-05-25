@@ -23,6 +23,9 @@ node_modules/
 .next/
 *.log
 
+# Vercel
+.vercel/
+
 # Env files (never commit)
 .env
 .env.local
