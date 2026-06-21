@@ -99,7 +99,6 @@ export async function GET(req: NextRequest) {
   const { renderToBuffer } = await import("@react-pdf/renderer");
   const { ScheduleEDocument } = await import("@/lib/pdf-schedule-e");
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pdfBuffer = await renderToBuffer(
     React.createElement(ScheduleEDocument, { year, reports: propertyReports }) as any
   );
