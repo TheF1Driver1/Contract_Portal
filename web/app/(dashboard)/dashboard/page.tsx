@@ -12,10 +12,15 @@ import {
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
 import { HelpTooltip } from "@/components/ui/help-tooltip";
-import CashflowChart from "@/components/CashflowChart";
-import ExpenseIncomeChart from "@/components/ExpenseIncomeChart";
-import MarketStatsWidget from "@/components/MarketStatsWidget";
-import RentVsMarketChart from "@/components/RentVsMarketChart";
+import { Skeleton } from "@/components/ui/skeleton";
+import dynamic from "next/dynamic";
+
+// ponytail: recharts is ~150kB; lazy-load keeps dashboard first-load JS lean
+const chartSkeleton = () => <Skeleton className="h-[200px] w-full" />;
+const CashflowChart = dynamic(() => import("@/components/CashflowChart"), { ssr: false, loading: chartSkeleton });
+const ExpenseIncomeChart = dynamic(() => import("@/components/ExpenseIncomeChart"), { ssr: false, loading: chartSkeleton });
+const MarketStatsWidget = dynamic(() => import("@/components/MarketStatsWidget"), { ssr: false, loading: chartSkeleton });
+const RentVsMarketChart = dynamic(() => import("@/components/RentVsMarketChart"), { ssr: false, loading: chartSkeleton });
 
 const STATUS_PILL: Record<string, string> = {
   signed: "pill-active",
