@@ -17,6 +17,7 @@ import {
   Receipt,
   Settings,
   BarChart3,
+  UserCog,
 } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/reports/schedule-e",   label: "Schedule E", icon: BarChart3 },
   { href: "/market",               label: "Market",     icon: Map },
   { href: "/watchlist",            label: "Watchlist",  icon: Heart },
+  { href: "/settings/managers",     label: "Managers",   icon: UserCog },
   { href: "/settings/billing",     label: "Billing",    icon: Settings },
 ];
 

@@ -11,7 +11,10 @@ const nextConfig = {
     },
   },
   images: {
-    remotePatterns: [],
+    remotePatterns: [
+      { protocol: "https", hostname: "**.zillowstatic.com" },
+      { protocol: "https", hostname: "**.zillow.com" },
+    ],
     minimumCacheTTL: 60,
   },
 };

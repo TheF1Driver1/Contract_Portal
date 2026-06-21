@@ -2,6 +2,7 @@
 import type { MarketProperty } from "@/lib/types"
 import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
+import Image from "next/image"
 
 function motivationBadge(score: number | null) {
   if (score == null || score === 0) return null
@@ -20,7 +21,11 @@ export default function MarketListView({ properties }: { properties: MarketPrope
       {properties.map(p => (
         <Link key={p.id} href={`/market/${p.id}`}
           className="rounded-xl border bg-card overflow-hidden hover:shadow-md transition-shadow">
-          {p.imgSrc && <img src={p.imgSrc} alt={p.street ?? ""} className="h-40 w-full object-cover" />}
+          {p.imgSrc && (
+            <div className="relative h-40 w-full overflow-hidden">
+              <Image src={p.imgSrc} alt={p.street ?? ""} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
+            </div>
+          )}
           <div className="p-4 space-y-2">
             <div className="flex items-start justify-between gap-2">
               <p className="font-semibold text-lg">{p.price ? formatCurrency(p.price) : "—"}</p>
