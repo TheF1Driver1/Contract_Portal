@@ -74,7 +74,7 @@ export default async function WatchlistPage() {
               No saved properties
             </p>
             <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-              Browse market listings and save properties you're interested in
+              Browse market listings and save properties you&apos;re interested in
             </p>
           </div>
           <Link href="/market" className="btn-primary-gradient flex items-center gap-1.5">

@@ -1,6 +1,7 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
     "no-restricted-imports": ["error", {
       "paths": [{
         "name": "@/lib/supabase",

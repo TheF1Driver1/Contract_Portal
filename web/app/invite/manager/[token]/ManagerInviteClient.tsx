@@ -70,7 +70,7 @@ export default function ManagerInviteClient({ token, managerEmail, ownerName, pr
         </div>
         <h1 className="text-lg font-semibold text-white">Invitation Declined</h1>
         <p className="mt-2 text-sm text-neutral-400">
-          You've declined this invitation. Contact {ownerName} if this was a mistake.
+          You&apos;ve declined this invitation. Contact {ownerName} if this was a mistake.
         </p>
         <a href="/" className="mt-6 inline-block text-sm text-neutral-500 hover:text-white transition-colors">
           Go to homepage
