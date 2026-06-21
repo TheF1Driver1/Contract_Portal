@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Plus, Loader2, X } from "lucide-react";
 
 export default function AddPropertyModal({ userId }: { userId: string }) {
@@ -18,7 +18,7 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
     unit_count: 1,
   });
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { RefreshCw, X, Loader2, Plus, Minus, Check } from "lucide-react";
 import type { Contract, ContractOccupant, Tenant } from "@/lib/types";
 import SignaturePad from "@/components/SignaturePad";
@@ -38,7 +38,7 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   // ── Step 1: Terms ───────────────────────────────────────
   const [leaseStart, setLeaseStart] = useState(() => {

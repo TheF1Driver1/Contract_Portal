@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SignaturePad from "@/components/SignaturePad";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import type { Property, Tenant, ContractFormValues, ContractTemplate, Contract } from "@/lib/types";
 import { Loader2, Download, Send, Check, Plus, X, Save, BookOpen, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -75,7 +75,7 @@ export default function ContractBuilder({
   initialData,
 }: ContractBuilderProps) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [savedId, setSavedId] = useState<string | null>(initialData?.id ?? null);

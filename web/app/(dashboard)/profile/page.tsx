@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Loader2, Mail, Lock, Phone, CheckCircle2, AlertCircle, User } from "lucide-react";
 
 const S = {
@@ -136,7 +136,7 @@ function SubmitButton({ loading, label }: { loading: boolean; label: string }) {
 }
 
 export default function ProfilePage() {
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   const [currentEmail, setCurrentEmail] = useState("");
   const [newEmail, setNewEmail]         = useState("");

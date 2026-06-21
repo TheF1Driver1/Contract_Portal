@@ -18,7 +18,7 @@ import {
   Settings,
   BarChart3,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -58,7 +58,7 @@ const S = {
 export default function Sidebar({ userEmail }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
   const [open, setOpen] = useState(false);
 
   async function signOut() {

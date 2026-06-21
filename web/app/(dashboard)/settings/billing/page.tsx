@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { CreditCard, Zap, Check, ArrowUpRight, Users } from "lucide-react";
 import Link from "next/link";
 import type { SubscriptionPlan } from "@/lib/types";
@@ -52,7 +52,7 @@ const upgradeFeatures: { plan: Exclude<SubscriptionPlan, "free">; features: stri
 ];
 
 export default function BillingPage() {
-  const supabase = createClient();
+  const supabase = createBrowserClient();
   const [plan, setPlan] = useState<SubscriptionPlan>("free");
   const [propertyCount, setPropertyCount] = useState(0);
   const [loading, setLoading] = useState(true);

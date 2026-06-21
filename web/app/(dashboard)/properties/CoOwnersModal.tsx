@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Users, X, Search, Loader2, Trash2, Check, Clock } from "lucide-react";
 import type { Property, PropertyCoOwner } from "@/lib/types";
 
@@ -25,7 +25,7 @@ export default function CoOwnersModal({ property }: { property: Property }) {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   const fetchCoOwners = useCallback(async () => {
     setLoading(true);

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Pencil, Loader2, X, AlertTriangle } from "lucide-react";
 import type { Property } from "@/lib/types";
 
@@ -22,7 +22,7 @@ export default function EditPropertyModal({ property }: { property: Property }) 
     parking_count: property.parking_count ?? 0,
   });
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

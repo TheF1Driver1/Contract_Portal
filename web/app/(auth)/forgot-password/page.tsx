@@ -3,14 +3,14 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { SplineScene } from "@/components/ui/splite";
 import { MeshGradientBg } from "@/components/ui/mesh-gradient-bg";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);

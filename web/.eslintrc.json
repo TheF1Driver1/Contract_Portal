@@ -1,0 +1,17 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-restricted-imports": ["error", {
+      "paths": [{
+        "name": "@/lib/supabase",
+        "message": "Browser-only client. Use '@/lib/supabase-server' in API routes and Server Components."
+      }]
+    }]
+  },
+  "overrides": [{
+    "files": ["app/**/*.tsx", "app/**/*.ts", "components/**/*.tsx"],
+    "rules": {
+      "no-restricted-imports": "off"
+    }
+  }]
+}

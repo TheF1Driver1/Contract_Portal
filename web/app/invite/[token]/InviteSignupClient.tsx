@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Loader2, ArrowRight, Building2 } from "lucide-react";
 
 interface Props {
@@ -23,7 +23,7 @@ export default function InviteSignupClient({
   propertyName,
 }: Props) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   const [tab, setTab] = useState<Tab>("signup");
   const [password, setPassword] = useState("");

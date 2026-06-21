@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Users, Plus, Trash2, Mail, Clock, CheckCircle2, XCircle, Loader2, Lock } from "lucide-react";
 import type { PropertyManager, SubscriptionPlan } from "@/lib/types";
 import { canInviteManager, getMaxManagers } from "@/lib/subscription";
@@ -41,7 +41,7 @@ export default function ManagersSettingsPage() {
   async function loadAll() {
     setLoading(true);
     try {
-      const supabase = createClient();
+      const supabase = createBrowserClient();
       const { data: { user } } = await supabase.auth.getUser();
       const [mgRes, propRes, profRes] = await Promise.all([
         fetch("/api/managers"),
