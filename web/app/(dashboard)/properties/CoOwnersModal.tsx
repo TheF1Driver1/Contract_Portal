@@ -162,7 +162,7 @@ export default function CoOwnersModal({ property }: { property: Property }) {
                       <div className="flex items-center gap-2 ml-3 shrink-0">
                         <span
                           className="text-xs font-semibold px-2 py-0.5 rounded-lg"
-                          style={{ background: "rgba(0,122,255,0.12)", color: "#007aff" }}
+                          style={{ background: "rgba(16, 185, 129,0.12)", color: "#10b981" }}
                         >
                           {co.ownership_pct}%
                         </span>

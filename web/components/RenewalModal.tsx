@@ -310,13 +310,13 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
     <label
       className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 cursor-pointer"
       style={{
-        background: value ? "rgba(0,122,255,0.06)" : "var(--surface-container)",
-        border: `1px solid ${value ? "rgba(0,122,255,0.20)" : "transparent"}`,
+        background: value ? "rgba(16, 185, 129,0.06)" : "var(--surface-container)",
+        border: `1px solid ${value ? "rgba(16, 185, 129,0.20)" : "transparent"}`,
       }}
     >
       <input
         type="checkbox"
-        className="h-4 w-4 rounded accent-[#007aff]"
+        className="h-4 w-4 rounded accent-[#10b981]"
         checked={value}
         onChange={(e) => onChange(e.target.checked)}
       />
@@ -379,9 +379,9 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
                       <div
                         className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all"
                         style={{
-                          background: done ? "rgba(34,197,94,0.15)" : active ? "rgba(0,122,255,0.15)" : "var(--surface-container)",
-                          color: done ? "#22c55e" : active ? "#007aff" : "var(--text-muted)",
-                          border: `1.5px solid ${done ? "rgba(34,197,94,0.35)" : active ? "rgba(0,122,255,0.35)" : "transparent"}`,
+                          background: done ? "rgba(34,197,94,0.15)" : active ? "rgba(16, 185, 129,0.15)" : "var(--surface-container)",
+                          color: done ? "#22c55e" : active ? "#10b981" : "var(--text-muted)",
+                          border: `1.5px solid ${done ? "rgba(34,197,94,0.35)" : active ? "rgba(16, 185, 129,0.35)" : "transparent"}`,
                         }}
                       >
                         {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
@@ -467,9 +467,9 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
                         type="button"
                         className="flex-1 rounded-xl py-1.5 text-xs font-medium capitalize"
                         style={{
-                          background: lateFeeType === t ? "rgba(0,122,255,0.15)" : "var(--surface-container)",
-                          color: lateFeeType === t ? "#007aff" : "var(--text-secondary)",
-                          border: `1px solid ${lateFeeType === t ? "rgba(0,122,255,0.30)" : "transparent"}`,
+                          background: lateFeeType === t ? "rgba(16, 185, 129,0.15)" : "var(--surface-container)",
+                          color: lateFeeType === t ? "#10b981" : "var(--text-secondary)",
+                          border: `1px solid ${lateFeeType === t ? "rgba(16, 185, 129,0.30)" : "transparent"}`,
                         }}
                         onClick={() => setLateFeeType(t)}
                       >
@@ -498,7 +498,7 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
                       <button
                         type="button"
                         className="flex items-center gap-1 text-xs font-medium hover:opacity-70"
-                        style={{ color: "#007aff" }}
+                        style={{ color: "#10b981" }}
                         onClick={() => setAddingTenant((v) => !v)}
                       >
                         {addingTenant ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
@@ -538,14 +538,14 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
                           key={o.id}
                           className="flex items-center gap-3 rounded-xl p-3 cursor-pointer"
                           style={{
-                            background: o.include ? "rgba(0,122,255,0.06)" : "var(--surface-container)",
-                            border: `1px solid ${o.include ? "rgba(0,122,255,0.20)" : "transparent"}`,
+                            background: o.include ? "rgba(16, 185, 129,0.06)" : "var(--surface-container)",
+                            border: `1px solid ${o.include ? "rgba(16, 185, 129,0.20)" : "transparent"}`,
                             opacity: o.include ? 1 : 0.55,
                           }}
                         >
                           <input
                             type="checkbox"
-                            className="h-4 w-4 rounded accent-[#007aff]"
+                            className="h-4 w-4 rounded accent-[#10b981]"
                             checked={o.include}
                             onChange={() => toggleOccupant(o.id)}
                           />
@@ -553,7 +553,7 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
                             <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                               {o.full_name}
                               {isPrimary && (
-                                <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ background: "rgba(0,122,255,0.12)", color: "#007aff" }}>
+                                <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ background: "rgba(16, 185, 129,0.12)", color: "#10b981" }}>
                                   Primary
                                 </span>
                               )}

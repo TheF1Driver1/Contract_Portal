@@ -78,7 +78,7 @@ export default function SectionTemplatesPage() {
         <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
           Settings
         </p>
-        <h1 className="text-4xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
+        <h1 className="font-display text-4xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
           Section Templates
         </h1>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
@@ -89,7 +89,7 @@ export default function SectionTemplatesPage() {
       {/* New template form */}
       <div className="surface-card space-y-4">
         <div className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4" style={{ color: "#007aff" }} />
+          <BookOpen className="h-4 w-4" style={{ color: "#10b981" }} />
           <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>New Template</p>
         </div>
         <div className="space-y-3">
@@ -110,7 +110,7 @@ export default function SectionTemplatesPage() {
             onClick={add}
             disabled={adding || !newTitle.trim()}
             className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl disabled:opacity-50"
-            style={{ background: "#007aff", color: "#fff" }}
+            style={{ background: "#10b981", color: "#fff" }}
           >
             {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             Add Template
@@ -151,7 +151,7 @@ export default function SectionTemplatesPage() {
                     onClick={() => saveEdit(t.id)}
                     disabled={saving}
                     className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-xl"
-                    style={{ background: "#007aff", color: "#fff" }}
+                    style={{ background: "#10b981", color: "#fff" }}
                   >
                     {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                     Save

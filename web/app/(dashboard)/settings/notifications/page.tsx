@@ -77,7 +77,7 @@ export default function NotificationsSettingsPage() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <Bell className="h-5 w-5" style={{ color: "var(--accent)" }} />
+          <Bell className="h-5 w-5" style={{ color: "var(--accent-color)" }} />
           <h1 className="text-2xl font-bold tracking-tight">Expiry Notifications</h1>
         </div>
         <p className="text-sm" style={{ color: "var(--text-muted)" }}>
@@ -174,7 +174,7 @@ export default function NotificationsSettingsPage() {
               <button
                 onClick={() => handleToggleActive(trigger)}
                 className="flex h-5 w-9 shrink-0 items-center rounded-full transition-colors"
-                style={{ background: trigger.is_active ? "var(--accent)" : "var(--surface-container)" }}
+                style={{ background: trigger.is_active ? "var(--accent-color)" : "var(--surface-container)" }}
                 aria-label={trigger.is_active ? "Deactivate" : "Activate"}
               >
                 <span

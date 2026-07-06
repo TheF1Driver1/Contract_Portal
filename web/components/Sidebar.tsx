@@ -45,16 +45,16 @@ interface SidebarProps {
 const S = {
   bg:          "#000000",
   border:      "rgba(255,255,255,0.06)",
-  activeBg:    "rgba(0,122,255,0.18)",
-  activeGlow:  "0 0 18px rgba(0,122,255,0.25), 0 2px 8px rgba(0,122,255,0.12)",
-  activeBorder:"rgba(0,122,255,0.30)",
+  activeBg:    "rgba(16, 185, 129,0.18)",
+  activeGlow:  "0 0 18px rgba(16, 185, 129,0.25), 0 2px 8px rgba(16, 185, 129,0.12)",
+  activeBorder:"rgba(16, 185, 129,0.30)",
   hoverBg:     "rgba(255,255,255,0.05)",
   text:        "rgba(200,210,230,0.70)",
   textActive:  "#ffffff",
   textMuted:   "rgba(120,135,160,0.50)",
   divider:     "rgba(255,255,255,0.06)",
   footerBg:    "rgba(255,255,255,0.03)",
-  avatarGrad:  "linear-gradient(135deg, #0057d9, #007aff)",
+  avatarGrad:  "linear-gradient(135deg, #0e4d34, #10b981)",
 };
 
 export default function Sidebar({ userEmail }: SidebarProps) {
@@ -87,7 +87,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         <div className="flex items-center gap-2.5">
           <div
             className="flex h-7 w-7 items-center justify-center rounded-lg"
-            style={{ background: "linear-gradient(135deg, #0057d9, #007aff)" }}
+            style={{ background: "linear-gradient(135deg, #0e4d34, #10b981)" }}
           >
             <Home className="h-3.5 w-3.5 text-white" />
           </div>
@@ -127,7 +127,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
               <div className="flex items-center gap-2.5">
                 <div
                   className="flex h-8 w-8 items-center justify-center rounded-xl"
-                  style={{ background: "linear-gradient(135deg, #0057d9, #007aff)" }}
+                  style={{ background: "linear-gradient(135deg, #0e4d34, #10b981)" }}
                 >
                   <Home className="h-4 w-4 text-white" />
                 </div>
@@ -209,7 +209,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
               key={href}
               href={href}
               className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200"
-              style={{ color: active ? "#007aff" : S.text }}
+              style={{ color: active ? "#10b981" : S.text }}
             >
               <Icon
                 size={20}
@@ -233,7 +233,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         <div
           className="absolute top-0 left-0 right-0 h-64 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse at 30% -10%, rgba(0,122,255,0.08) 0%, transparent 65%)",
+            background: "radial-gradient(ellipse at 30% -10%, rgba(16, 185, 129,0.08) 0%, transparent 65%)",
           }}
         />
 
@@ -245,8 +245,8 @@ export default function Sidebar({ userEmail }: SidebarProps) {
           <div
             className="flex h-9 w-9 items-center justify-center rounded-xl"
             style={{
-              background: "linear-gradient(135deg, #0057d9 0%, #007aff 100%)",
-              boxShadow: "0 4px 16px rgba(0,122,255,0.40), 0 1px 0 rgba(255,255,255,0.2) inset",
+              background: "linear-gradient(135deg, #0e4d34 0%, #10b981 100%)",
+              boxShadow: "0 4px 16px rgba(16, 185, 129,0.40), 0 1px 0 rgba(255,255,255,0.2) inset",
             }}
           >
             <Home className="h-4 w-4 text-white" strokeWidth={2.5} />
@@ -297,13 +297,13 @@ export default function Sidebar({ userEmail }: SidebarProps) {
                 {active && (
                   <span
                     className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full"
-                    style={{ width: 3, height: 20, background: "#007aff", boxShadow: "0 0 8px rgba(0,122,255,0.7)" }}
+                    style={{ width: 3, height: 20, background: "#10b981", boxShadow: "0 0 8px rgba(16, 185, 129,0.7)" }}
                   />
                 )}
                 <Icon
                   className="h-[17px] w-[17px] shrink-0"
                   strokeWidth={active ? 2.5 : 2}
-                  style={{ color: active ? "#007aff" : S.text }}
+                  style={{ color: active ? "#10b981" : S.text }}
                 />
                 <span>{label}</span>
               </Link>
@@ -326,7 +326,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
           >
             <div
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-              style={{ background: S.avatarGrad, boxShadow: "0 2px 8px rgba(0,122,255,0.35)" }}
+              style={{ background: S.avatarGrad, boxShadow: "0 2px 8px rgba(16, 185, 129,0.35)" }}
             >
               {initials}
             </div>

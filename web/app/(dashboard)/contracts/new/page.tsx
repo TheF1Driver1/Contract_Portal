@@ -47,7 +47,7 @@ export default async function NewContractPage({
         <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
           Contracts
         </p>
-        <h1 className="text-4xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
+        <h1 className="font-display text-4xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
           {isEditing ? "Edit Contract" : "New Contract"}
         </h1>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>

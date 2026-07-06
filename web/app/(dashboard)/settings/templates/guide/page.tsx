@@ -65,7 +65,7 @@ const S = {
   muted: "var(--text-muted)",
   secondary: "var(--text-secondary)",
   text: "var(--text-primary)",
-  accent: "#007aff",
+  accent: "#10b981",
 };
 
 export default function VariableGuidePage() {
@@ -100,9 +100,9 @@ export default function VariableGuidePage() {
           download
           className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium shrink-0 transition-colors"
           style={{
-            background: "rgba(0,122,255,0.12)",
+            background: "rgba(16, 185, 129,0.12)",
             color: S.accent,
-            border: `1px solid rgba(0,122,255,0.25)`,
+            border: `1px solid rgba(16, 185, 129,0.25)`,
           }}
         >
           <Download className="h-4 w-4" />
@@ -195,7 +195,7 @@ export default function VariableGuidePage() {
                     <td className="px-4 py-3">
                       <code
                         className="rounded px-1.5 py-0.5 text-xs font-mono"
-                        style={{ background: "rgba(0,122,255,0.08)", color: S.accent }}
+                        style={{ background: "rgba(16, 185, 129,0.08)", color: S.accent }}
                       >
                         {"{{"}{v.name}{"}}"}
                       </code>
@@ -210,7 +210,7 @@ export default function VariableGuidePage() {
                       {v.required ? (
                         <span
                           className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md"
-                          style={{ background: "rgba(0,122,255,0.12)", color: S.accent }}
+                          style={{ background: "rgba(16, 185, 129,0.12)", color: S.accent }}
                         >
                           Yes
                         </span>

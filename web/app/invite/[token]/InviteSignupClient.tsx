@@ -131,7 +131,7 @@ export default function InviteSignupClient({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
-                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm text-black placeholder-neutral-400 outline-none focus:border-neutral-300 focus:ring-2 focus:ring-neutral-100 transition-colors"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
                 placeholder="Your full name"
               />
             </div>
@@ -161,7 +161,7 @@ export default function InviteSignupClient({
               minLength={6}
               placeholder="••••••••"
               autoComplete={tab === "signup" ? "new-password" : "current-password"}
-              className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm text-black placeholder-neutral-400 outline-none focus:border-neutral-300 focus:ring-2 focus:ring-neutral-100 transition-colors"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
             />
           </div>
 
@@ -174,7 +174,7 @@ export default function InviteSignupClient({
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-black hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#8fe3a8] px-4 py-2.5 text-sm font-semibold text-[#06281c] hover:bg-[#a5ecbb] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />

@@ -33,7 +33,7 @@ export default async function TenantsPage() {
             Directory
           </p>
           <h1
-            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400"
+            className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
             style={{ letterSpacing: "-0.03em" }}
           >
             Tenants
@@ -78,7 +78,7 @@ export default async function TenantsPage() {
               {/* Avatar */}
               <div
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-                style={{ background: "linear-gradient(135deg, #005bc2, #007aff)" }}
+                style={{ background: "linear-gradient(135deg, #005bc2, #10b981)" }}
               >
                 {t.full_name.charAt(0).toUpperCase()}
               </div>

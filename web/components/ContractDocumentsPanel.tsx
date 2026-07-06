@@ -108,7 +108,7 @@ function AttachmentsTab({ contractId }: { contractId: string }) {
           style={{ background: "var(--surface-low)" }}
         >
           <div className="flex items-center gap-2 min-w-0">
-            <Paperclip className="h-3.5 w-3.5 shrink-0" style={{ color: "#007aff" }} />
+            <Paperclip className="h-3.5 w-3.5 shrink-0" style={{ color: "#10b981" }} />
             {att.signed_url ? (
               <a
                 href={att.signed_url}
@@ -278,7 +278,7 @@ function SectionsTab({ contractId }: { contractId: string }) {
                   onClick={() => saveEdit(sec.id)}
                   disabled={saving}
                   className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg"
-                  style={{ background: "#007aff", color: "#fff" }}
+                  style={{ background: "#10b981", color: "#fff" }}
                 >
                   {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                   Save
@@ -375,7 +375,7 @@ function SectionsTab({ contractId }: { contractId: string }) {
             onClick={() => addSection(newTitle, newBody)}
             disabled={adding || !newTitle.trim()}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50"
-            style={{ background: "#007aff", color: "#fff" }}
+            style={{ background: "#10b981", color: "#fff" }}
           >
             {adding ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
             Add Section
@@ -395,7 +395,7 @@ function SectionsTab({ contractId }: { contractId: string }) {
 
       <p className="text-xs" style={{ color: "var(--text-muted)" }}>
         Sections appear in the generated PDF before the signature block.{" "}
-        <a href="/settings/sections" className="underline" style={{ color: "#007aff" }}>
+        <a href="/settings/sections" className="underline" style={{ color: "#10b981" }}>
           Manage templates →
         </a>
       </p>

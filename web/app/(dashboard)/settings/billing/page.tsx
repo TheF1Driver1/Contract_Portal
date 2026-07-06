@@ -12,7 +12,7 @@ const S = {
   border: "rgba(255,255,255,0.08)",
   text: "rgba(200,210,230,0.80)",
   muted: "rgba(200,210,230,0.45)",
-  accent: "#007aff",
+  accent: "#10b981",
 };
 
 const tierDetails: Record<SubscriptionPlan, {
@@ -22,7 +22,7 @@ const tierDetails: Record<SubscriptionPlan, {
 }> = {
   free:          { price: "$0/mes",         description: "1 propiedad · 3 contratos/mes",                         color: "rgba(200,210,230,0.50)" },
   propietario:   { price: "$29/mes",        description: "Hasta 5 propiedades · Contratos ilimitados",            color: "#30d158" },
-  inversionista: { price: "$99/mes",        description: "Propiedades ilimitadas · Schedule E · Administradores", color: "#007aff" },
+  inversionista: { price: "$99/mes",        description: "Propiedades ilimitadas · Schedule E · Administradores", color: "#10b981" },
   enterprise:    { price: "Personalizado",  description: "Para administradoras de propiedades",                   color: "#bf5af2" },
 };
 
@@ -80,7 +80,7 @@ export default function BillingPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-6 w-6 rounded-full border-2 border-[#007aff] border-t-transparent animate-spin" />
+        <div className="h-6 w-6 rounded-full border-2 border-[#10b981] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -189,10 +189,10 @@ export default function BillingPage() {
                     className="rounded-2xl p-5 flex flex-col"
                     style={{
                       background: upgradePlan === "inversionista"
-                        ? "rgba(0,122,255,0.08)"
+                        ? "rgba(16, 185, 129,0.08)"
                         : "rgba(48,209,88,0.06)",
                       border: `1px solid ${upgradePlan === "inversionista"
-                        ? "rgba(0,122,255,0.25)"
+                        ? "rgba(16, 185, 129,0.25)"
                         : "rgba(48,209,88,0.20)"}`,
                     }}
                   >
@@ -215,7 +215,7 @@ export default function BillingPage() {
                       href={`/api/billing/checkout?plan=${upgradePlan}`}
                       className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
                       style={{
-                        background: upgradePlan === "inversionista" ? "#007aff" : "rgba(48,209,88,0.20)",
+                        background: upgradePlan === "inversionista" ? "#10b981" : "rgba(48,209,88,0.20)",
                         color: "#fff",
                       }}
                     >
@@ -236,7 +236,7 @@ export default function BillingPage() {
           className="flex items-center gap-4 rounded-2xl px-5 py-4 transition-all"
           style={{ background: S.bg, border: `1px solid ${S.border}` }}
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(0,122,255,0.12)" }}>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(16, 185, 129,0.12)" }}>
             <Users size={16} style={{ color: S.accent }} />
           </div>
           <div className="flex-1">

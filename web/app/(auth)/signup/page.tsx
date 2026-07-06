@@ -45,7 +45,7 @@ export default function SignupPage() {
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <div
             className="flex h-12 w-12 items-center justify-center rounded-2xl"
-            style={{ background: "linear-gradient(135deg, #005bc2, #007aff)" }}
+            style={{ background: "linear-gradient(135deg, #005bc2, #10b981)" }}
           >
             <Home className="h-6 w-6 text-white" />
           </div>
@@ -149,7 +149,7 @@ export default function SignupPage() {
             <Link
               href="/login"
               className="font-semibold hover:opacity-70 transition-opacity"
-              style={{ color: "var(--accent)" }}
+              style={{ color: "var(--accent-color)" }}
             >
               Sign in
             </Link>

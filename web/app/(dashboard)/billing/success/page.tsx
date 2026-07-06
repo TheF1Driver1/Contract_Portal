@@ -20,7 +20,7 @@ export default function BillingSuccessPage() {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center px-4">
       {status === "loading" ? (
-        <Loader2 size={40} className="text-[#007aff] animate-spin mb-6" />
+        <Loader2 size={40} className="text-[#10b981] animate-spin mb-6" />
       ) : (
         <CheckCircle size={56} className="mb-6" style={{ color: "#30d158" }} />
       )}
@@ -38,7 +38,7 @@ export default function BillingSuccessPage() {
         <Link
           href="/dashboard"
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
-          style={{ background: "#007aff", color: "#fff" }}
+          style={{ background: "#10b981", color: "#fff" }}
         >
           Ir al Dashboard
           <ArrowRight size={14} />
