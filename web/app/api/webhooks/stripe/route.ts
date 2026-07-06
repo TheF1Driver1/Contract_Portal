@@ -68,6 +68,15 @@ export async function POST(req: NextRequest) {
     const ownerId = sub.metadata?.owner_id;
     if (!ownerId) return NextResponse.json({ received: true });
 
+    // Live webhook may not subscribe to subscription.created — detect a new
+    // activation by plan diff so the email fires on whichever event arrives
+    const { data: existing } = await supabase
+      .from("subscriptions")
+      .select("plan")
+      .eq("owner_id", ownerId)
+      .maybeSingle();
+    const isActivation = plan !== "free" && existing?.plan !== plan;
+
     await supabase.from("subscriptions").upsert(
       {
         owner_id: ownerId,
@@ -83,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     await supabase.from("profiles").update({ plan }).eq("id", ownerId);
 
-    if (event.type === "customer.subscription.created" && plan !== "free") {
+    if (isActivation) {
       await notifyOwner(supabase, ownerId, (email) =>
         sendSubscriptionActivatedEmail(email, plan, APP_URL)
       );
