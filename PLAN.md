@@ -33,6 +33,14 @@ npm install -D @types/leaflet
 | 15 | Seller Desperation Score | ✅ DONE | `PLANS/15-desperation-score.md` |
 | 16 | Email + PDF/DOCX Gap Execution | ✅ DONE | `PLANS/16-email-pdf-execution.md` |
 | 17 | Enhancement UX (caching, skeletons, tooltips, expenses) | ✅ DONE | `PLANS/17-enhancement-ux.md` |
+| 18 | i18n String Extraction (next-intl) | 🔲 TODO | `PLANS/18-i18n-string-extraction.md` |
+| 19 | Ley 14 System Template (attorney DOCX) | 🔲 BLOCKED (external) | `PLANS/19-ley14-system-template.md` |
+| 20 | Stripe Live Setup | 🔲 BLOCKED (env vars) | `PLANS/20-stripe-live-setup.md` |
+| 21 | Onboarding Flow | 🔲 TODO | `PLANS/21-onboarding-flow.md` |
+| 22 | Subscription Email Notifications | 🔲 TODO | `PLANS/22-subscription-email.md` |
+| PR-Exp | PR Expansion (Ley 14, i18n infra, pricing, Act 60, manager invites) | ✅ DONE (merged dev) | — |
+| — | Performance: market API cache + dashboard chart lazy-load | ✅ DONE (merged dev→main) | — |
+| — | Manager invite sidebar link + LCP img→Image fixes | ✅ DONE (on dev) | — |
 
 ## Supabase
 | Schema | Tables |
