@@ -37,7 +37,7 @@ npm install -D @types/leaflet
 | 19 | Ley 14 System Template (attorney DOCX) | 🔲 BLOCKED (external) | `PLANS/19-ley14-system-template.md` |
 | 20 | Stripe Live Setup | 🔲 BLOCKED (env vars) | `PLANS/20-stripe-live-setup.md` |
 | 21 | Onboarding Flow | 🔲 TODO | `PLANS/21-onboarding-flow.md` |
-| 22 | Subscription Email Notifications | 🔲 TODO | `PLANS/22-subscription-email.md` |
+| 22 | Subscription Email Notifications | ✅ DONE | `PLANS/22-subscription-email.md` |
 | PR-Exp | PR Expansion (Ley 14, i18n infra, pricing, Act 60, manager invites) | ✅ DONE (merged dev) | — |
 | — | Performance: market API cache + dashboard chart lazy-load | ✅ DONE (merged dev→main) | — |
 | — | Manager invite sidebar link + LCP img→Image fixes | ✅ DONE (on dev) | — |
