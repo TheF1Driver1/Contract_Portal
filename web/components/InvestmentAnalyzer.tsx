@@ -216,7 +216,7 @@ export default function InvestmentAnalyzer({ item, existing }: Props) {
         <Link
           href="/watchlist"
           className="flex items-center gap-1.5 text-xs font-medium mb-4 hover:opacity-70 transition-opacity"
-          style={{ color: "#007aff" }}
+          style={{ color: "#10b981" }}
         >
           <ArrowLeft className="h-3 w-3" />
           Watchlist
@@ -224,7 +224,7 @@ export default function InvestmentAnalyzer({ item, existing }: Props) {
         <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
           Investment Analysis
         </p>
-        <h1 className="text-4xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
+        <h1 className="font-display text-4xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
           {item.street ?? "Property"}
         </h1>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>

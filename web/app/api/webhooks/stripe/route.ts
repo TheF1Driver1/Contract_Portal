@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
+import {
+  sendSubscriptionActivatedEmail,
+  sendSubscriptionCancelledEmail,
+} from "@/lib/emails/subscription";
 import type { SubscriptionPlan } from "@/lib/types";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://prcontract.online";
+
+// Email failures must never fail the webhook — Stripe would retry the whole event
+async function notifyOwner(
+  supabase: ReturnType<typeof createAdminClient>,
+  ownerId: string,
+  send: (email: string) => Promise<void>
+): Promise<void> {
+  try {
+    const { data } = await supabase.auth.admin.getUserById(ownerId);
+    const email = data?.user?.email;
+    if (email) await send(email);
+  } catch (err) {
+    console.error("[stripe-webhook] subscription email failed:", err);
+  }
+}
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 
@@ -47,6 +68,15 @@ export async function POST(req: NextRequest) {
     const ownerId = sub.metadata?.owner_id;
     if (!ownerId) return NextResponse.json({ received: true });
 
+    // Live webhook may not subscribe to subscription.created — detect a new
+    // activation by plan diff so the email fires on whichever event arrives
+    const { data: existing } = await supabase
+      .from("subscriptions")
+      .select("plan")
+      .eq("owner_id", ownerId)
+      .maybeSingle();
+    const isActivation = plan !== "free" && existing?.plan !== plan;
+
     await supabase.from("subscriptions").upsert(
       {
         owner_id: ownerId,
@@ -61,6 +91,12 @@ export async function POST(req: NextRequest) {
     );
 
     await supabase.from("profiles").update({ plan }).eq("id", ownerId);
+
+    if (isActivation) {
+      await notifyOwner(supabase, ownerId, (email) =>
+        sendSubscriptionActivatedEmail(email, plan, APP_URL)
+      );
+    }
   }
 
   if (event.type === "customer.subscription.deleted") {
@@ -70,6 +106,10 @@ export async function POST(req: NextRequest) {
 
     await supabase.from("subscriptions").update({ plan: "free", status: "canceled" }).eq("owner_id", ownerId);
     await supabase.from("profiles").update({ plan: "free" }).eq("id", ownerId);
+
+    await notifyOwner(supabase, ownerId, (email) =>
+      sendSubscriptionCancelledEmail(email, APP_URL)
+    );
   }
 
   return NextResponse.json({ received: true });

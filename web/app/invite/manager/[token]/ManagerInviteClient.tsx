@@ -82,8 +82,8 @@ export default function ManagerInviteClient({ token, managerEmail, ownerName, pr
   return (
     <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0a0f1c] p-8 backdrop-blur-sm shadow-2xl">
       {/* Icon */}
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl mb-6" style={{ background: "rgba(0,122,255,0.15)", border: "1px solid rgba(0,122,255,0.25)" }}>
-        <Users className="h-7 w-7" style={{ color: "#007aff" }} />
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl mb-6" style={{ background: "rgba(16, 185, 129,0.15)", border: "1px solid rgba(16, 185, 129,0.25)" }}>
+        <Users className="h-7 w-7" style={{ color: "#10b981" }} />
       </div>
 
       <h1 className="text-xl font-bold text-white mb-1">Property Manager Invitation</h1>
@@ -100,7 +100,7 @@ export default function ManagerInviteClient({ token, managerEmail, ownerName, pr
             className="flex items-center gap-3 rounded-xl px-3 py-2.5"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
           >
-            <Building2 size={14} style={{ color: "#007aff" }} className="shrink-0" />
+            <Building2 size={14} style={{ color: "#10b981" }} className="shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-medium text-white truncate">{p.name}</p>
               <p className="text-xs text-neutral-500 truncate">{p.address}</p>
@@ -124,7 +124,7 @@ export default function ManagerInviteClient({ token, managerEmail, ownerName, pr
           onClick={() => handleAction("accept")}
           disabled={loading !== null}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-          style={{ background: "#007aff", color: "#fff", boxShadow: "0 4px 16px rgba(0,122,255,0.30)" }}
+          style={{ background: "#10b981", color: "#fff", boxShadow: "0 4px 16px rgba(16, 185, 129,0.30)" }}
         >
           {loading === "accept" ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
           Accept

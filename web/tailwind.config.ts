@@ -69,9 +69,9 @@ const config: Config = {
           variant: "#595f6a",
         },
         tertiary: {
-          DEFAULT: "#005bc2",
-          container: "#007aff",
-          dim: "#0050ab",
+          DEFAULT: "#0a3b28",
+          container: "#10b981",
+          dim: "#0d4530",
         },
         "on-tertiary": "#f9f8ff",
         outline: {
@@ -86,13 +86,15 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
-          "Inter",
+          "var(--font-sans)",
           "-apple-system",
           "BlinkMacSystemFont",
           "SF Pro Display",
           "Segoe UI",
           "sans-serif",
         ],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       boxShadow: {
         ambient: "0 12px 40px rgba(44, 51, 61, 0.06)",

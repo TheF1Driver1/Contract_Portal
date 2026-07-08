@@ -108,14 +108,14 @@ export default function PricingPage() {
         <div className="flex items-center justify-center gap-2 mb-6">
           <div
             className="h-9 w-9 rounded-xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #0057d9, #007aff)" }}
+            style={{ background: "linear-gradient(135deg, #0e4d34, #10b981)" }}
           >
             <span className="text-white font-bold text-sm">C</span>
           </div>
           <span className="text-white font-bold text-xl">ContractOS</span>
         </div>
         <h1
-          className="text-4xl md:text-5xl font-bold mb-4"
+          className="font-display text-4xl md:text-5xl font-bold mb-4"
           style={{ color: "#ffffff" }}
         >
           Precios simples, sin sorpresas
@@ -137,20 +137,20 @@ export default function PricingPage() {
             className="relative flex flex-col rounded-2xl p-6"
             style={{
               background: tier.highlighted
-                ? "rgba(0,122,255,0.10)"
+                ? "rgba(16, 185, 129,0.10)"
                 : "rgba(255,255,255,0.04)",
               border: tier.highlighted
-                ? "1px solid rgba(0,122,255,0.40)"
+                ? "1px solid rgba(16, 185, 129,0.40)"
                 : "1px solid rgba(255,255,255,0.08)",
               boxShadow: tier.highlighted
-                ? "0 0 40px rgba(0,122,255,0.15)"
+                ? "0 0 40px rgba(16, 185, 129,0.15)"
                 : "none",
             }}
           >
             {tier.badge && (
               <div
                 className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold"
-                style={{ background: "#007aff", color: "#fff" }}
+                style={{ background: "#10b981", color: "#fff" }}
               >
                 {tier.badge}
               </div>
@@ -178,7 +178,7 @@ export default function PricingPage() {
                   <Check
                     size={15}
                     className="shrink-0 mt-0.5"
-                    style={{ color: tier.highlighted ? "#007aff" : "rgba(0,200,100,0.80)" }}
+                    style={{ color: tier.highlighted ? "#10b981" : "rgba(0,200,100,0.80)" }}
                   />
                   <span className="text-sm" style={{ color: "rgba(200,210,230,0.80)" }}>
                     {feature}
@@ -191,7 +191,7 @@ export default function PricingPage() {
               href={tier.href}
               className="block w-full py-2.5 rounded-xl text-center text-sm font-semibold transition-all"
               style={{
-                background: tier.highlighted ? "#007aff" : "rgba(255,255,255,0.08)",
+                background: tier.highlighted ? "#10b981" : "rgba(255,255,255,0.08)",
                 color: tier.highlighted ? "#fff" : "rgba(200,210,230,0.90)",
                 border: tier.highlighted ? "none" : "1px solid rgba(255,255,255,0.10)",
               }}

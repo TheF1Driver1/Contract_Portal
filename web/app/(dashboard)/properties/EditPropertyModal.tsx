@@ -186,7 +186,7 @@ export default function EditPropertyModal({ property }: { property: Property }) 
                   >
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded accent-[#007aff]"
+                      className="h-4 w-4 rounded accent-[#10b981]"
                       checked={form.parking_available}
                       onChange={(e) => setForm({ ...form, parking_available: e.target.checked })}
                     />

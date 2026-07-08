@@ -1,13 +1,13 @@
 # ContractOS Design System
 
-Source: Apple Vision Pro × dark Apple.com marketing aesthetic.
+Source: Night-green editorial dark — ported from the personal-brand site (night / ink / racing / mint).
 Philosophy: **Void-first Futurism** — black canvas, glowing intentions. Every element earns its pixel.
 
 ---
 
 ## Visual Theme & Atmosphere
 
-Pure black foundation. No grey sections — darkness is the structure. Depth comes from glow, blur, and scale. Text is either near-white or electric blue — nothing in between for primary content. Feels like a product launch page from 2028.
+Pure black foundation. No grey sections — darkness is the structure. Depth comes from glow, blur, and scale. Text is either near-white or racing green — nothing in between for primary content. Feels like a product launch page from 2028.
 
 References: apple.com/apple-vision-pro, Linear.app, Vercel.com dark.
 
@@ -29,15 +29,15 @@ All colors live in `globals.css`. **Never hardcode hex in components** — use `
 | `--bg-glass` | `rgba(255,255,255,0.04)` | Glass card fill |
 | `--bg-glass-hover` | `rgba(255,255,255,0.07)` | Glass hover |
 | `--border-subtle` | `rgba(255,255,255,0.08)` | Card borders, nav divider |
-| `--border-glow` | `rgba(0,122,255,0.40)` | Focus rings, accent borders |
+| `--border-glow` | `rgba(16,185,129,0.40)` | Focus rings, accent borders |
 | `--text-primary` | `#f5f5f7` | Headlines, primary body |
 | `--text-secondary` | `#86868b` | Supporting copy, labels |
 | `--text-muted` | `#48484a` | Captions, eyebrows, metadata |
-| `--text-link` | `#2997ff` | Links, inline CTAs |
-| `--accent-blue` | `#2997ff` | Primary CTA, highlights |
-| `--accent-blue-glow` | `rgba(41,151,255,0.25)` | Glow halos, button shadow |
-| `--accent-blue-dim` | `rgba(41,151,255,0.12)` | Tinted pill bg, icon bg |
-| `--glow-hero` | `rgba(41,151,255,0.15)` | Hero radial glow behind headline |
+| `--text-link` | `#8fe3a8` | Links, inline CTAs |
+| `--accent-blue` | `#8fe3a8` | Primary CTA, highlights |
+| `--accent-blue-glow` | `rgba(143,227,168,0.25)` | Glow halos, button shadow |
+| `--accent-blue-dim` | `rgba(143,227,168,0.12)` | Tinted pill bg, icon bg |
+| `--glow-hero` | `rgba(143,227,168,0.15)` | Hero radial glow behind headline |
 | `--error` | `#ff453a` | Destructive, expired |
 | `--success` | `#30d158` | Active, signed |
 | `--warning` | `#ffd60a` | Expiring soon |
@@ -46,7 +46,7 @@ All colors live in `globals.css`. **Never hardcode hex in components** — use `
 
 ## Typography
 
-Font: **Inter** — tight, heavy, aggressive at display scale. At large sizes behaves like SF Pro Display.
+Fonts: **Inter** (UI, via next/font `--font-sans`), **Cormorant Garamond** (display headings, `.font-display` / `font-serif`), **IBM Plex Mono** (`font-mono`, data/labels).
 
 | Role | Size | Weight | Letter-spacing | Use |
 |------|------|--------|----------------|-----|
@@ -84,7 +84,7 @@ No box shadows from light sources. Depth = glow + border + blur.
 | Page | `background: #000` — absolute void |
 | Glass card | `background: var(--bg-glass)` + `border: 1px solid var(--border-subtle)` + `backdrop-filter: blur(20px)` |
 | Raised card | `background: var(--bg-card)` + `border: 1px solid var(--border-subtle)` |
-| Glow CTA | `box-shadow: 0 0 40px var(--accent-blue-glow), 0 0 80px rgba(41,151,255,0.08)` |
+| Glow CTA | `box-shadow: 0 0 40px var(--accent-blue-glow), 0 0 80px rgba(143,227,168,0.08)` |
 | Hero radial | `radial-gradient(ellipse 80% 50% at 50% -10%, var(--glow-hero), transparent)` behind headline |
 | Focus ring | `outline: 2px solid var(--border-glow)` |
 
@@ -130,7 +130,7 @@ Defined in `globals.css`.
 ```css
 .pill-active    /* bg accent-blue-dim, text accent-blue — signed/active */
 .pill-draft     /* bg rgba(255,255,255,0.06), text-secondary — draft */
-.pill-sent      /* bg rgba(41,151,255,0.08), text-link — sent */
+.pill-sent      /* bg rgba(143,227,168,0.08), text-link — sent */
 .pill-expired   /* bg rgba(255,69,58,0.12), text error — expired */
 ```
 

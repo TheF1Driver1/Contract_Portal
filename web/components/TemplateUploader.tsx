@@ -26,7 +26,7 @@ const S = {
   text: "var(--text-primary)",
   muted: "var(--text-muted)",
   secondary: "var(--text-secondary)",
-  accent: "#007aff",
+  accent: "#10b981",
 };
 
 export default function TemplateUploader({ templates, onUploaded, onDeleted, onSetDefault }: Props) {
@@ -101,7 +101,7 @@ export default function TemplateUploader({ templates, onUploaded, onDeleted, onS
           className="rounded-xl border-2 border-dashed flex flex-col items-center gap-3 py-8 cursor-pointer transition-colors"
           style={{
             borderColor: dragging ? S.accent : S.border,
-            background: dragging ? "rgba(0,122,255,0.06)" : "transparent",
+            background: dragging ? "rgba(16, 185, 129,0.06)" : "transparent",
           }}
           onDragOver={e => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
@@ -220,7 +220,7 @@ export default function TemplateUploader({ templates, onUploaded, onDeleted, onS
                     {t.is_default && (
                       <span
                         className="ml-2 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md"
-                        style={{ background: "rgba(0,122,255,0.18)", color: S.accent }}
+                        style={{ background: "rgba(16, 185, 129,0.18)", color: S.accent }}
                       >
                         Default
                       </span>

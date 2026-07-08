@@ -61,7 +61,7 @@ export default function ResetPasswordPage() {
         />
         <div className="pointer-events-none relative z-10 flex items-center justify-center h-screen">
           <div className="text-center space-y-4">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
+            <h1 className="font-display text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]">
               Invalid link
             </h1>
             <p className="text-sm text-neutral-500">
@@ -94,7 +94,7 @@ export default function ResetPasswordPage() {
           <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
             Real Estate Management
           </p>
-          <h2 className="text-5xl lg:text-6xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
+          <h2 className="font-display text-5xl lg:text-6xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]">
             New<br />password.
           </h2>
           <p className="text-neutral-500 text-base leading-relaxed max-w-sm">
@@ -105,7 +105,7 @@ export default function ResetPasswordPage() {
         {/* Right form */}
         <div className="pointer-events-none w-full md:w-1/2 flex flex-col justify-center px-10 lg:px-16">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
+            <h1 className="font-display text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]">
               Reset password
             </h1>
             <p className="mt-2 text-sm text-neutral-500">
@@ -129,7 +129,7 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm text-black placeholder-neutral-400 outline-none focus:border-neutral-300 focus:ring-2 focus:ring-neutral-100 transition-colors"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
               />
             </div>
 
@@ -148,7 +148,7 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setConfirm(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm text-black placeholder-neutral-400 outline-none focus:border-neutral-300 focus:ring-2 focus:ring-neutral-100 transition-colors"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
               />
             </div>
 
@@ -161,7 +161,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-black hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#8fe3a8] px-4 py-2.5 text-sm font-semibold text-[#06281c] hover:bg-[#a5ecbb] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

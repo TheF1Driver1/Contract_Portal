@@ -42,7 +42,7 @@ export default function NotificationPanel({
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           {remindersOn
-            ? <Bell    className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
+            ? <Bell    className="h-3.5 w-3.5" style={{ color: "var(--accent-color)" }} />
             : <BellOff className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
           }
           <span className="text-sm" style={{ color: remindersOn ? "var(--text-primary)" : "var(--text-muted)" }}>

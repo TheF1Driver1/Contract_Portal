@@ -552,10 +552,10 @@ export default function ContractBuilder({
                 style={{
                   background:
                     step > i || step === i
-                      ? "linear-gradient(135deg, #005bc2, #007aff)"
+                      ? "linear-gradient(135deg, #005bc2, #10b981)"
                       : "var(--surface-container)",
                   boxShadow:
-                    step === i ? "0 0 0 4px rgba(0,122,255,0.18)" : "none",
+                    step === i ? "0 0 0 4px rgba(16, 185, 129,0.18)" : "none",
                   color:
                     step > i || step === i
                       ? "white"
@@ -567,7 +567,7 @@ export default function ContractBuilder({
               <span
                 className="text-[10px] font-medium hidden sm:block"
                 style={{
-                  color: step === i ? "#007aff" : "var(--text-muted)",
+                  color: step === i ? "#10b981" : "var(--text-muted)",
                 }}
               >
                 {s.label}
@@ -580,7 +580,7 @@ export default function ContractBuilder({
                 className="flex-1 h-px mx-2 mb-4 transition-all duration-300"
                 style={{
                   background:
-                    step > i ? "#007aff" : "var(--surface-container)",
+                    step > i ? "#10b981" : "var(--surface-container)",
                 }}
               />
             )}
@@ -693,9 +693,9 @@ export default function ContractBuilder({
                 {values.jurisdiction === "pr" && (
                   <div
                     className="rounded-xl p-3 space-y-1.5"
-                    style={{ background: "rgba(0,122,255,0.08)", border: "1px solid rgba(0,122,255,0.20)" }}
+                    style={{ background: "rgba(16, 185, 129,0.08)", border: "1px solid rgba(16, 185, 129,0.20)" }}
                   >
-                    <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#007aff" }}>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#10b981" }}>
                       Cumplimiento Ley 14-2022
                     </p>
                     {[
@@ -705,7 +705,7 @@ export default function ContractBuilder({
                       "Rige bajo Ley 14 de 2022",
                     ].map((item) => (
                       <div key={item} className="flex items-center gap-2 text-xs" style={{ color: "rgba(200,210,230,0.80)" }}>
-                        <Check className="h-3 w-3 text-[#007aff] shrink-0" />
+                        <Check className="h-3 w-3 text-[#10b981] shrink-0" />
                         {item}
                       </div>
                     ))}
@@ -775,7 +775,7 @@ export default function ContractBuilder({
                       setCoTenantSignatures((sigs) => [...sigs, ""]);
                     }}
                     className="flex items-center gap-1.5 text-xs font-medium"
-                    style={{ color: "#007aff" }}
+                    style={{ color: "#10b981" }}
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Add Co-Tenant
@@ -923,7 +923,7 @@ export default function ContractBuilder({
                   >
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded accent-[#007aff]"
+                      className="h-4 w-4 rounded accent-[#10b981]"
                       {...register("parking_available")}
                     />
                     <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Yes</span>
@@ -974,7 +974,7 @@ export default function ContractBuilder({
                   >
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded accent-[#007aff]"
+                      className="h-4 w-4 rounded accent-[#10b981]"
                       {...register(name as keyof ContractFormValues)}
                     />
                     <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
@@ -1183,7 +1183,7 @@ export default function ContractBuilder({
                           setSecEditIdx(null);
                         }}
                         className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg"
-                        style={{ background: "#007aff", color: "#fff" }}
+                        style={{ background: "#10b981", color: "#fff" }}
                       >
                         <Check className="h-3 w-3" /> Save
                       </button>
@@ -1292,7 +1292,7 @@ export default function ContractBuilder({
                     setNewSecBody("");
                   }}
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50"
-                  style={{ background: "#007aff", color: "#fff" }}
+                  style={{ background: "#10b981", color: "#fff" }}
                 >
                   <Plus className="h-3 w-3" /> Add Section
                 </button>
@@ -1311,7 +1311,7 @@ export default function ContractBuilder({
 
             <p className="text-xs" style={{ color: "var(--text-muted)" }}>
               Sections appear before the signature block.{" "}
-              <a href="/settings/sections" className="underline" style={{ color: "#007aff" }}>
+              <a href="/settings/sections" className="underline" style={{ color: "#10b981" }}>
                 Manage templates →
               </a>
             </p>

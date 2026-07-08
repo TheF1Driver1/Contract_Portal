@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,29 +5,29 @@
 @layer base {
   :root {
     /* ── shadcn/ui base tokens (dark) ── */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 96%;
-    --card: 0 0% 4%;
-    --card-foreground: 0 0% 96%;
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 96%;
-    --primary: 211 100% 50%;
+    --background: 120 13% 3%;
+    --foreground: 47 27% 90%;
+    --card: 120 8% 5%;
+    --card-foreground: 47 27% 90%;
+    --popover: 120 8% 5%;
+    --popover-foreground: 47 27% 90%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 8%;
-    --secondary-foreground: 0 0% 96%;
-    --muted: 0 0% 6%;
-    --muted-foreground: 0 0% 64%;
-    --accent: 0 0% 8%;
-    --accent-foreground: 0 0% 96%;
+    --secondary: 120 6% 8%;
+    --secondary-foreground: 47 27% 90%;
+    --muted: 120 6% 6%;
+    --muted-foreground: 45 8% 64%;
+    --accent: 120 6% 8%;
+    --accent-foreground: 47 27% 90%;
     --destructive: 2 56% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 12%;
-    --input: 0 0% 8%;
-    --ring: 211 100% 50%;
+    --border: 120 5% 12%;
+    --input: 120 6% 8%;
+    --ring: 160 84% 39%;
     --radius: 0.75rem;
 
-    /* ── Surface tokens — permanently dark ── */
-    --surface-base:       #000000;
+    /* ── Surface tokens — permanently dark (night) ── */
+    --surface-base:       #070907;
     --surface-container:  rgba(255, 255, 255, 0.06);
     --surface-low:        rgba(255, 255, 255, 0.04);
     --surface-card:       rgba(255, 255, 255, 0.04);
@@ -37,23 +35,25 @@
     --surface-row:        rgba(255, 255, 255, 0.03);
     --surface-row-hover:  rgba(255, 255, 255, 0.06);
 
-    /* ── Text tokens ── */
-    --text-primary:   #f5f5f5;
-    --text-secondary: #a3a3a3;
-    --text-muted:     #525252;
+    /* ── Text tokens — warm ink on night ── */
+    --text-primary:   #edeae0;
+    --text-secondary: #a3a196;
+    --text-muted:     #55534b;
 
-    /* ── Accent ── */
-    --accent-color: #007aff;
-    --accent-glow:  rgba(0, 122, 255, 0.35);
+    /* ── Accent — racing green / mint ── */
+    --accent-color: #10b981;
+    --accent-glow:  rgba(16, 185, 129, 0.35);
+    --accent-mint:  #8fe3a8;
+    --accent-racing: #0e4d34;
 
     /* ── Sidebar ── */
-    --sidebar-bg:       #000000;
+    --sidebar-bg:       #070907;
     --sidebar-border:   rgba(255, 255, 255, 0.06);
-    --nav-active-bg:    rgba(0, 122, 255, 0.18);
+    --nav-active-bg:    rgba(16, 185, 129, 0.16);
     --nav-hover-bg:     rgba(255, 255, 255, 0.05);
-    --nav-text:         rgba(200, 210, 230, 0.70);
+    --nav-text:         rgba(210, 218, 208, 0.70);
     --nav-text-active:  #ffffff;
-    --nav-text-muted:   rgba(120, 135, 160, 0.50);
+    --nav-text-muted:   rgba(135, 150, 138, 0.50);
   }
 }
 
@@ -70,7 +70,7 @@
   body {
     background: var(--surface-base);
     color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -83,7 +83,7 @@
   ::-webkit-scrollbar-thumb:hover { background: rgba(120,130,160,0.45); }
 
   ::selection {
-    background: rgba(0, 122, 255, 0.2);
+    background: rgba(16, 185, 129, 0.2);
     color: var(--text-primary);
   }
 }
@@ -145,7 +145,7 @@
   .btn-primary-gradient {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, #0057d9 0%, #007aff 50%, #338fff 100%);
+    background: linear-gradient(135deg, #0e4d34 0%, #10b981 50%, #34d399 100%);
     color: white;
     border-radius: 0.875rem;
     padding: 0.625rem 1.25rem;
@@ -154,7 +154,7 @@
     letter-spacing: -0.01em;
     transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow:
-      0 4px 16px rgba(0, 122, 255, 0.40),
+      0 4px 16px rgba(16, 185, 129, 0.40),
       0 1px 0 rgba(255,255,255,0.25) inset;
     border: none;
     cursor: pointer;
@@ -176,7 +176,7 @@
 
   .btn-primary-gradient:hover {
     box-shadow:
-      0 6px 28px rgba(0, 122, 255, 0.55),
+      0 6px 28px rgba(16, 185, 129, 0.55),
       0 1px 0 rgba(255,255,255,0.25) inset;
     transform: translateY(-2px);
   }
@@ -187,7 +187,7 @@
 
   .btn-primary-gradient:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.30);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.30);
   }
 
   .btn-primary-gradient:disabled {
@@ -200,9 +200,9 @@
      STATUS PILLS
   ───────────────────────────────────────── */
   .pill-active {
-    background: linear-gradient(135deg, rgba(0,122,255,0.15), rgba(0,122,255,0.08));
-    color: #007aff;
-    border: 1px solid rgba(0,122,255,0.20);
+    background: linear-gradient(135deg, rgba(16, 185, 129,0.15), rgba(16, 185, 129,0.08));
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129,0.20);
     border-radius: 999px;
     padding: 0.125rem 0.625rem;
     font-size: 0.75rem;
@@ -264,8 +264,8 @@
 
   .input-tonal:focus {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(0, 122, 255, 0.50);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+    border-color: rgba(16, 185, 129, 0.50);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
   }
 
   .input-tonal::placeholder {
@@ -356,7 +356,7 @@
   }
 
   .orb-blue {
-    background: radial-gradient(circle, rgba(0, 122, 255, 0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%);
     width: 600px; height: 600px;
     top: -10%; right: -8%;
     animation: orb-drift-a 18s ease-in-out infinite;
@@ -380,7 +380,7 @@
      TEXT HELPERS
   ───────────────────────────────────────── */
   .text-gradient {
-    background: linear-gradient(135deg, #007aff 0%, #6366f1 100%);
+    background: linear-gradient(135deg, #8fe3a8 0%, #10b981 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -389,6 +389,13 @@
   .text-primary { color: var(--text-primary); }
   .text-secondary { color: var(--text-secondary); }
   .text-muted { color: var(--text-muted); }
+
+  /* Display serif — Cormorant Garamond for page titles / heroes */
+  .font-display {
+    font-family: var(--font-serif), Georgia, serif;
+    letter-spacing: -0.005em;
+    font-weight: 600;
+  }
 
   /* ─────────────────────────────────────────
      SIDEBAR HELPERS
@@ -402,7 +409,7 @@
      GRADIENT LOGIN
   ───────────────────────────────────────── */
   .animated-gradient {
-    background: linear-gradient(-45deg, #003c9a, #0057d9, #007aff, #0050ab, #3730a3);
+    background: linear-gradient(-45deg, #06281c, #0e4d34, #10b981, #0d4530, #083325);
     background-size: 400% 400%;
     animation: gradient-shift 8s ease infinite;
   }
@@ -496,7 +503,7 @@
 button, [role="button"], a { cursor: pointer; }
 
 :focus-visible {
-  outline: 2px solid rgba(0, 122, 255, 0.65);
+  outline: 2px solid rgba(16, 185, 129, 0.65);
   outline-offset: 2px;
   border-radius: 0.5rem;
 }

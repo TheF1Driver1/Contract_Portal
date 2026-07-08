@@ -12,7 +12,7 @@ const S = {
   border: "rgba(255,255,255,0.08)",
   text:   "rgba(200,210,230,0.80)",
   muted:  "rgba(200,210,230,0.45)",
-  accent: "#007aff",
+  accent: "#10b981",
 };
 
 const STATUS_STYLES: Record<PropertyManager["status"], { label: string; color: string; icon: React.ReactNode }> = {
@@ -112,7 +112,7 @@ export default function ManagersSettingsPage() {
           Settings
         </p>
         <h1
-          className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400"
+          className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
           style={{ letterSpacing: "-0.03em" }}
         >
           Property Managers
@@ -126,9 +126,9 @@ export default function ManagersSettingsPage() {
       {maxManagers === 0 && (
         <div
           className="rounded-2xl p-6 flex items-start gap-4 animate-slide-up"
-          style={{ background: "rgba(0,122,255,0.06)", border: "1px solid rgba(0,122,255,0.18)" }}
+          style={{ background: "rgba(16, 185, 129,0.06)", border: "1px solid rgba(16, 185, 129,0.18)" }}
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(0,122,255,0.15)" }}>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(16, 185, 129,0.15)" }}>
             <Lock size={18} style={{ color: S.accent }} />
           </div>
           <div className="flex-1">
@@ -201,8 +201,8 @@ export default function ManagersSettingsPage() {
                     disabled={!canInvite}
                     className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
                     style={{
-                      background: selectedProps.includes(p.id) ? "rgba(0,122,255,0.20)" : "rgba(255,255,255,0.06)",
-                      border: `1px solid ${selectedProps.includes(p.id) ? "rgba(0,122,255,0.35)" : "transparent"}`,
+                      background: selectedProps.includes(p.id) ? "rgba(16, 185, 129,0.20)" : "rgba(255,255,255,0.06)",
+                      border: `1px solid ${selectedProps.includes(p.id) ? "rgba(16, 185, 129,0.35)" : "transparent"}`,
                       color: selectedProps.includes(p.id) ? "#fff" : S.text,
                     }}
                   >
@@ -251,7 +251,7 @@ export default function ManagersSettingsPage() {
             type="submit"
             disabled={saving || !canInvite || !email || selectedProps.length === 0}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-            style={{ background: S.accent, color: "#fff", boxShadow: "0 4px 16px rgba(0,122,255,0.30)" }}
+            style={{ background: S.accent, color: "#fff", boxShadow: "0 4px 16px rgba(16, 185, 129,0.30)" }}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
             {saving ? "Sending…" : "Send Invite"}
@@ -275,7 +275,7 @@ export default function ManagersSettingsPage() {
                 className="flex items-center gap-4 rounded-xl px-4 py-3"
                 style={{ background: S.bg, border: `1px solid ${S.border}` }}
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "rgba(0,122,255,0.20)" }}>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "rgba(16, 185, 129,0.20)" }}>
                   <Users size={14} style={{ color: S.accent }} />
                 </div>
                 <div className="flex-1 min-w-0">

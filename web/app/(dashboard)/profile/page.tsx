@@ -9,10 +9,10 @@ const S = {
   border:      "rgba(255,255,255,0.07)",
   input:       "rgba(255,255,255,0.06)",
   inputBorder: "rgba(255,255,255,0.10)",
-  inputFocus:  "rgba(0,122,255,0.40)",
+  inputFocus:  "rgba(16, 185, 129,0.40)",
   text:        "rgba(200,210,230,0.85)",
   muted:       "rgba(120,135,160,0.60)",
-  accent:      "#007aff",
+  accent:      "#10b981",
   accentHover: "#0066dd",
   label:       "rgba(150,165,190,0.55)",
 };
@@ -40,7 +40,7 @@ function SectionCard({
       <div className="flex items-start gap-3.5">
         <div
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: "rgba(0,122,255,0.14)", border: `1px solid rgba(0,122,255,0.22)` }}
+          style={{ background: "rgba(16, 185, 129,0.14)", border: `1px solid rgba(16, 185, 129,0.22)` }}
         >
           <Icon className="h-4 w-4" style={{ color: S.accent }} />
         </div>
@@ -233,7 +233,7 @@ export default function ProfilePage() {
       <div className="flex items-center gap-3">
         <div
           className="flex h-10 w-10 items-center justify-center rounded-2xl"
-          style={{ background: "rgba(0,122,255,0.14)", border: "1px solid rgba(0,122,255,0.22)" }}
+          style={{ background: "rgba(16, 185, 129,0.14)", border: "1px solid rgba(16, 185, 129,0.22)" }}
         >
           <User className="h-5 w-5" style={{ color: S.accent }} />
         </div>
