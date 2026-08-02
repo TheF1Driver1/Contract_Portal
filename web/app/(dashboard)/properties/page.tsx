@@ -54,7 +54,7 @@ export default async function PropertiesPage() {
             Portfolio
           </p>
           <h1
-            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400"
+            className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
             style={{ letterSpacing: "-0.03em" }}
           >
             Properties
@@ -113,9 +113,9 @@ export default async function PropertiesPage() {
                 <div className="flex items-start gap-3">
                   <div
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                    style={{ background: "rgba(0,122,255,0.10)" }}
+                    style={{ background: "rgba(16, 185, 129,0.10)" }}
                   >
-                    <Building2 className="h-5 w-5" style={{ color: "#007aff" }} strokeWidth={2} />
+                    <Building2 className="h-5 w-5" style={{ color: "#10b981" }} strokeWidth={2} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>

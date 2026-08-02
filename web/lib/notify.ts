@@ -57,7 +57,7 @@ export async function sendTenantInviteEmail(
           </p>
         </td></tr>
         <tr><td style="padding:8px 32px 28px;">
-          <a href="${inviteUrl}" style="display:inline-block;background:#007aff;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
+          <a href="${inviteUrl}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
             Review &amp; Sign Lease
           </a>
         </td></tr>
@@ -112,7 +112,7 @@ export function buildExpiryNotification(opts: {
         <tr>
           <td style="padding:8px 32px 28px;">
             <a href="${contractUrl}"
-               style="display:inline-block;background:#007aff;color:#fff;text-decoration:none;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:600;">
+               style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:600;">
               View Contract
             </a>
           </td>

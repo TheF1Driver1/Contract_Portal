@@ -71,7 +71,7 @@ export default function ExpiryReminderBar() {
       {/* Header row */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4" style={{ color: "var(--accent)" }} />
+          <Bell className="h-4 w-4" style={{ color: "var(--accent-color)" }} />
           <span className="text-sm font-semibold">Expiry Reminders</span>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>
             — get emailed before a lease expires
@@ -80,7 +80,7 @@ export default function ExpiryReminderBar() {
         <button
           onClick={() => { setShowForm((v) => !v); setError(null); }}
           className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors"
-          style={{ background: "rgba(0,122,255,0.12)", color: "var(--accent)" }}
+          style={{ background: "rgba(16, 185, 129,0.12)", color: "var(--accent-color)" }}
         >
           <Plus className="h-3 w-3" />
           Add reminder
@@ -104,9 +104,9 @@ export default function ExpiryReminderBar() {
               key={t.id}
               className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
               style={{
-                background: t.is_active ? "rgba(0,122,255,0.12)" : "var(--surface-container)",
-                color:      t.is_active ? "var(--accent)"         : "var(--text-muted)",
-                border:     `1px solid ${t.is_active ? "rgba(0,122,255,0.25)" : "var(--surface-border)"}`,
+                background: t.is_active ? "rgba(16, 185, 129,0.12)" : "var(--surface-container)",
+                color:      t.is_active ? "var(--accent-color)"         : "var(--text-muted)",
+                border:     `1px solid ${t.is_active ? "rgba(16, 185, 129,0.25)" : "var(--surface-border)"}`,
               }}
             >
               <button
@@ -172,7 +172,7 @@ export default function ExpiryReminderBar() {
             onClick={handleAdd}
             disabled={adding || !days}
             className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
-            style={{ background: "var(--accent)", color: "#fff" }}
+            style={{ background: "var(--accent-color)", color: "#fff" }}
           >
             {adding ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
             Save

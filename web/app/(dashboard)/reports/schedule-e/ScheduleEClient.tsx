@@ -71,7 +71,7 @@ export default function ScheduleEClient({
             Reports
           </p>
           <h1
-            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400"
+            className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
             style={{ letterSpacing: "-0.03em" }}
           >
             Schedule E
@@ -82,8 +82,8 @@ export default function ScheduleEClient({
         <div
           className="rounded-2xl p-8 flex flex-col items-center text-center animate-slide-up"
           style={{
-            background: "rgba(0,122,255,0.06)",
-            border: "1px solid rgba(0,122,255,0.18)",
+            background: "rgba(16, 185, 129,0.06)",
+            border: "1px solid rgba(16, 185, 129,0.18)",
             animationDelay: "0.06s",
             animationFillMode: "both",
           }}
@@ -93,12 +93,12 @@ export default function ScheduleEClient({
             <div
               className="flex h-20 w-20 items-center justify-center rounded-3xl"
               style={{
-                background: "linear-gradient(135deg, rgba(0,87,217,0.25), rgba(0,122,255,0.15))",
-                border: "1px solid rgba(0,122,255,0.25)",
-                boxShadow: "0 8px 32px rgba(0,122,255,0.15)",
+                background: "linear-gradient(135deg, rgba(0,87,217,0.25), rgba(16, 185, 129,0.15))",
+                border: "1px solid rgba(16, 185, 129,0.25)",
+                boxShadow: "0 8px 32px rgba(16, 185, 129,0.15)",
               }}
             >
-              <BarChart3 className="h-9 w-9" style={{ color: "#007aff" }} strokeWidth={1.5} />
+              <BarChart3 className="h-9 w-9" style={{ color: "#10b981" }} strokeWidth={1.5} />
             </div>
             <div
               className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full"
@@ -123,9 +123,9 @@ export default function ScheduleEClient({
               <li key={f} className="flex items-center gap-2.5 text-sm" style={{ color: S.text }}>
                 <div
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                  style={{ background: "rgba(0,122,255,0.15)" }}
+                  style={{ background: "rgba(16, 185, 129,0.15)" }}
                 >
-                  <Check size={11} style={{ color: "#007aff" }} strokeWidth={3} />
+                  <Check size={11} style={{ color: "#10b981" }} strokeWidth={3} />
                 </div>
                 {f}
               </li>
@@ -137,9 +137,9 @@ export default function ScheduleEClient({
             href="/pricing"
             className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all"
             style={{
-              background: "#007aff",
+              background: "#10b981",
               color: "#fff",
-              boxShadow: "0 4px 16px rgba(0,122,255,0.40)",
+              boxShadow: "0 4px 16px rgba(16, 185, 129,0.40)",
             }}
           >
             <Zap size={15} />
@@ -198,7 +198,7 @@ export default function ScheduleEClient({
             Reports
           </p>
           <h1
-            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400"
+            className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
             style={{ letterSpacing: "-0.03em" }}
           >
             Schedule E
@@ -213,9 +213,9 @@ export default function ScheduleEClient({
           disabled={downloading}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
           style={{
-            background: "#007aff",
+            background: "#10b981",
             color: "#fff",
-            boxShadow: downloading ? "none" : "0 4px 16px rgba(0,122,255,0.35)",
+            boxShadow: downloading ? "none" : "0 4px 16px rgba(16, 185, 129,0.35)",
           }}
         >
           {downloading ? (
@@ -238,9 +238,9 @@ export default function ScheduleEClient({
             onClick={() => setYear(y)}
             className="rounded-xl px-3 py-1.5 text-xs font-medium transition-all"
             style={{
-              background: y === year ? "rgba(0,122,255,0.18)" : "rgba(255,255,255,0.06)",
+              background: y === year ? "rgba(16, 185, 129,0.18)" : "rgba(255,255,255,0.06)",
               color: y === year ? "#fff" : "var(--text-secondary)",
-              border: `1px solid ${y === year ? "rgba(0,122,255,0.30)" : "transparent"}`,
+              border: `1px solid ${y === year ? "rgba(16, 185, 129,0.30)" : "transparent"}`,
             }}
           >
             {y}

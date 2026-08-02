@@ -66,7 +66,7 @@ export default async function MarketPropertyPage({ params }: { params: { id: str
             </h1>
             <p
               className="text-3xl font-bold mt-2"
-              style={{ color: "var(--accent)", letterSpacing: "-0.03em" }}
+              style={{ color: "var(--accent-color)", letterSpacing: "-0.03em" }}
             >
               {data.price ? formatCurrency(data.price) : "Price unavailable"}
             </p>
@@ -155,7 +155,7 @@ export default async function MarketPropertyPage({ params }: { params: { id: str
 function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string | number; label: string }) {
   return (
     <div className="surface-card flex flex-col items-center gap-1 py-5 text-center">
-      <span style={{ color: "var(--accent)" }}>{icon}</span>
+      <span style={{ color: "var(--accent-color)" }}>{icon}</span>
       <p className="text-2xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
         {value}
       </p>

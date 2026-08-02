@@ -65,7 +65,7 @@ export default function SendEmailModal({ contract, landlordEmail, onClose }: Pro
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4" style={{ color: "#007aff" }} />
+            <Mail className="h-4 w-4" style={{ color: "#10b981" }} />
             <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
               Email Contract
             </p>
@@ -156,7 +156,7 @@ function RecipientRow({
       <label className="flex items-center gap-2.5 cursor-pointer">
         <input
           type="checkbox"
-          className="h-4 w-4 rounded accent-[#007aff]"
+          className="h-4 w-4 rounded accent-[#10b981]"
           checked={checked}
           onChange={(e) => onCheck(e.target.checked)}
         />

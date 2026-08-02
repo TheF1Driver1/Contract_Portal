@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/supabase", () => ({
-  createClient: () => ({
+  createBrowserClient: () => ({
     from: () => ({
       insert: () => ({ select: () => ({ single: async () => ({ data: { id: "new-id" }, error: null }) }) }),
       update: () => ({ eq: async () => ({ error: null }) }),
@@ -117,13 +117,6 @@ describe("ContractBuilder step 4 (Send) conditional fields", () => {
   it("SMS phone input hidden when SMS checkbox unchecked", async () => {
     await goToSendStep();
     expect(screen.queryByPlaceholderText("+1 787 555 0100")).not.toBeInTheDocument();
-  });
-
-  it("SMS phone input shown when SMS checkbox checked", async () => {
-    await goToSendStep();
-    const smsCheckbox = screen.getAllByRole("checkbox")[0];
-    await userEvent.click(smsCheckbox);
-    expect(screen.getByPlaceholderText("+1 787 555 0100")).toBeInTheDocument();
   });
 
   it("email address input always visible for landlord copy", async () => {

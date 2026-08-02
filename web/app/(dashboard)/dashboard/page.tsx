@@ -12,10 +12,15 @@ import {
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
 import type { Contract } from "@/lib/types";
 import { HelpTooltip } from "@/components/ui/help-tooltip";
-import CashflowChart from "@/components/CashflowChart";
-import ExpenseIncomeChart from "@/components/ExpenseIncomeChart";
-import MarketStatsWidget from "@/components/MarketStatsWidget";
-import RentVsMarketChart from "@/components/RentVsMarketChart";
+import { Skeleton } from "@/components/ui/skeleton";
+import dynamic from "next/dynamic";
+
+// ponytail: recharts is ~150kB; lazy-load keeps dashboard first-load JS lean
+const chartSkeleton = () => <Skeleton className="h-[200px] w-full" />;
+const CashflowChart = dynamic(() => import("@/components/CashflowChart"), { ssr: false, loading: chartSkeleton });
+const ExpenseIncomeChart = dynamic(() => import("@/components/ExpenseIncomeChart"), { ssr: false, loading: chartSkeleton });
+const MarketStatsWidget = dynamic(() => import("@/components/MarketStatsWidget"), { ssr: false, loading: chartSkeleton });
+const RentVsMarketChart = dynamic(() => import("@/components/RentVsMarketChart"), { ssr: false, loading: chartSkeleton });
 
 const STATUS_PILL: Record<string, string> = {
   signed: "pill-active",
@@ -107,10 +112,10 @@ export default async function DashboardPage() {
       value: formatCurrency(monthlyRevenue),
       sub: `${activeContracts.length} active lease${activeContracts.length !== 1 ? "s" : ""}`,
       icon: TrendingUp,
-      iconBg: "linear-gradient(135deg, #0057d9 0%, #007aff 100%)",
+      iconBg: "linear-gradient(135deg, #0e4d34 0%, #10b981 100%)",
       iconColor: "#fff",
-      iconGlow: "0 4px 14px rgba(0,122,255,0.45)",
-      valueColor: "#007aff",
+      iconGlow: "0 4px 14px rgba(16, 185, 129,0.45)",
+      valueColor: "#10b981",
     },
     {
       label: "Properties",
@@ -163,7 +168,7 @@ export default async function DashboardPage() {
             Overview
           </p>
           <h1
-            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400"
+            className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
             style={{ letterSpacing: "-0.03em" }}
           >
             Dashboard
@@ -279,7 +284,7 @@ export default async function DashboardPage() {
             <Link
               href="/contracts"
               className="flex items-center gap-1 text-xs font-medium hover:opacity-70 transition-opacity"
-              style={{ color: "#007aff" }}
+              style={{ color: "#10b981" }}
             >
               View all
               <ArrowRight className="h-3 w-3" />
@@ -428,7 +433,7 @@ export default async function DashboardPage() {
                 <Link
                   href={`/contracts/${c.id}`}
                   className="flex items-center gap-1.5 text-xs font-semibold hover:opacity-70 transition-opacity"
-                  style={{ color: "#007aff" }}
+                  style={{ color: "#10b981" }}
                 >
                   Finish
                   <ArrowRight className="h-3 w-3" />

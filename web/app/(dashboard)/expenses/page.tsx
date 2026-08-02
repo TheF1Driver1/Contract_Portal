@@ -87,7 +87,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
           <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
             Finance
           </p>
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400" style={{ letterSpacing: "-0.03em" }}>
+          <h1 className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]" style={{ letterSpacing: "-0.03em" }}>
             Expenses
           </h1>
         </div>
@@ -132,9 +132,9 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
               href={`/expenses?year=${y}${property_id ? `&property_id=${property_id}` : ""}${category ? `&category=${category}` : ""}`}
               className="rounded-xl px-3 py-1.5 text-xs font-medium transition-all"
               style={{
-                background: y === year ? "rgba(0,122,255,0.18)" : "rgba(255,255,255,0.06)",
+                background: y === year ? "rgba(16, 185, 129,0.18)" : "rgba(255,255,255,0.06)",
                 color: y === year ? "#fff" : "var(--text-secondary)",
-                border: `1px solid ${y === year ? "rgba(0,122,255,0.30)" : "transparent"}`,
+                border: `1px solid ${y === year ? "rgba(16, 185, 129,0.30)" : "transparent"}`,
               }}
             >
               {y}
@@ -147,9 +147,9 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
                 href={`/expenses?year=${year}${category ? `&category=${category}` : ""}`}
                 className="rounded-xl px-3 py-1.5 text-xs font-medium transition-all"
                 style={{
-                  background: !property_id ? "rgba(0,122,255,0.18)" : "rgba(255,255,255,0.06)",
+                  background: !property_id ? "rgba(16, 185, 129,0.18)" : "rgba(255,255,255,0.06)",
                   color: !property_id ? "#fff" : "var(--text-secondary)",
-                  border: `1px solid ${!property_id ? "rgba(0,122,255,0.30)" : "transparent"}`,
+                  border: `1px solid ${!property_id ? "rgba(16, 185, 129,0.30)" : "transparent"}`,
                 }}
               >
                 All Properties
@@ -160,9 +160,9 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
                   href={`/expenses?year=${year}&property_id=${p.id}${category ? `&category=${category}` : ""}`}
                   className="rounded-xl px-3 py-1.5 text-xs font-medium transition-all"
                   style={{
-                    background: property_id === p.id ? "rgba(0,122,255,0.18)" : "rgba(255,255,255,0.06)",
+                    background: property_id === p.id ? "rgba(16, 185, 129,0.18)" : "rgba(255,255,255,0.06)",
                     color: property_id === p.id ? "#fff" : "var(--text-secondary)",
-                    border: `1px solid ${property_id === p.id ? "rgba(0,122,255,0.30)" : "transparent"}`,
+                    border: `1px solid ${property_id === p.id ? "rgba(16, 185, 129,0.30)" : "transparent"}`,
                   }}
                 >
                   {p.name}

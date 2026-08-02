@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, ArrowRight, ExternalLink, Calculator } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { WatchlistItem } from "@/lib/types";
@@ -51,7 +52,7 @@ export default async function WatchlistPage() {
           Saved
         </p>
         <h1
-          className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400"
+          className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
           style={{ letterSpacing: "-0.03em" }}
         >
           Watchlist
@@ -74,7 +75,7 @@ export default async function WatchlistPage() {
               No saved properties
             </p>
             <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-              Browse market listings and save properties you're interested in
+              Browse market listings and save properties you&apos;re interested in
             </p>
           </div>
           <Link href="/market" className="btn-primary-gradient flex items-center gap-1.5">
@@ -96,10 +97,12 @@ export default async function WatchlistPage() {
               {/* ── Image ── */}
               <div className="relative h-44 overflow-hidden" style={{ background: "var(--surface-container)" }}>
                 {item.img_src ? (
-                  <img
+                  <Image
                     src={item.img_src}
                     alt={item.street ?? "Property"}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Pencil, Loader2, X, AlertTriangle } from "lucide-react";
 import type { Tenant } from "@/lib/types";
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
@@ -45,7 +45,7 @@ export default function EditTenantModal({ tenant }: { tenant: Tenant }) {
     country: tenant.previous_country ?? "US",
   });
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));

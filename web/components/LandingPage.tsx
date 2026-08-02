@@ -17,7 +17,7 @@ export function LandingPage() {
       {/* Foreground content */}
       <div className="pointer-events-none relative z-10 flex items-center h-screen px-12">
         <div className="pointer-events-auto flex flex-col gap-6 max-w-lg">
-          <h1 className="text-5xl md:text-6xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
+          <h1 className="font-display text-5xl md:text-6xl font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]">
             Modern Lease<br />Management
           </h1>
 

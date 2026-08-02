@@ -57,7 +57,7 @@ export default function ExpenseIncomeChart({ data }: { data: DataPoint[] }) {
             iconSize={8}
             wrapperStyle={{ fontSize: 11, color: "rgba(120,135,160,0.7)", paddingTop: 8 }}
           />
-          <Bar dataKey="income" name="Income" fill="#007aff" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="income" name="Income" fill="#10b981" radius={[4, 4, 0, 0]} />
           <Bar dataKey="expenses" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>

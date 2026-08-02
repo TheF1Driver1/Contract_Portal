@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Plus, Loader2, X } from "lucide-react";
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
 
@@ -26,7 +26,7 @@ export default function AddTenantModal({ userId }: { userId: string }) {
   const [cur, setCur] = useState({ ...EMPTY_ADDR });
   const [prev, setPrev] = useState({ ...EMPTY_ADDR });
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));

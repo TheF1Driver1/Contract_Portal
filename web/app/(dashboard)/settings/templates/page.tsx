@@ -9,7 +9,7 @@ import type { ContractTemplate } from "@/lib/types";
 const S = {
   border: "rgba(255,255,255,0.07)",
   muted: "var(--text-muted)",
-  accent: "#007aff",
+  accent: "#10b981",
 };
 
 export default function TemplatesPage() {
@@ -59,7 +59,7 @@ export default function TemplatesPage() {
             border: `1px solid ${S.border}`,
             color: S.accent,
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,122,255,0.08)")}
+          onMouseEnter={e => (e.currentTarget.style.background = "rgba(16, 185, 129,0.08)")}
           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
         >
           <BookOpen className="h-3.5 w-3.5" />

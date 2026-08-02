@@ -70,7 +70,7 @@ export default async function ContractDetailPage({
               Contract
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-3xl font-bold tracking-tight" style={{ letterSpacing: "-0.03em" }}>
+              <h1 className="font-display text-3xl font-bold tracking-tight" style={{ letterSpacing: "-0.03em" }}>
                 {c.tenant?.full_name}
               </h1>
               <span className={STATUS_PILL[c.status] ?? "pill-draft"}>{c.status}</span>
@@ -252,7 +252,7 @@ export default async function ContractDetailPage({
 function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex items-center gap-1.5 pb-1 border-b" style={{ borderColor: "var(--surface-container)" }}>
-      <span style={{ color: "var(--accent)" }}>{icon}</span>
+      <span style={{ color: "var(--accent-color)" }}>{icon}</span>
       <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
         {label}
       </p>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { createBrowserClient } from "@/lib/supabase";
 import { Users, X, Search, Loader2, Trash2, Check, Clock } from "lucide-react";
 import type { Property, PropertyCoOwner } from "@/lib/types";
 
@@ -25,7 +25,7 @@ export default function CoOwnersModal({ property }: { property: Property }) {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   const fetchCoOwners = useCallback(async () => {
     setLoading(true);
@@ -162,7 +162,7 @@ export default function CoOwnersModal({ property }: { property: Property }) {
                       <div className="flex items-center gap-2 ml-3 shrink-0">
                         <span
                           className="text-xs font-semibold px-2 py-0.5 rounded-lg"
-                          style={{ background: "rgba(0,122,255,0.12)", color: "#007aff" }}
+                          style={{ background: "rgba(16, 185, 129,0.12)", color: "#10b981" }}
                         >
                           {co.ownership_pct}%
                         </span>

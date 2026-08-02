@@ -45,8 +45,8 @@ export default function CashflowChart({ data }: Props) {
         <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#007aff" stopOpacity={0.18} />
-              <stop offset="100%" stopColor="#007aff" stopOpacity={0.01} />
+              <stop offset="0%" stopColor="#10b981" stopOpacity={0.18} />
+              <stop offset="100%" stopColor="#10b981" stopOpacity={0.01} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -73,18 +73,18 @@ export default function CashflowChart({ data }: Props) {
           />
           <Tooltip
             content={<CustomTooltip />}
-            cursor={{ stroke: "#007aff", strokeWidth: 1, strokeDasharray: "4 4" }}
+            cursor={{ stroke: "#10b981", strokeWidth: 1, strokeDasharray: "4 4" }}
           />
           <Area
             type="monotone"
             dataKey="income"
-            stroke="#007aff"
+            stroke="#10b981"
             strokeWidth={2.5}
             fill="url(#incomeGradient)"
             dot={false}
             activeDot={{
               r: 5,
-              fill: "#007aff",
+              fill: "#10b981",
               stroke: "white",
               strokeWidth: 2,
             }}
