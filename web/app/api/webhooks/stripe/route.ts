@@ -59,12 +59,16 @@ export async function POST(req: NextRequest) {
       id: string;
       customer: string;
       status: string;
-      current_period_end: number;
-      items: { data: { price: { id: string } }[] };
+      current_period_end?: number;
+      items: { data: { price: { id: string }; current_period_end?: number }[] };
       metadata?: { owner_id?: string };
     };
-    const priceId = sub.items.data[0]?.price?.id ?? "";
+    const item = sub.items.data[0];
+    const priceId = item?.price?.id ?? "";
     const plan = mapStripePlanToPlan(priceId);
+    // API versions 2025-03-31+ moved current_period_end from the subscription
+    // to the subscription item; fall back to the old top-level field for safety
+    const currentPeriodEnd = item?.current_period_end ?? sub.current_period_end;
     const ownerId = sub.metadata?.owner_id;
     if (!ownerId) return NextResponse.json({ received: true });
 
@@ -84,7 +88,9 @@ export async function POST(req: NextRequest) {
         stripe_subscription_id: sub.id,
         plan,
         status: sub.status,
-        current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+        current_period_end: currentPeriodEnd
+          ? new Date(currentPeriodEnd * 1000).toISOString()
+          : null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "owner_id" }
