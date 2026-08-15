@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 export function createAdminClient() {
   return createSupabaseClient(
@@ -11,6 +11,25 @@ export function createAdminClient() {
 }
 
 export function createClient() {
+  // Native clients (e.g. the iOS app) authenticate with a bearer token
+  // instead of a cookie session. Honor it here, still scoped to the
+  // anon key so RLS is enforced exactly as it is for the cookie path.
+  const authHeader = headers().get("authorization");
+  const bearerToken = authHeader?.toLowerCase().startsWith("bearer ")
+    ? authHeader.slice(7)
+    : null;
+
+  if (bearerToken) {
+    return createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: { headers: { Authorization: `Bearer ${bearerToken}` } },
+        auth: { persistSession: false, autoRefreshToken: false },
+      }
+    );
+  }
+
   const cookieStore = cookies();
 
   return createServerClient(
