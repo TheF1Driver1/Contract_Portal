@@ -11,9 +11,10 @@ const STATUS_PILL: Record<string, string> = {
   draft:   "pill-draft",
   sent:    "pill-sent",
   expired: "pill-expired",
+  cancelled: "pill-expired",
 };
 
-const STATUS_FILTERS = ["all", "draft", "sent", "signed", "expired"];
+const STATUS_FILTERS = ["all", "draft", "sent", "signed", "expired", "cancelled"];
 
 export default async function ContractsPage({
   searchParams,
@@ -85,6 +86,7 @@ export default async function ContractsPage({
         style={{ animationDelay: "0.08s", animationFillMode: "both" }}
       >
         <form className="flex-1 min-w-[200px]">
+          {searchParams.status && <input type="hidden" name="status" value={searchParams.status} />}
           <input
             name="q"
             className="input-tonal"
@@ -96,13 +98,13 @@ export default async function ContractsPage({
           {STATUS_FILTERS.map((s) => (
             <Link
               key={s}
-              href={s === "all" ? "/contracts" : `/contracts?status=${s}`}
+              href={statusHref(s, searchParams.q)}
               className={cn(
                 "rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-all duration-200",
                 activeStatus === s
                   ? s === "signed"  ? "pill-active"
                   : s === "sent"    ? "pill-sent"
-                  : s === "expired" ? "pill-expired"
+                  : s === "expired" || s === "cancelled" ? "pill-expired"
                   : s === "draft"   ? "pill-draft"
                   : "pill-active"
                   : "btn-tonal"
@@ -181,4 +183,12 @@ export default async function ContractsPage({
       )}
     </div>
   );
+}
+
+function statusHref(status: string, q?: string) {
+  const params = new URLSearchParams();
+  if (status !== "all") params.set("status", status);
+  if (q) params.set("q", q);
+  const qs = params.toString();
+  return qs ? `/contracts?${qs}` : "/contracts";
 }

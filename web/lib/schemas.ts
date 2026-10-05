@@ -224,6 +224,17 @@ export const TenantSignatureSchema = z.object({
   tenant_signature: z.string().min(100).max(100_000).startsWith('data:image/'),
 });
 
+// ── Landlord-side signature capture (landlord or in-person tenant) ───────────
+
+export const ContractSignatureSchema = z.object({
+  role: z.enum(['landlord', 'tenant']),
+  signature: z.string().min(100).max(100_000).startsWith('data:image/'),
+});
+
+export const ContractSignatureDeleteSchema = z.object({
+  role: z.enum(['landlord', 'tenant']),
+});
+
 // ── Tenant update ────────────────────────────────────────────────────────────
 
 export const TenantUpdateSchema = z.object({
