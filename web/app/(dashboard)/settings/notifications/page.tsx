@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Plus, Trash2, Loader2, Mail } from "lucide-react";
+import { Bell, Plus, Trash2, Loader2, Mail, Pencil, Check, X } from "lucide-react";
 import type { NotificationTrigger } from "@/lib/types";
 
 export default function NotificationsSettingsPage() {
@@ -12,6 +12,12 @@ export default function NotificationsSettingsPage() {
 
   const [daysBefore, setDaysBefore] = useState<number | "">(30);
   const [label, setLabel]           = useState("");
+
+  const [editingId, setEditingId]       = useState<string | null>(null);
+  const [editDays, setEditDays]         = useState<number | "">("");
+  const [editLabel, setEditLabel]       = useState("");
+  const [editSaving, setEditSaving]     = useState(false);
+  const [editError, setEditError]       = useState<string | null>(null);
 
   useEffect(() => { fetchTriggers(); }, []);
 
@@ -65,6 +71,39 @@ export default function NotificationsSettingsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated),
     });
+  }
+
+  function startEdit(trigger: NotificationTrigger) {
+    setEditingId(trigger.id);
+    setEditDays(trigger.days_before);
+    setEditLabel(trigger.label ?? "");
+    setEditError(null);
+  }
+
+  async function handleSaveEdit(id: string) {
+    if (!editDays || editDays < 1 || editDays > 365) {
+      setEditError("Days must be between 1 and 365");
+      return;
+    }
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      const res = await fetch(`/api/notification-triggers/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ days_before: Number(editDays), label: editLabel.trim() || null }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : res.statusText);
+      setTriggers((prev) =>
+        prev.map((t) => (t.id === id ? data : t)).sort((a, b) => a.days_before - b.days_before)
+      );
+      setEditingId(null);
+    } catch (e) {
+      setEditError((e as Error).message);
+    } finally {
+      setEditSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {
@@ -183,6 +222,42 @@ export default function NotificationsSettingsPage() {
                 />
               </button>
 
+              {editingId === trigger.id ? (
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={editDays}
+                      onChange={(e) => setEditDays(e.target.value === "" ? "" : Number(e.target.value))}
+                      className="w-20 rounded-lg border px-2 py-1 text-sm"
+                      style={{
+                        background:  "var(--surface-container)",
+                        borderColor: "var(--surface-border)",
+                        color:       "var(--text-primary)",
+                      }}
+                      aria-label="Days before expiry"
+                    />
+                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>days before</span>
+                    <input
+                      type="text"
+                      maxLength={100}
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      className="w-40 rounded-lg border px-2 py-1 text-sm"
+                      style={{
+                        background:  "var(--surface-container)",
+                        borderColor: "var(--surface-border)",
+                        color:       "var(--text-primary)",
+                      }}
+                      placeholder="Label (optional)"
+                      aria-label="Label"
+                    />
+                  </div>
+                  {editError && <p className="text-xs" style={{ color: "#ff3b30" }}>{editError}</p>}
+                </div>
+              ) : (
               <div>
                 <p className="text-sm font-semibold">
                   {trigger.days_before} {trigger.days_before === 1 ? "day" : "days"} before expiry
@@ -196,16 +271,49 @@ export default function NotificationsSettingsPage() {
                   <Mail className="h-3 w-3" /> Email
                 </span>
               </div>
+              )}
             </div>
 
-            <button
-              onClick={() => handleDelete(trigger.id)}
-              className="shrink-0 rounded-full p-1.5 transition-colors hover:bg-red-500/10"
-              style={{ color: "#ff3b30" }}
-              aria-label="Delete trigger"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            <div className="flex shrink-0 items-center gap-1">
+              {editingId === trigger.id ? (
+                <>
+                  <button
+                    onClick={() => handleSaveEdit(trigger.id)}
+                    disabled={editSaving}
+                    className="rounded-full p-1.5 transition-colors hover:bg-white/5 disabled:opacity-50"
+                    style={{ color: "var(--accent-color)" }}
+                    aria-label="Save trigger"
+                  >
+                    {editSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="rounded-full p-1.5 transition-colors hover:bg-white/5"
+                    style={{ color: "var(--text-muted)" }}
+                    aria-label="Cancel editing"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => startEdit(trigger)}
+                  className="rounded-full p-1.5 transition-colors hover:bg-white/5"
+                  style={{ color: "var(--text-muted)" }}
+                  aria-label="Edit trigger"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                onClick={() => handleDelete(trigger.id)}
+                className="rounded-full p-1.5 transition-colors hover:bg-red-500/10"
+                style={{ color: "#ff3b30" }}
+                aria-label="Delete trigger"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         ))}
       </div>

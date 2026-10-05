@@ -30,7 +30,15 @@ export async function PATCH(
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    if (error.code === "23505") {
+      return NextResponse.json(
+        { error: `A trigger for ${parsed.data.days_before} days already exists` },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   return NextResponse.json(data);
