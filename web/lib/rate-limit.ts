@@ -46,7 +46,16 @@ async function check(
   id: string
 ): Promise<NextResponse | null> {
   if (!limiter) return null; // fail open when Redis not configured
-  const { success, limit, remaining, reset } = await limiter.limit(id);
+  let result: Awaited<ReturnType<Ratelimit["limit"]>>;
+  try {
+    result = await limiter.limit(id);
+  } catch (err) {
+    // fail open when Redis is unreachable (deleted DB, DNS, network) so an
+    // Upstash outage doesn't take every rate-limited API route down with 500s
+    console.error("[rate-limit] Redis unavailable, allowing request:", err);
+    return null;
+  }
+  const { success, limit, remaining, reset } = result;
   if (success) return null;
   return NextResponse.json(
     { error: "Too many requests" },
