@@ -7,6 +7,7 @@ import { ArrowLeft, User, Building2, DollarSign, Calendar, Key, AlertTriangle, U
 import type { ContractOccupant, ContractNotificationLog } from "@/lib/types";
 import ContractActions from "./ContractActions";
 import NotificationPanel from "./NotificationPanel";
+import ContractSignatures from "./ContractSignatures";
 import ContractDocumentsPanel from "@/components/ContractDocumentsPanel";
 
 const STATUS_PILL: Record<string, string> = {
@@ -14,6 +15,7 @@ const STATUS_PILL: Record<string, string> = {
   sent:    "pill-sent",
   draft:   "pill-draft",
   expired: "pill-expired",
+  cancelled: "pill-expired",
 };
 
 export default async function ContractDetailPage({
@@ -194,57 +196,15 @@ export default async function ContractDetailPage({
       </div>
 
       {/* Signatures */}
-      {(c.landlord_signature || c.tenant_signature || coTenants.some((ct) => ct.signature)) && (
-        <div className="surface-card">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-            Signatures
-          </p>
-          <div className="grid gap-6 sm:grid-cols-2">
-            {c.tenant_signature && (
-              <div>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                  Tenant — {c.tenant?.full_name}
-                </p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={c.tenant_signature}
-                  alt="Tenant signature"
-                  className="h-20 w-full rounded-xl object-contain"
-                  style={{ background: "var(--surface-container)" }}
-                />
-              </div>
-            )}
-            {coTenants.filter((ct) => ct.signature).map((ct, i) => (
-              <div key={ct.id}>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                  Co-Tenant {i + 2} — {ct.full_name}
-                </p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={ct.signature!}
-                  alt={`${ct.full_name} signature`}
-                  className="h-20 w-full rounded-xl object-contain"
-                  style={{ background: "var(--surface-container)" }}
-                />
-              </div>
-            ))}
-            {c.landlord_signature && (
-              <div>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                  Landlord
-                </p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={c.landlord_signature}
-                  alt="Landlord signature"
-                  className="h-20 w-full rounded-xl object-contain"
-                  style={{ background: "var(--surface-container)" }}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <ContractSignatures
+        contractId={c.id}
+        tenantName={c.tenant?.full_name}
+        landlordSignature={c.landlord_signature}
+        tenantSignature={c.tenant_signature}
+        coTenantSignatures={coTenants
+          .map((ct, i) => ({ id: ct.id, label: `Co-Tenant ${i + 2} — ${ct.full_name}`, signature: ct.signature }))
+          .filter((ct): ct is { id: string; label: string; signature: string } => !!ct.signature)}
+      />
     </div>
   );
 }
