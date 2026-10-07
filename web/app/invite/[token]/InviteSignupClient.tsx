@@ -35,6 +35,8 @@ export default function InviteSignupClient({
     const res = await fetch(`/api/invite/${token}/redeem`, { method: "POST" });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error ?? "Failed to redeem invite");
+    // The role claim in the access token changed (landlord -> tenant); refresh it.
+    await supabase.auth.refreshSession();
     return json.contractId as string;
   }
 

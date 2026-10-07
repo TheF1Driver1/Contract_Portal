@@ -25,9 +25,13 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims() verifies the JWT locally once asymmetric signing keys are on
+  // (it falls back to a network check with the legacy shared secret).
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims as
+    | { sub?: string; app_role?: string; locale?: string }
+    | undefined;
+  const user = claims?.sub ? { id: claims.sub } : null;
 
   const { pathname } = request.nextUrl;
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/forgot-password") || pathname.startsWith("/reset-password");
@@ -49,14 +53,24 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Fetch role and locale for authenticated users on non-API routes
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, locale, plan")
-    .eq("id", user.id)
-    .single();
-  const role = (profile?.role as string | undefined) ?? "landlord";
-  const locale = (profile?.locale as string | undefined) ?? "es";
+  // API routes authorize themselves; nothing below applies to them.
+  if (isApiRoute) return supabaseResponse;
+
+  // Role and locale come from the custom access-token hook (migration 015).
+  // Until the hook is enabled, fall back to one profile lookup.
+  let role = claims?.app_role;
+  let locale = claims?.locale;
+  if (!role || !locale) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, locale")
+      .eq("id", user.id)
+      .single();
+    role = role ?? (profile?.role as string | undefined);
+    locale = locale ?? (profile?.locale as string | undefined);
+  }
+  role = role ?? "landlord";
+  locale = locale ?? "es";
 
   // Set locale cookie for next-intl (only if different from current cookie)
   const currentLocaleCookie = request.cookies.get("NEXT_LOCALE")?.value;
