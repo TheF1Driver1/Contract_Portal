@@ -1,46 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import {
+  sendPaymentFailedEmail,
   sendSubscriptionActivatedEmail,
   sendSubscriptionCancelledEmail,
 } from "@/lib/emails/subscription";
-import type { SubscriptionPlan } from "@/lib/types";
+import { effectivePlan, getStripe, planForPrice, storedStatus } from "@/lib/stripe";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://prcontract.online";
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
+
+type Admin = ReturnType<typeof createAdminClient>;
 
 // Email failures must never fail the webhook — Stripe would retry the whole event
-async function notifyOwner(
-  supabase: ReturnType<typeof createAdminClient>,
-  ownerId: string,
-  send: (email: string) => Promise<void>
-): Promise<void> {
+async function notifyOwner(admin: Admin, ownerId: string, send: (email: string) => Promise<void>) {
   try {
-    const { data } = await supabase.auth.admin.getUserById(ownerId);
+    const { data } = await admin.auth.admin.getUserById(ownerId);
     const email = data?.user?.email;
     if (email) await send(email);
   } catch (err) {
-    console.error("[stripe-webhook] subscription email failed:", err);
+    console.error(JSON.stringify({ level: "error", msg: "stripe-webhook email failed", err: String(err) }));
   }
 }
 
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
+/** Returns true when this event id was already processed (Stripe retries deliveries). */
+async function alreadyProcessed(admin: Admin, id: string, type: string): Promise<boolean> {
+  const { error } = await admin.from("stripe_events").insert({ id, type });
+  if (!error) return false;
+  if (error.code === "23505") return true; // duplicate id
+  // Table missing (migration 013 not applied yet) or transient error: process anyway.
+  return false;
+}
 
-function mapStripePlanToPlan(priceId: string): SubscriptionPlan {
-  const map: Record<string, SubscriptionPlan> = {
-    [process.env.STRIPE_PRICE_PROPIETARIO ?? ""]: "propietario",
-    [process.env.STRIPE_PRICE_INVERSIONISTA ?? ""]: "inversionista",
-    [process.env.STRIPE_PRICE_ENTERPRISE ?? ""]: "enterprise",
-  };
-  return map[priceId] ?? "free";
+type SubLike = {
+  id: string;
+  customer: string;
+  status: string;
+  current_period_end?: number;
+  items: { data: { price: { id: string }; current_period_end?: number }[] };
+  metadata?: { owner_id?: string };
+};
+
+async function ownerFor(admin: Admin, sub: { customer?: string; metadata?: { owner_id?: string } }) {
+  if (sub.metadata?.owner_id) return sub.metadata.owner_id;
+  if (!sub.customer) return null;
+  const { data } = await admin
+    .from("subscriptions")
+    .select("owner_id")
+    .eq("stripe_customer_id", sub.customer)
+    .maybeSingle();
+  return data?.owner_id ?? null;
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature") ?? "";
-
-  // Dynamic import to avoid bundling stripe in edge runtime
-  const Stripe = (await import("stripe")).default;
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "");
+  const stripe = await getStripe();
 
   let event;
   try {
@@ -49,73 +64,61 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Webhook signature invalid" }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
+  const admin = createAdminClient();
+  if (await alreadyProcessed(admin, event.id, event.type)) {
+    return NextResponse.json({ received: true, duplicate: true });
+  }
 
   if (
     event.type === "customer.subscription.created" ||
-    event.type === "customer.subscription.updated"
+    event.type === "customer.subscription.updated" ||
+    event.type === "customer.subscription.deleted"
   ) {
-    const sub = event.data.object as unknown as {
-      id: string;
-      customer: string;
-      status: string;
-      current_period_end?: number;
-      items: { data: { price: { id: string }; current_period_end?: number }[] };
-      metadata?: { owner_id?: string };
-    };
-    const item = sub.items.data[0];
-    const priceId = item?.price?.id ?? "";
-    const plan = mapStripePlanToPlan(priceId);
-    // API versions 2025-03-31+ moved current_period_end from the subscription
-    // to the subscription item; fall back to the old top-level field for safety
-    const currentPeriodEnd = item?.current_period_end ?? sub.current_period_end;
-    const ownerId = sub.metadata?.owner_id;
+    const sub = event.data.object as unknown as SubLike;
+    const ownerId = await ownerFor(admin, sub);
     if (!ownerId) return NextResponse.json({ received: true });
 
-    // Live webhook may not subscribe to subscription.created — detect a new
-    // activation by plan diff so the email fires on whichever event arrives
-    const { data: existing } = await supabase
+    const item = sub.items?.data?.[0];
+    const pricedPlan = planForPrice(item?.price?.id ?? "");
+    const status = event.type === "customer.subscription.deleted" ? "canceled" : sub.status;
+    const plan = effectivePlan(status, pricedPlan);
+    // API versions 2025-03-31+ moved current_period_end onto the subscription item
+    const periodEnd = item?.current_period_end ?? sub.current_period_end;
+
+    const { data: existing } = await admin
       .from("subscriptions")
       .select("plan")
       .eq("owner_id", ownerId)
       .maybeSingle();
-    const isActivation = plan !== "free" && existing?.plan !== plan;
 
-    await supabase.from("subscriptions").upsert(
+    await admin.from("subscriptions").upsert(
       {
         owner_id: ownerId,
-        stripe_customer_id: sub.customer as string,
+        stripe_customer_id: sub.customer,
         stripe_subscription_id: sub.id,
         plan,
-        status: sub.status,
-        current_period_end: currentPeriodEnd
-          ? new Date(currentPeriodEnd * 1000).toISOString()
-          : null,
+        status: storedStatus(status),
+        current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "owner_id" }
     );
+    await admin.from("profiles").update({ plan }).eq("id", ownerId);
 
-    await supabase.from("profiles").update({ plan }).eq("id", ownerId);
-
-    if (isActivation) {
-      await notifyOwner(supabase, ownerId, (email) =>
-        sendSubscriptionActivatedEmail(email, plan, APP_URL)
-      );
+    if (plan !== "free" && existing?.plan !== plan) {
+      await notifyOwner(admin, ownerId, (email) => sendSubscriptionActivatedEmail(email, plan, APP_URL));
+    } else if (plan === "free" && existing?.plan && existing.plan !== "free") {
+      await notifyOwner(admin, ownerId, (email) => sendSubscriptionCancelledEmail(email, APP_URL));
     }
   }
 
-  if (event.type === "customer.subscription.deleted") {
-    const sub = event.data.object as { metadata?: { owner_id?: string } };
-    const ownerId = sub.metadata?.owner_id;
-    if (!ownerId) return NextResponse.json({ received: true });
-
-    await supabase.from("subscriptions").update({ plan: "free", status: "canceled" }).eq("owner_id", ownerId);
-    await supabase.from("profiles").update({ plan: "free" }).eq("id", ownerId);
-
-    await notifyOwner(supabase, ownerId, (email) =>
-      sendSubscriptionCancelledEmail(email, APP_URL)
-    );
+  if (event.type === "invoice.payment_failed") {
+    const invoice = event.data.object as unknown as { customer?: string };
+    const ownerId = await ownerFor(admin, { customer: invoice.customer });
+    if (ownerId) {
+      await admin.from("subscriptions").update({ status: "past_due" }).eq("owner_id", ownerId);
+      await notifyOwner(admin, ownerId, (email) => sendPaymentFailedEmail(email, APP_URL));
+    }
   }
 
   return NextResponse.json({ received: true });

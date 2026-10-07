@@ -36,10 +36,8 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
-  console.log("[user-sections POST] body:", JSON.stringify(body));
   const parsed = UserSectionTemplateCreateSchema.safeParse(body);
   if (!parsed.success) {
-    console.log("[user-sections POST] validation error:", JSON.stringify(parsed.error.flatten()));
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 

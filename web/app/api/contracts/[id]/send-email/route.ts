@@ -70,7 +70,6 @@ export async function POST(
   type ResendResult = { data: unknown; error: { message: string; name?: string } | null };
   const sends: Promise<ResendResult>[] = [];
 
-  console.log(`[send-email] contract=${params.id} from=${from} landlord=${landlordEmail ?? "none"} tenant=${tenantEmail ?? "none"}`);
 
   if (landlordEmail) {
     sends.push(resend.emails.send({
@@ -116,7 +115,6 @@ export async function POST(
     return NextResponse.json({ success: false, error: errors.join("; ") }, { status: 500 });
   }
 
-  console.log(`[send-email] SUCCESS contract=${params.id}`);
   return NextResponse.json({ success: true });
 }
 

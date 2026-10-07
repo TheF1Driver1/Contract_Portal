@@ -88,12 +88,10 @@ export async function POST(
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? `${protocol}://${host}`;
   const inviteUrl = `${appUrl}/invite/${token}`;
 
-  console.log(`[invite] contract=${params.id} tenant=${tenantEmail} inviteUrl=${inviteUrl}`);
   try {
     await sendTenantInviteEmail(tenantEmail, tenantName, propertyName, inviteUrl, landlordName);
-    console.log(`[invite] SUCCESS contract=${params.id} tenant=${tenantEmail}`);
   } catch (emailErr) {
-    console.error(`[invite] FAILED contract=${params.id} tenant=${tenantEmail} inviteUrl=${inviteUrl}`, emailErr);
+    console.error(JSON.stringify({ level: "error", msg: "invite email failed", contract: params.id, err: String(emailErr) }));
     return NextResponse.json(
       { error: "Invite created but email failed: " + (emailErr as Error).message },
       { status: 500 }

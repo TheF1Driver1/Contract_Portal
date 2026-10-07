@@ -59,7 +59,8 @@ const tiers = [
     ],
     cta: "Comenzar",
     ctaEn: "Get started",
-    href: "/api/billing/checkout?plan=propietario",
+    href: "/signup?plan=propietario",
+    checkoutPlan: "propietario",
     highlighted: true,
     badge: "Más popular",
     badgeEn: "Most popular",
@@ -92,7 +93,8 @@ const tiers = [
     ],
     cta: "Comenzar",
     ctaEn: "Get started",
-    href: "/api/billing/checkout?plan=inversionista",
+    href: "/signup?plan=inversionista",
+    checkoutPlan: "inversionista",
     highlighted: false,
   },
 ];
@@ -187,17 +189,23 @@ export default function PricingPage() {
               ))}
             </ul>
 
-            <Link
-              href={tier.href}
-              className="block w-full py-2.5 rounded-xl text-center text-sm font-semibold transition-all"
-              style={{
+            {(() => {
+              const ctaClass = "block w-full py-2.5 rounded-xl text-center text-sm font-semibold transition-all";
+              const ctaStyle = {
                 background: tier.highlighted ? "#10b981" : "rgba(255,255,255,0.08)",
                 color: tier.highlighted ? "#fff" : "rgba(200,210,230,0.90)",
                 border: tier.highlighted ? "none" : "1px solid rgba(255,255,255,0.10)",
-              }}
-            >
-              {tier.cta}
-            </Link>
+              };
+              // Paid tiers start checkout with a POST so link prefetching can't create sessions.
+              return "checkoutPlan" in tier && tier.checkoutPlan ? (
+                <form action="/api/billing/checkout" method="post">
+                  <input type="hidden" name="plan" value={tier.checkoutPlan} />
+                  <button type="submit" className={ctaClass} style={ctaStyle}>{tier.cta}</button>
+                </form>
+              ) : (
+                <Link href={tier.href} className={ctaClass} style={ctaStyle}>{tier.cta}</Link>
+              );
+            })()}
           </div>
         ))}
       </div>

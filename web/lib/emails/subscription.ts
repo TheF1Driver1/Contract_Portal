@@ -116,3 +116,26 @@ export async function sendSubscriptionCancelledEmail(
   );
   await sendResendEmail(to, subject, html);
 }
+
+export async function sendPaymentFailedEmail(
+  to: string,
+  appUrl: string
+): Promise<void> {
+  const subject =
+    "No pudimos procesar tu pago de ContractOS · We couldn't process your ContractOS payment";
+  const html = emailShell(
+    "PAGO PENDIENTE — PAYMENT FAILED",
+    `<tr><td style="padding:28px 32px 8px;">
+          <p style="margin:0 0 16px;font-size:15px;color:#222;">Hola · Hello,</p>
+          <p style="margin:0 0 16px;font-size:14px;color:#444;line-height:1.6;">
+            El cargo de tu suscripción no se completó. Stripe volverá a intentarlo; actualiza tu método de pago para no perder acceso · Your subscription charge didn't go through. Stripe will retry; update your payment method to keep access.
+          </p>
+        </td></tr>
+        <tr><td style="padding:8px 32px 28px;">
+          <a href="${appUrl}/api/billing/portal" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
+            Actualizar pago · Update payment
+          </a>
+        </td></tr>`
+  );
+  await sendResendEmail(to, subject, html);
+}

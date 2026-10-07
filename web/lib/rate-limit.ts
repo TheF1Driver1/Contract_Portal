@@ -41,12 +41,36 @@ const writeLimiter  = makeLimiter(LIMITS.write,  "rl:write");
 const readLimiter   = makeLimiter(LIMITS.read,   "rl:read");
 const publicLimiter = makeLimiter(LIMITS.public, "rl:public");
 
+// Per-instance fallback used when Redis is not configured or unreachable.
+// Fluid compute reuses instances, so this still caps bursts without making
+// every request fail (the Upstash host vanished in Sep 2026 and returned 500s).
+const memoryHits = new Map<string, number[]>();
+
+function memoryLimit(key: string, limit: number) {
+  const now = Date.now();
+  const windowStart = now - 60_000;
+  const hits = (memoryHits.get(key) ?? []).filter((t) => t > windowStart);
+  const success = hits.length < limit;
+  if (success) hits.push(now);
+  memoryHits.set(key, hits);
+  if (memoryHits.size > 10_000) memoryHits.clear(); // bound memory
+  return { success, limit, remaining: Math.max(0, limit - hits.length), reset: (hits[0] ?? now) + 60_000 };
+}
+
 async function check(
   limiter: Ratelimit | null,
+  prefix: string,
+  max: number,
   id: string
 ): Promise<NextResponse | null> {
-  if (!limiter) return null; // fail open when Redis not configured
-  const { success, limit, remaining, reset } = await limiter.limit(id);
+  let result: { success: boolean; limit: number; remaining: number; reset: number };
+  try {
+    result = limiter ? await limiter.limit(id) : memoryLimit(`${prefix}:${id}`, max);
+  } catch (err) {
+    console.error(JSON.stringify({ level: "warn", msg: "rate-limit redis unavailable; using memory", prefix, err: String(err) }));
+    result = memoryLimit(`${prefix}:${id}`, max);
+  }
+  const { success, limit, remaining, reset } = result;
   if (success) return null;
   return NextResponse.json(
     { error: "Too many requests" },
@@ -55,13 +79,13 @@ async function check(
       headers: {
         "X-RateLimit-Limit": String(limit),
         "X-RateLimit-Remaining": String(remaining),
-        "Retry-After": String(Math.ceil((reset - Date.now()) / 1000)),
+        "Retry-After": String(Math.max(1, Math.ceil((reset - Date.now()) / 1000))),
       },
     }
   );
 }
 
-export const rateLimitStrict = (id: string) => check(strictLimiter, id);
-export const rateLimitWrite = (id: string) => check(writeLimiter, id);
-export const rateLimitRead = (id: string) => check(readLimiter, id);
-export const rateLimitPublic = (ip: string) => check(publicLimiter, ip);
+export const rateLimitStrict = (id: string) => check(strictLimiter, "rl:strict", LIMITS.strict, id);
+export const rateLimitWrite = (id: string) => check(writeLimiter, "rl:write", LIMITS.write, id);
+export const rateLimitRead = (id: string) => check(readLimiter, "rl:read", LIMITS.read, id);
+export const rateLimitPublic = (ip: string) => check(publicLimiter, "rl:public", LIMITS.public, ip);

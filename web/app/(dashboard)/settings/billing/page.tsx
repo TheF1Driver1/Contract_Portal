@@ -211,17 +211,20 @@ export default function BillingPage() {
                         </li>
                       ))}
                     </ul>
-                    <Link
-                      href={`/api/billing/checkout?plan=${upgradePlan}`}
-                      className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                      style={{
-                        background: upgradePlan === "inversionista" ? "#10b981" : "rgba(48,209,88,0.20)",
-                        color: "#fff",
-                      }}
-                    >
-                      Mejorar a {planDisplayName(upgradePlan)}
-                      <ArrowUpRight size={14} />
-                    </Link>
+                    <form action="/api/billing/checkout" method="post">
+                      <input type="hidden" name="plan" value={upgradePlan} />
+                      <button
+                        type="submit"
+                        className="flex w-full items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                        style={{
+                          background: upgradePlan === "inversionista" ? "#10b981" : "rgba(48,209,88,0.20)",
+                          color: "#fff",
+                        }}
+                      >
+                        Mejorar a {planDisplayName(upgradePlan)}
+                        <ArrowUpRight size={14} />
+                      </button>
+                    </form>
                   </div>
                 );
               })}
