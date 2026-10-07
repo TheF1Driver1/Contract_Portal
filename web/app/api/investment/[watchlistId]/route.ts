@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/entitlements";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
 import { InvestmentAnalysisSchema } from "@/lib/schemas";
@@ -13,6 +14,9 @@ export async function GET(
 
   const limited = await rateLimitRead(user.id);
   if (limited) return limited;
+
+  const gated = await requireFeature(supabase, user.id, "market");
+  if (gated) return gated;
 
   const { data, error } = await supabase
     .from("investment_analyses")
@@ -35,6 +39,9 @@ export async function PUT(
 
   const limited = await rateLimitWrite(user.id);
   if (limited) return limited;
+
+  const gated = await requireFeature(supabase, user.id, "market");
+  if (gated) return gated;
 
   const body = await req.json();
   const parsed = InvestmentAnalysisSchema.safeParse(body);

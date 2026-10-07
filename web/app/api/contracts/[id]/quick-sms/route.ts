@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/entitlements";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
@@ -15,6 +16,9 @@ export async function POST(
 
   const limited = await rateLimitStrict(user.id);
   if (limited) return limited;
+
+  const gated = await requireFeature(supabase, user.id, "sms");
+  if (gated) return gated;
 
   const { data: contract, error } = await supabase
     .from("contracts")

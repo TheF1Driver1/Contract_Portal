@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/entitlements";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitStrict } from "@/lib/rate-limit";
@@ -20,6 +21,11 @@ export async function POST(req: Request) {
   }
 
   const { contractId, landlordEmail, phone } = parsed.data;
+
+  if (phone) {
+    const gated = await requireFeature(supabase, user.id, "sms");
+    if (gated) return gated;
+  }
 
   // Full contract fetch including snapshots and all joined relations
   const [{ data: contract, error }, { data: profile }, { data: sectionsData }] = await Promise.all([

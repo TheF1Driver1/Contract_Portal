@@ -15,6 +15,7 @@ import { createBrowserClient } from "@/lib/supabase";
 import type { Property, Tenant, ContractFormValues, ContractTemplate, Contract } from "@/lib/types";
 import { Loader2, Download, Send, Check, Plus, X, Save, BookOpen, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { planLimitMessage } from "@/lib/plan-errors";
 import type { ContractCustomSection, UserSectionTemplate } from "@/lib/types";
 
 interface ContractBuilderProps {
@@ -84,6 +85,7 @@ export default function ContractBuilder({
   const [additionalTenantIds, setAdditionalTenantIds] = useState<string[]>([]);
   const [coTenantSignatures, setCoTenantSignatures] = useState<string[]>([]);
   const [draftToast, setDraftToast] = useState<"saved" | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Custom sections (local state, synced to DB on save)
@@ -347,7 +349,10 @@ export default function ContractBuilder({
           .insert(payload)
           .select("id")
           .single();
-        if (error) throw error;
+        if (error) {
+          setSaveError(planLimitMessage(error) ?? "No se pudo guardar el contrato. Intenta de nuevo.");
+          throw error;
+        }
         contractId = created.id;
         setSavedId(contractId);
       }
@@ -595,6 +600,13 @@ export default function ContractBuilder({
       >
         Step {step + 1} of {STEPS.length}: {STEPS[step].label}
       </p>
+
+      {saveError && (
+        <div role="alert" className="mb-4 flex items-start justify-between gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <span>{saveError}</span>
+          <a href="/settings/billing" className="shrink-0 font-semibold underline">Ver planes</a>
+        </div>
+      )}
 
       {/* Draft saved toast */}
       {draftToast === "saved" && (

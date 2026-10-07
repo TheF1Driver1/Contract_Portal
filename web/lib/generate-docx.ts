@@ -3,6 +3,7 @@ import Docxtemplater from "docxtemplater";
 import { buildContext } from "@/lib/contract-context";
 import { createClient } from "@/lib/supabase-server";
 import type { Contract } from "@/lib/types";
+import { downloadTemplate } from "@/lib/template-storage";
 
 export async function fetchTemplate(
   supabase: ReturnType<typeof createClient>,
@@ -19,8 +20,8 @@ export async function fetchTemplate(
       .eq("owner_id", userId)
       .single();
     if (tmpl?.file_url) {
-      const res = await fetch(tmpl.file_url);
-      if (res.ok) return Buffer.from(await res.arrayBuffer());
+    const buf = await downloadTemplate(supabase, tmpl.file_url);
+    if (buf) return buf;
     }
   }
 
@@ -32,8 +33,8 @@ export async function fetchTemplate(
     .eq("contract_type", contractTypeVal)
     .single();
   if (exact?.file_url) {
-    const res = await fetch(exact.file_url);
-    if (res.ok) return Buffer.from(await res.arrayBuffer());
+    const buf = await downloadTemplate(supabase, exact.file_url);
+    if (buf) return buf;
   }
 
   const { data: all } = await supabase
@@ -44,8 +45,8 @@ export async function fetchTemplate(
     .eq("contract_type", "all")
     .single();
   if (all?.file_url) {
-    const res = await fetch(all.file_url);
-    if (res.ok) return Buffer.from(await res.arrayBuffer());
+    const buf = await downloadTemplate(supabase, all.file_url);
+    if (buf) return buf;
   }
 
   const res = await fetch(fallbackUrl);

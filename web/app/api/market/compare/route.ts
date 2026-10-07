@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/entitlements";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitRead } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
@@ -9,6 +10,9 @@ export async function GET() {
 
   const limited = await rateLimitRead(user.id);
   if (limited) return limited;
+
+  const gated = await requireFeature(supabase, user.id, "market");
+  if (gated) return gated;
 
   const { data: contracts } = await supabase
     .from("contracts")

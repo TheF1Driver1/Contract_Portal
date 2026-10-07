@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/entitlements";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
 import { WatchlistUpsertSchema, WatchlistDeleteSchema } from "@/lib/schemas";
@@ -10,6 +11,9 @@ export async function POST(req: NextRequest) {
 
   const limited = await rateLimitWrite(user.id);
   if (limited) return limited;
+
+  const gated = await requireFeature(supabase, user.id, "market");
+  if (gated) return gated;
 
   const body = await req.json();
   const parsed = WatchlistUpsertSchema.safeParse(body);
@@ -33,6 +37,9 @@ export async function DELETE(req: NextRequest) {
   const limited = await rateLimitWrite(user.id);
   if (limited) return limited;
 
+  const gated = await requireFeature(supabase, user.id, "market");
+  if (gated) return gated;
+
   const body = await req.json();
   const parsed = WatchlistDeleteSchema.safeParse(body);
   if (!parsed.success) {
@@ -54,6 +61,9 @@ export async function GET() {
 
   const limited = await rateLimitRead(user.id);
   if (limited) return limited;
+
+  const gated = await requireFeature(supabase, user.id, "market");
+  if (gated) return gated;
 
   const { data } = await supabase
     .from("watchlist")

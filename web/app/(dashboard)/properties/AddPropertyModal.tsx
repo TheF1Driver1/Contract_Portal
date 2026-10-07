@@ -5,10 +5,12 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@/lib/supabase";
 import { Plus, Loader2, X } from "lucide-react";
+import { planLimitMessage } from "@/lib/plan-errors";
 
 export default function AddPropertyModal({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -23,16 +25,19 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.from("properties").insert({
+    setError(null);
+    const { error: insertError } = await supabase.from("properties").insert({
       owner_id: userId,
       ...form,
     });
     setLoading(false);
-    if (!error) {
-      setOpen(false);
-      setForm({ name: "", address: "", city: "", state: "PR", zip: "", unit_count: 1 });
-      router.refresh();
+    if (insertError) {
+      setError(planLimitMessage(insertError) ?? "No se pudo guardar la propiedad. Intenta de nuevo.");
+      return;
     }
+    setOpen(false);
+    setForm({ name: "", address: "", city: "", state: "PR", zip: "", unit_count: 1 });
+    router.refresh();
   }
 
   return (
@@ -141,6 +146,13 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
                   />
                 </div>
               </div>
+
+              {error && (
+                <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                  {error}{" "}
+                  <a href="/settings/billing" className="font-semibold underline">Ver planes</a>
+                </p>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button

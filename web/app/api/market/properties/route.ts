@@ -1,4 +1,5 @@
-import { createAdminClient } from "@/lib/supabase-server";
+import { requireFeature } from "@/lib/entitlements";
+import { createAdminClient, createClient } from "@/lib/supabase-server";
 import { rateLimitPublic } from "@/lib/rate-limit";
 import { MarketPropertiesQuerySchema } from "@/lib/schemas";
 import { NextRequest, NextResponse } from "next/server";
@@ -26,6 +27,12 @@ export async function GET(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
   const limited = await rateLimitPublic(ip);
   if (limited) return limited;
+
+  const supabaseUser = createClient();
+  const { data: { user } } = await supabaseUser.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const gated = await requireFeature(supabaseUser, user.id, "market");
+  if (gated) return gated;
 
   const { searchParams } = new URL(req.url);
   const parsed = MarketPropertiesQuerySchema.safeParse({

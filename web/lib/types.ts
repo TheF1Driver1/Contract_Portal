@@ -555,9 +555,12 @@ export interface PropertyManager {
   created_at: string;
 }
 
+// Mirrors public.plan_entitlements (migration 012), which the database enforces.
 export const PLAN_LIMITS = {
-  free:          { max_properties: 1,        max_contracts_per_month: 3,        sms: false, schedule_e: false, managers: 0 },
-  propietario:   { max_properties: 5,        max_contracts_per_month: Infinity, sms: true,  schedule_e: false, managers: 0 },
-  inversionista: { max_properties: Infinity, max_contracts_per_month: Infinity, sms: true,  schedule_e: true,  managers: 3 },
-  enterprise:    { max_properties: Infinity, max_contracts_per_month: Infinity, sms: true,  schedule_e: true,  managers: Infinity },
-} as const satisfies Record<SubscriptionPlan, { max_properties: number; max_contracts_per_month: number; sms: boolean; schedule_e: boolean; managers: number }>;
+  free:          { max_properties: 1,        max_contracts_per_month: 3,        sms: false, market: false, templates: false, expense_export: false, schedule_e: false, managers: 0 },
+  propietario:   { max_properties: 5,        max_contracts_per_month: Infinity, sms: true,  market: true,  templates: true,  expense_export: true,  schedule_e: false, managers: 0 },
+  inversionista: { max_properties: Infinity, max_contracts_per_month: Infinity, sms: true,  market: true,  templates: true,  expense_export: true,  schedule_e: true,  managers: 3 },
+  enterprise:    { max_properties: Infinity, max_contracts_per_month: Infinity, sms: true,  market: true,  templates: true,  expense_export: true,  schedule_e: true,  managers: Infinity },
+} as const satisfies Record<SubscriptionPlan, { max_properties: number; max_contracts_per_month: number; sms: boolean; market: boolean; templates: boolean; expense_export: boolean; schedule_e: boolean; managers: number }>;
+
+export type PlanFeature = "sms" | "market" | "templates" | "expense_export" | "schedule_e";

@@ -1,8 +1,10 @@
+import { requireFeature } from "@/lib/entitlements";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { rateLimitStrict } from "@/lib/rate-limit";
 import { TemplateCreateSchema } from "@/lib/schemas";
+import { signedTemplateUrl, TEMPLATE_BUCKET } from "@/lib/template-storage";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +18,7 @@ function adminClient() {
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-const BUCKET = "contract-templates";
+const BUCKET = TEMPLATE_BUCKET;
 
 // GET /api/templates — list owner's templates
 export async function GET() {
@@ -31,7 +33,15 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+
+  // The bucket is private: hand back short-lived signed links for downloads.
+  const withLinks = await Promise.all(
+    (data ?? []).map(async (t) => ({
+      ...t,
+      file_url: t.file_url ? (await signedTemplateUrl(supabase, t.file_url)) ?? "" : "",
+    }))
+  );
+  return NextResponse.json(withLinks);
 }
 
 // POST /api/templates — upload a new .docx template
@@ -44,12 +54,11 @@ export async function POST(req: Request) {
   const limited = await rateLimitStrict(user.id);
   if (limited) return limited;
 
-  console.log("[templates POST] parsing formData");
+  const gated = await requireFeature(supabase, user.id, "templates");
+  if (gated) return gated;
   const formData = await req.formData();
-  console.log("[templates POST] formData keys:", Array.from(formData.keys()));
   const file = formData.get("file") as File | null;
   const metaRaw = formData.get("meta") as string | null;
-  console.log("[templates POST] file:", file?.name, file?.size, file?.type, "metaRaw:", metaRaw);
 
   if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
   if (file.type !== ALLOWED_MIME && !file.name.endsWith(".docx")) {
@@ -108,11 +117,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: uploadErr.message }, { status: 500 });
   }
 
-  const { data: { publicUrl } } = admin.storage.from(BUCKET).getPublicUrl(storagePath);
-
   await supabase
     .from("contract_templates")
-    .update({ file_url: publicUrl })
+    .update({ file_url: storagePath })
     .eq("id", record.id);
 
   const { data: full } = await supabase
@@ -121,7 +128,8 @@ export async function POST(req: Request) {
     .eq("id", record.id)
     .single();
 
-  return NextResponse.json(full, { status: 201 });
+  const signed = full?.file_url ? await signedTemplateUrl(supabase, full.file_url) : null;
+  return NextResponse.json({ ...full, file_url: signed ?? "" }, { status: 201 });
   } catch (err) {
     console.error("[templates POST] unhandled error:", err);
     return NextResponse.json({ error: String(err) }, { status: 500 });
