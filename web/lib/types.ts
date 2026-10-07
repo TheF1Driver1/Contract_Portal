@@ -80,7 +80,7 @@ export interface Tenant {
   monthly_income: number | null;
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
-  created_at: string;
+  created_at: string | null;
 }
 
 export interface Contract {
@@ -249,7 +249,7 @@ export interface InvestmentMetrics {
   break_even_rent: number;
 }
 
-export interface TenantSnapshot {
+export type TenantSnapshot = {
   full_name: string;
   email: string | null;
   phone: string | null;
@@ -264,7 +264,7 @@ export interface TenantSnapshot {
   emergency_contact_phone: string | null;
 }
 
-export interface PropertySnapshot {
+export type PropertySnapshot = {
   name: string;
   address: string;
   unit: string | null;

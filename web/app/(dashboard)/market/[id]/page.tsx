@@ -17,7 +17,7 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data } = await supabase
-    .from("zillow_market").select("*").eq("id", params.id).single()
+    .from("zillow_market").select("*").eq("id", Number(params.id)).maybeSingle()
 
   if (!data) return (
     <div className="surface-card py-16 text-center">
@@ -29,6 +29,7 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
     ? await supabase.from("watchlist").select("id").eq("owner_id", user.id).eq("zillow_id", params.id).single()
     : { data: null }
 
+  const motivation = data.desperation_score ?? 0
   const hasSellerSignals = data.desperation_score != null && data.desperation_score > 0
 
   return (
@@ -87,7 +88,7 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
       {hasSellerSignals && (
         <div className="surface-card space-y-4">
           <div className="flex items-center gap-2">
-            <TrendingDown className="h-4 w-4" style={{ color: motivationColor(data.desperation_score) }} />
+            <TrendingDown className="h-4 w-4" style={{ color: motivationColor(motivation) }} />
             <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Seller Motivation</p>
           </div>
 
@@ -95,7 +96,7 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
               <span>Motivation score</span>
-              <span className="font-bold" style={{ color: motivationColor(data.desperation_score) }}>
+              <span className="font-bold" style={{ color: motivationColor(motivation) }}>
                 {data.desperation_score} / 100
               </span>
             </div>
@@ -103,8 +104,8 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
               <div
                 className="h-full rounded-full transition-all"
                 style={{
-                  width: `${Math.min(data.desperation_score, 100)}%`,
-                  background: motivationColor(data.desperation_score),
+                  width: `${Math.min(motivation, 100)}%`,
+                  background: motivationColor(motivation),
                 }}
               />
             </div>

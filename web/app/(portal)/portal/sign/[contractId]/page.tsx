@@ -63,7 +63,7 @@ export default async function TenantSignPage(props: { params: Promise<{ contract
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
-      <TenantSigningClient contract={contract as Contract} />
+      <TenantSigningClient contract={contract as unknown as Contract} />
     </div>
   );
 }

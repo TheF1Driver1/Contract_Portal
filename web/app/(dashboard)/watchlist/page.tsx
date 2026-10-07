@@ -31,14 +31,14 @@ export default async function WatchlistPage() {
   const items = (data ?? []) as WatchlistItem[];
 
   // Fetch live desperation scores from zillow_market
-  const zillow_ids = items.map((i) => i.zillow_id).filter(Boolean);
+  const zillow_ids = items.map((i) => Number(i.zillow_id)).filter((n) => Number.isFinite(n));
   const scoreMap: Record<string, number | null> = {};
   if (zillow_ids.length > 0) {
     const { data: scores } = await supabase
       .from("zillow_market")
       .select("id,desperation_score")
       .in("id", zillow_ids);
-    for (const row of scores ?? []) scoreMap[row.id] = row.desperation_score;
+    for (const row of scores ?? []) if (row.id != null) scoreMap[String(row.id)] = row.desperation_score;
   }
 
   return (

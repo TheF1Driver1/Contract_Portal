@@ -23,13 +23,13 @@ export async function GET() {
   const { data: market } = await supabase
     .from("zillow_market")
     .select("city, price")
-    .eq("home_status", "FOR_SALE")
+    .eq("homeStatus", "FOR_SALE") // view keeps Zillow camelCase
     .not("price", "is", null)
     .not("city", "is", null);
 
   const rentByCity: Record<string, number[]> = {};
   for (const c of contracts ?? []) {
-    const city = (c.property as any)?.city;
+    const city = (c.property as { city?: string } | null)?.city;
     if (!city) continue;
     if (!rentByCity[city]) rentByCity[city] = [];
     rentByCity[city].push(c.rent_amount);
@@ -37,7 +37,7 @@ export async function GET() {
 
   const marketByCity: Record<string, number[]> = {};
   for (const m of market ?? []) {
-    if (!m.city) continue;
+    if (!m.city || m.price == null) continue;
     if (!marketByCity[m.city]) marketByCity[m.city] = [];
     marketByCity[m.city].push(m.price);
   }

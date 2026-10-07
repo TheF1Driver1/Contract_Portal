@@ -34,11 +34,11 @@ export default async function ContractsPage(
     .order("created_at", { ascending: false });
 
   if (searchParams.status) {
-    query = query.eq("status", searchParams.status);
+    query = query.eq("status", searchParams.status as Contract["status"]);
   }
 
   const { data: contracts } = await query;
-  const all = (contracts ?? []) as Contract[];
+  const all = (contracts ?? []) as unknown as Contract[]; // joined subset of Property/Tenant
 
   const filtered = searchParams.q
     ? all.filter(

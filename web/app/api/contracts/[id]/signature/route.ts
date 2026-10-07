@@ -1,3 +1,4 @@
+import type { TablesUpdate } from "@/lib/database.types";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitWrite } from "@/lib/rate-limit";
@@ -27,7 +28,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   const update =
     role === "landlord"
       ? { landlord_signature: signature }
-      : { tenant_signature: signature, signed_at: new Date().toISOString(), status: "signed" };
+      : { tenant_signature: signature, signed_at: new Date().toISOString(), status: "signed" as const };
 
   const { data, error } = await supabase
     .from("contracts")
@@ -68,13 +69,13 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
   if (!contract) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Removing the tenant signature un-signs the contract so it can be re-signed.
-  const update: Record<string, string | null> =
+  const update: TablesUpdate<"contracts"> =
     parsed.data.role === "landlord"
       ? { landlord_signature: null }
       : {
           tenant_signature: null,
           signed_at: null,
-          ...(contract.status === "signed" ? { status: "sent" } : {}),
+          ...(contract.status === "signed" ? { status: "sent" as const } : {}),
         };
 
   const { error } = await supabase

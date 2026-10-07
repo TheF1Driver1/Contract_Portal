@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase-server";
 import { ContractCreateSchema } from "@/lib/schemas";
 import { planLimitMessage } from "@/lib/plan-errors";
+import type { Json } from "@/lib/database.types";
 
 // Status, ownership and snapshots are server-owned, so the client can't send them.
 const amenityValue = z.union([z.string(), z.number(), z.boolean(), z.null()]);
@@ -50,9 +51,9 @@ const TENANT_SNAPSHOT_FIELDS = [
   "emergency_contact_name", "emergency_contact_phone",
 ] as const;
 
-function pick<T extends Record<string, unknown>>(row: T | null | undefined, keys: readonly string[]) {
+function pick(row: object | null | undefined, keys: readonly string[]): { [k: string]: Json } | null {
   if (!row) return null;
-  return Object.fromEntries(keys.map((k) => [k, (row as Record<string, unknown>)[k] ?? null]));
+  return Object.fromEntries(keys.map((k) => [k, ((row as Record<string, unknown>)[k] ?? null) as Json]));
 }
 
 /**
@@ -102,7 +103,7 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
   const row = {
     ...contract,
     owner_id: user.id,
-    status: fullySigned ? "signed" : "draft",
+    status: fullySigned ? ("signed" as const) : ("draft" as const),
     signed_at: fullySigned ? new Date().toISOString() : null,
     property_snapshot: {
       ...pick(property, ["name", "address", "unit", "city", "state", "zip", "country", "unit_count", "parking_count"]),
@@ -141,7 +142,13 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
           owner_id: user.id,
           role: "co_tenant" as const,
           tenant_id: c.tenant_id,
-          ...pick(t, ["full_name", "email", "phone", "ssn_last4", "license_number", "current_address", "date_of_birth"]),
+          full_name: t.full_name,
+          email: t.email,
+          phone: t.phone,
+          ssn_last4: t.ssn_last4,
+          license_number: t.license_number,
+          current_address: t.current_address,
+          date_of_birth: t.date_of_birth,
           signature: c.signature,
           signed_at: c.signature ? new Date().toISOString() : null,
           snapshot: pick(t, TENANT_SNAPSHOT_FIELDS),

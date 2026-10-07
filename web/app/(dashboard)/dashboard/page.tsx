@@ -52,7 +52,7 @@ export default async function DashboardPage() {
     supabase.from("properties").select("id, name").eq("owner_id", user!.id).order("name"),
   ]);
 
-  const contracts = (contractsResult.data ?? []) as Contract[];
+  const contracts = (contractsResult.data ?? []) as unknown as Contract[]; // joined subset
   const propertyCount = propertiesResult.data?.length ?? 0;
   const tenantCount = tenantsResult.data?.length ?? 0;
   const allExpenses = expensesResult.data ?? [];

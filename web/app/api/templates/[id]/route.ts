@@ -1,3 +1,4 @@
+import type { TablesUpdate } from "@/lib/database.types";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
@@ -46,7 +47,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
       .eq("is_default", true);
   }
 
-  const updates: Record<string, unknown> = {};
+  const updates: TablesUpdate<"contract_templates"> = {};
   if (typeof body.is_default === "boolean") updates.is_default = body.is_default;
   if (typeof body.name === "string") updates.name = body.name;
   if (typeof body.description === "string" || body.description === null) {
