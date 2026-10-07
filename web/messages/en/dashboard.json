@@ -1,0 +1,12 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome back",
+  "properties": "Properties",
+  "contracts": "Contracts",
+  "tenants": "Tenants",
+  "activeLeases": "Active Leases",
+  "expiringLeases": "Expiring Soon",
+  "monthlyRevenue": "Monthly Revenue",
+  "noData": "No data yet",
+  "viewAll": "View All"
+}

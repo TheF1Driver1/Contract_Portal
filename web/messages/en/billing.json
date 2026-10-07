@@ -1,0 +1,35 @@
+{
+  "title": "Subscription & Billing",
+  "currentPlan": "Current Plan",
+  "upgrade": "Upgrade",
+  "manage": "Manage Billing",
+  "plans": {
+    "free": {
+      "name": "Gratis",
+      "price": "$0/month",
+      "description": "1 property, 3 contracts/month"
+    },
+    "propietario": {
+      "name": "Propietario",
+      "price": "$29/month",
+      "description": "Up to 5 properties, unlimited contracts"
+    },
+    "inversionista": {
+      "name": "Inversionista",
+      "price": "$99/month",
+      "description": "Unlimited properties + Schedule E reports"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "Custom",
+      "description": "For property management companies"
+    }
+  },
+  "features": {
+    "properties": "properties",
+    "contracts": "contracts/month",
+    "sms": "SMS delivery",
+    "scheduleE": "Schedule E export",
+    "managers": "property managers"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Suscripción y Facturación",
+  "currentPlan": "Plan actual",
+  "upgrade": "Mejorar plan",
+  "manage": "Administrar facturación",
+  "plans": {
+    "free": {
+      "name": "Gratis",
+      "price": "$0/mes",
+      "description": "1 propiedad, 3 contratos/mes"
+    },
+    "propietario": {
+      "name": "Propietario",
+      "price": "$29/mes",
+      "description": "Hasta 5 propiedades, contratos ilimitados"
+    },
+    "inversionista": {
+      "name": "Inversionista",
+      "price": "$99/mes",
+      "description": "Propiedades ilimitadas + reportes Schedule E"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "Personalizado",
+      "description": "Para administradoras de propiedades"
+    }
+  },
+  "features": {
+    "properties": "propiedades",
+    "contracts": "contratos/mes",
+    "sms": "Envío por SMS",
+    "scheduleE": "Exportación Schedule E",
+    "managers": "administradores de propiedad"
+  }
+}

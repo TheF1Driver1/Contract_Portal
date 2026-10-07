@@ -1,0 +1,18 @@
+{
+  "title": "Gastos",
+  "new": "Agregar gasto",
+  "categories": {
+    "maintenance": "Mantenimiento",
+    "utilities": "Servicios",
+    "insurance": "Seguro",
+    "taxes": "Impuestos",
+    "hoa": "Cuota HOA",
+    "repairs": "Reparaciones",
+    "management": "Administración",
+    "advertising": "Publicidad",
+    "mortgage": "Hipoteca",
+    "other": "Otro"
+  },
+  "scheduleE": "Exportar Schedule E",
+  "exportCSV": "Exportar CSV"
+}

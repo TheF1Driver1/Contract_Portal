@@ -1,0 +1,32 @@
+{
+  "title": "Contracts",
+  "new": "New Contract",
+  "status": {
+    "draft": "Draft",
+    "sent": "Sent",
+    "signed": "Signed",
+    "expired": "Expired"
+  },
+  "type": {
+    "lease": "Lease Agreement",
+    "rental": "Rental Agreement",
+    "addendum": "Addendum"
+  },
+  "jurisdiction": {
+    "label": "Jurisdiction",
+    "pr": "Puerto Rico",
+    "us_mainland": "US Mainland",
+    "other": "Other"
+  },
+  "governingLaw": {
+    "other": "Other",
+    "codigo_civil_pr_2020": "Código Civil de PR (2020)",
+    "us_state": "Ley estatal (EE. UU.)"
+  },
+  "compliance": {
+    "title": "PR Legal Compliance",
+    "depositWarning": "The security deposit is above one month's rent. Puerto Rico law sets no cap, but confirm it is agreed in writing.",
+    "dacoNotice": "DACO tenant rights notice will be included",
+    "terminationClause": "60-day termination notice clause will be included"
+  }
+}

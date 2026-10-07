@@ -1,0 +1,12 @@
+{
+  "title": "Panel",
+  "welcome": "Bienvenido",
+  "properties": "Propiedades",
+  "contracts": "Contratos",
+  "tenants": "Arrendatarios",
+  "activeLeases": "Contratos activos",
+  "expiringLeases": "Por vencer",
+  "monthlyRevenue": "Ingreso mensual",
+  "noData": "Sin datos aún",
+  "viewAll": "Ver todos"
+}

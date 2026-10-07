@@ -1,0 +1,32 @@
+{
+  "title": "Contratos",
+  "new": "Nuevo contrato",
+  "status": {
+    "draft": "Borrador",
+    "sent": "Enviado",
+    "signed": "Firmado",
+    "expired": "Vencido"
+  },
+  "type": {
+    "lease": "Contrato de arrendamiento",
+    "rental": "Contrato de alquiler",
+    "addendum": "Adenda"
+  },
+  "jurisdiction": {
+    "label": "Jurisdicción",
+    "pr": "Puerto Rico",
+    "us_mainland": "EE.UU. Continental",
+    "other": "Otro"
+  },
+  "governingLaw": {
+    "other": "Otro",
+    "codigo_civil_pr_2020": "Código Civil de PR (2020)",
+    "us_state": "Ley estatal (EE. UU.)"
+  },
+  "compliance": {
+    "title": "Cumplimiento Legal PR",
+    "depositWarning": "El depósito supera un mes de renta. La ley de PR no fija un máximo, pero confirma que esté acordado por escrito.",
+    "dacoNotice": "Se incluirá la notificación de derechos del arrendatario (DACO)",
+    "terminationClause": "Se incluirá la cláusula de terminación de 60 días"
+  }
+}
