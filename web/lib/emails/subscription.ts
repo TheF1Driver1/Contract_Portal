@@ -18,7 +18,7 @@ const PLAN_COPY: Record<string, { name: string; price: string; bullets: string[]
     price: "$99/mes",
     bullets: [
       "Propiedades ilimitadas · Unlimited properties",
-      "Reporte Schedule E (IRS) · Schedule E report",
+      "Reportes de impuestos (Schedule E) · Tax reports (Schedule E)",
       "Hasta 3 administradores · Up to 3 property managers",
     ],
   },

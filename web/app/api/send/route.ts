@@ -5,6 +5,7 @@ import { rateLimitStrict } from "@/lib/rate-limit";
 import { SendContractSchema } from "@/lib/schemas";
 import { renderContractPdf } from "@/lib/pdf-react";
 import type { Contract, Profile } from "@/lib/types";
+import { sendTwilioSms } from "@/lib/notify";
 
 export async function POST(req: Request) {
   const supabase = createClient();
@@ -153,16 +154,13 @@ export async function POST(req: Request) {
   // ── SMS via Twilio ─────────────────────────────────────────────────────────
   if (phone && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
     try {
-      const twilio = (await import("twilio")).default;
-      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
       const tenantName = (contract.tenant as { full_name?: string } | null)?.full_name ?? "";
       const propertyName = (contract.property as { name?: string } | null)?.name ?? "your property";
 
-      await client.messages.create({
-        body: `Hi${tenantName ? ` ${tenantName}` : ""}, your lease agreement for ${propertyName} has been sent to your email. View it here: ${contractUrl}`,
-        from: process.env.TWILIO_PHONE_NUMBER!,
-        to: phone,
-      });
+      await sendTwilioSms(
+        phone,
+        `Hi${tenantName ? ` ${tenantName}` : ""}, your lease agreement for ${propertyName} has been sent to your email. View it here: ${contractUrl}`
+      );
       results.sms = "sent";
     } catch (e) {
       results.sms = "failed: " + (e as Error).message;

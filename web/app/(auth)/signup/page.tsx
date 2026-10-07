@@ -14,23 +14,33 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [accepted, setAccepted] = useState(false);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
+    if (!accepted) {
+      setError("Debes aceptar los Términos y la Política de privacidad. / You must accept the Terms and Privacy Policy.");
+      return;
+    }
     setLoading(true);
     setError("");
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName, terms_accepted_at: new Date().toISOString() },
+      },
     });
 
     if (error) {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push("/dashboard");
+      // Visitors who picked a paid plan on /pricing continue to checkout
+      const plan = new URLSearchParams(window.location.search).get("plan");
+      const paid = plan === "propietario" || plan === "inversionista";
+      router.push(paid ? `/settings/billing?plan=${plan}` : "/dashboard");
       router.refresh();
     }
   }
@@ -124,6 +134,27 @@ export default function SignupPage() {
                 autoComplete="new-password"
               />
             </div>
+
+            <label className="flex items-start gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={accepted}
+                onChange={(e) => setAccepted(e.target.checked)}
+                required
+              />
+              <span>
+                Acepto los{" "}
+                <Link href="/terminos" target="_blank" className="underline">
+                  Términos de servicio
+                </Link>{" "}
+                y la{" "}
+                <Link href="/privacidad" target="_blank" className="underline">
+                  Política de privacidad
+                </Link>
+                . / I accept the Terms of Service and Privacy Policy.
+              </span>
+            </label>
 
             {error && (
               <p

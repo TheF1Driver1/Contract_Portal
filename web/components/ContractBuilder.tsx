@@ -333,7 +333,7 @@ export default function ContractBuilder({
         late_fee_grace_period_days: data.late_fee_grace_period_days,
         late_fee_fixed_amount: data.late_fee_fixed_amount || 0,
         late_fee_daily_amount: data.late_fee_daily_amount || 0,
-        governing_law: data.jurisdiction === "pr" ? "ley_14_2022" : "other",
+        governing_law: data.jurisdiction === "pr" ? "codigo_civil_pr_2020" : data.jurisdiction === "us_mainland" ? "us_state" : "other",
       };
 
       let contractId = savedId;
@@ -708,13 +708,13 @@ export default function ContractBuilder({
                     style={{ background: "rgba(16, 185, 129,0.08)", border: "1px solid rgba(16, 185, 129,0.20)" }}
                   >
                     <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#10b981" }}>
-                      Cumplimiento Ley 14-2022
+                      Contrato bajo el Código Civil de PR (2020)
                     </p>
                     {[
-                      "Se incluirá aviso de derechos DACO",
-                      "Cláusula de terminación de 60 días",
-                      "Política de devolución de depósito (30 días)",
-                      "Rige bajo Ley 14 de 2022",
+                      "Incluye aviso de derechos DACO",
+                      "Aviso de no renovación con 60 días (acordado)",
+                      "Devolución del depósito en 30 días (acordado)",
+                      "Revisión por un abogado recomendada",
                     ].map((item) => (
                       <div key={item} className="flex items-center gap-2 text-xs" style={{ color: "rgba(200,210,230,0.80)" }}>
                         <Check className="h-3 w-3 text-[#10b981] shrink-0" />
@@ -727,9 +727,7 @@ export default function ContractBuilder({
                         className="flex items-center gap-2 text-xs mt-2 p-2 rounded-lg"
                         style={{ background: "rgba(255,69,58,0.10)", color: "#ff453a" }}
                       >
-                        ⚠️ El depósito ($
-                        {values.security_deposit}) excede el máximo permitido de 1 mes de canon ($
-                        {values.rent_amount}) bajo Ley 14-2022
+                        Nota: el depósito (${values.security_deposit}) supera un mes de renta (${values.rent_amount}). La ley de PR no fija un máximo, pero confirma que esté acordado por escrito.
                       </div>
                     )}
                   </div>
@@ -1067,7 +1065,7 @@ export default function ContractBuilder({
                       className="flex items-center gap-2 text-xs mt-2 p-2 rounded-lg"
                       style={{ background: "rgba(255,69,58,0.10)", color: "#ff453a" }}
                     >
-                      ⚠️ El depósito (${values.security_deposit}) excede el máximo permitido de 1 mes de canon (${values.rent_amount}) bajo Ley 14-2022
+                      Nota: el depósito (${values.security_deposit}) supera un mes de renta (${values.rent_amount}). La ley de PR no fija un máximo, pero confirma que esté acordado por escrito.
                     </div>
                   )}
                 </div>

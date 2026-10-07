@@ -1,3 +1,10 @@
+// Carriers (A2P 10DLC) require brand identification and opt-out instructions.
+const SMS_FOOTER = "ContractOS. Responde STOP para cancelar / Reply STOP to opt out.";
+
+export function withSmsFooter(body: string): string {
+  return /\bSTOP\b/.test(body) ? body : `${body}\n\n${SMS_FOOTER}`;
+}
+
 export async function sendTwilioSms(to: string, body: string): Promise<void> {
   const sid   = process.env.TWILIO_ACCOUNT_SID;
   const token = process.env.TWILIO_AUTH_TOKEN;
@@ -7,7 +14,7 @@ export async function sendTwilioSms(to: string, body: string): Promise<void> {
 
   const twilio = (await import("twilio")).default;
   const client = twilio(sid, token);
-  await client.messages.create({ body, from, to });
+  await client.messages.create({ body: withSmsFooter(body), from, to });
 }
 
 export async function sendResendEmail(

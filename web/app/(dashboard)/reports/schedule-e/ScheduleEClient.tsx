@@ -16,7 +16,7 @@ const INVERSIONISTA_FEATURES = [
   "Schedule E PDF mapped to correct IRS line numbers",
   "Income & expenses broken down per property",
   "Unlimited properties",
-  "Act 60 portfolio panel",
+  "Portfolio panel",
   "Up to 3 property managers",
   "Priority support (48h SLA)",
 ];

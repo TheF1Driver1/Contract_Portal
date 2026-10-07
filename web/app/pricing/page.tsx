@@ -40,7 +40,7 @@ const tiers = [
     features: [
       "Hasta 5 propiedades",
       "Contratos ilimitados",
-      "Plantillas conformes a Ley 14-2022",
+      "Contrato para Puerto Rico (Código Civil 2020)",
       "Envío por SMS y correo electrónico",
       "Seguimiento de gastos + exportación CSV",
       "Análisis de mercado",
@@ -50,7 +50,7 @@ const tiers = [
     featuresEn: [
       "Up to 5 properties",
       "Unlimited contracts",
-      "Ley 14-2022 compliant templates",
+      "Puerto Rico lease template (2020 Civil Code)",
       "SMS + email delivery",
       "Expense tracking + CSV export",
       "Market analytics",
@@ -71,16 +71,15 @@ const tiers = [
     nameEn: "Investor",
     price: "$99",
     period: "/mes",
-    description: "Para inversionistas Act 60 con portafolios múltiples.",
-    descriptionEn: "For Act 60 investors with multiple properties.",
+    description: "Para inversionistas con portafolios múltiples.",
+    descriptionEn: "For investors with multiple properties.",
     features: [
       "Propiedades ilimitadas",
       "Todo lo de Propietario",
-      "Reporte Schedule E (IRS)",
+      "Reportes de impuestos (Schedule E)",
       "Panel de portafolio",
       "Delegación a administradores (hasta 3)",
       "Soporte prioritario (48 horas)",
-      "Documentos de cumplimiento Act 60",
     ],
     featuresEn: [
       "Unlimited properties",
@@ -89,7 +88,6 @@ const tiers = [
       "Portfolio dashboard",
       "Property manager delegation (up to 3)",
       "Priority support (48h SLA)",
-      "Act 60 compliance documents",
     ],
     cta: "Comenzar",
     ctaEn: "Get started",
@@ -248,6 +246,11 @@ export default function PricingPage() {
         >
           ← Volver · Back to login
         </Link>
+        <p className="mt-4 text-xs" style={{ color: "rgba(200,210,230,0.40)" }}>
+          <Link href="/terminos" className="underline">Términos</Link>
+          {" · "}
+          <Link href="/privacidad" className="underline">Privacidad</Link>
+        </p>
       </div>
     </div>
   );

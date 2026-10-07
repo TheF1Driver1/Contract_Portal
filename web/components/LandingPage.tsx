@@ -41,6 +41,14 @@ export function LandingPage() {
           </div>
         </div>
       </div>
+
+      <footer className="absolute bottom-4 left-0 right-0 z-10 text-center text-xs text-neutral-500">
+        <Link href="/terminos" className="hover:text-neutral-300">Términos</Link>
+        {" · "}
+        <Link href="/privacidad" className="hover:text-neutral-300">Privacidad</Link>
+        {" · "}
+        <Link href="/pricing" className="hover:text-neutral-300">Precios</Link>
+      </footer>
     </main>
   )
 }

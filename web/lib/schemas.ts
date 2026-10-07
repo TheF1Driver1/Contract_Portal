@@ -38,7 +38,7 @@ export const ContractCreateSchema = z.object({
   late_fee_daily_amount: nonNeg.default(0),
   tenant_snapshot: z.record(z.unknown()).optional().nullable(),
   property_snapshot: z.record(z.unknown()).optional().nullable(),
-  governing_law: z.enum(['ley_14_2022', 'ley_464', 'other']).optional().nullable(),
+  governing_law: z.enum(['codigo_civil_pr_2020', 'us_state', 'other']).optional().nullable(),
   template_version: z.string().max(20).optional().nullable(),
 });
 

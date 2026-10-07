@@ -34,7 +34,7 @@ const upgradeFeatures: { plan: Exclude<SubscriptionPlan, "free">; features: stri
       "Contratos ilimitados",
       "Envío por SMS",
       "Exportación de gastos (CSV)",
-      "Plantillas conformes a Ley 14-2022",
+      "Contrato para Puerto Rico (Código Civil 2020)",
       "Análisis de mercado y lista de seguimiento",
     ],
   },
@@ -42,11 +42,10 @@ const upgradeFeatures: { plan: Exclude<SubscriptionPlan, "free">; features: stri
     plan: "inversionista",
     features: [
       "Propiedades ilimitadas",
-      "Reporte Schedule E (IRS)",
-      "Panel de portafolio Act 60",
+      "Reportes de impuestos (Schedule E)",
+      "Panel de portafolio",
       "Hasta 3 administradores de propiedad",
       "Soporte prioritario (48h SLA)",
-      "Documentos de cumplimiento Act 60",
     ],
   },
 ];

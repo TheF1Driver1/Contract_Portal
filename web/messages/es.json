@@ -61,13 +61,13 @@
       "other": "Otro"
     },
     "governingLaw": {
-      "ley_14_2022": "Ley 14 de 2022",
-      "ley_464": "Ley 464",
-      "other": "Otro"
+      "other": "Otro",
+      "codigo_civil_pr_2020": "Código Civil de PR (2020)",
+      "us_state": "Ley estatal (EE. UU.)"
     },
     "compliance": {
       "title": "Cumplimiento Legal PR",
-      "depositWarning": "El depósito de seguridad no puede exceder 1 mes de canon bajo la Ley 14-2022",
+      "depositWarning": "El depósito supera un mes de renta. La ley de PR no fija un máximo, pero confirma que esté acordado por escrito.",
       "dacoNotice": "Se incluirá la notificación de derechos del arrendatario (DACO)",
       "terminationClause": "Se incluirá la cláusula de terminación de 60 días"
     }
@@ -120,10 +120,26 @@
     "upgrade": "Mejorar plan",
     "manage": "Administrar facturación",
     "plans": {
-      "free": { "name": "Gratis", "price": "$0/mes", "description": "1 propiedad, 3 contratos/mes" },
-      "propietario": { "name": "Propietario", "price": "$29/mes", "description": "Hasta 5 propiedades, contratos ilimitados" },
-      "inversionista": { "name": "Inversionista", "price": "$99/mes", "description": "Propiedades ilimitadas + reportes Schedule E" },
-      "enterprise": { "name": "Enterprise", "price": "Personalizado", "description": "Para administradoras de propiedades" }
+      "free": {
+        "name": "Gratis",
+        "price": "$0/mes",
+        "description": "1 propiedad, 3 contratos/mes"
+      },
+      "propietario": {
+        "name": "Propietario",
+        "price": "$29/mes",
+        "description": "Hasta 5 propiedades, contratos ilimitados"
+      },
+      "inversionista": {
+        "name": "Inversionista",
+        "price": "$99/mes",
+        "description": "Propiedades ilimitadas + reportes Schedule E"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Personalizado",
+        "description": "Para administradoras de propiedades"
+      }
     },
     "features": {
       "properties": "propiedades",

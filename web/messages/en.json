@@ -61,13 +61,13 @@
       "other": "Other"
     },
     "governingLaw": {
-      "ley_14_2022": "Ley 14 de 2022",
-      "ley_464": "Ley 464",
-      "other": "Other"
+      "other": "Other",
+      "codigo_civil_pr_2020": "Código Civil de PR (2020)",
+      "us_state": "Ley estatal (EE. UU.)"
     },
     "compliance": {
       "title": "PR Legal Compliance",
-      "depositWarning": "Security deposit must not exceed 1 month's rent (unfurnished) under Ley 14-2022",
+      "depositWarning": "The security deposit is above one month's rent. Puerto Rico law sets no cap, but confirm it is agreed in writing.",
       "dacoNotice": "DACO tenant rights notice will be included",
       "terminationClause": "60-day termination notice clause will be included"
     }
@@ -120,10 +120,26 @@
     "upgrade": "Upgrade",
     "manage": "Manage Billing",
     "plans": {
-      "free": { "name": "Gratis", "price": "$0/month", "description": "1 property, 3 contracts/month" },
-      "propietario": { "name": "Propietario", "price": "$29/month", "description": "Up to 5 properties, unlimited contracts" },
-      "inversionista": { "name": "Inversionista", "price": "$99/month", "description": "Unlimited properties + Schedule E reports" },
-      "enterprise": { "name": "Enterprise", "price": "Custom", "description": "For property management companies" }
+      "free": {
+        "name": "Gratis",
+        "price": "$0/month",
+        "description": "1 property, 3 contracts/month"
+      },
+      "propietario": {
+        "name": "Propietario",
+        "price": "$29/month",
+        "description": "Up to 5 properties, unlimited contracts"
+      },
+      "inversionista": {
+        "name": "Inversionista",
+        "price": "$99/month",
+        "description": "Unlimited properties + Schedule E reports"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Custom",
+        "description": "For property management companies"
+      }
     },
     "features": {
       "properties": "properties",

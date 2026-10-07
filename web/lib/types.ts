@@ -1,7 +1,7 @@
 export type ContractStatus = "draft" | "sent" | "signed" | "expired";
 export type ContractType = "lease" | "rental" | "addendum";
 export type Jurisdiction = 'pr' | 'us_mainland' | 'other';
-export type GoverningLaw = 'ley_14_2022' | 'ley_464' | 'other';
+export type GoverningLaw = 'codigo_civil_pr_2020' | 'us_state' | 'other';
 export type SubscriptionPlan = 'free' | 'propietario' | 'inversionista' | 'enterprise';
 export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing';
 export type AppLocale = 'es' | 'en';

@@ -121,16 +121,17 @@ export function buildContext(contract: Contract) {
     firma_arrendador:   contract.landlord_signature ? SIG_LANDLORD : "_________________________",
     firma_arrendatario: contract.tenant_signature   ? SIG_TENANT   : "_________________________",
 
-    // ── PR Compliance (Ley 14-2022) ──
-    ley_aplicable: (contract as Contract & { governing_law?: string }).governing_law === 'ley_464'
-      ? 'Ley 464 de 1946 (Ley de Alquileres Razonables)'
-      : 'Ley 14 de 2022 (Ley de Arrendamiento de Bienes Inmuebles de Puerto Rico)',
+    // ── Governing law (Puerto Rico Civil Code of 2020) ──
+    // Agreed contractual terms below; wording pending attorney review (Plan 26).
+    ley_aplicable: (contract as Contract & { governing_law?: string }).governing_law === 'us_state'
+      ? 'las leyes del estado donde ubica la propiedad'
+      : 'el Código Civil de Puerto Rico de 2020 (Ley 55-2020) y demás leyes aplicables de Puerto Rico',
     daco_notice: 'Para información sobre sus derechos como arrendatario, comuníquese con el Departamento de Asuntos del Consumidor (DACO) al 787-722-7555 o visite www.daco.pr.gov.',
     lead_paint_notice: String((prop as Record<string, unknown>)?.year_built ?? '') < '1978'
       ? 'AVISO: Esta propiedad fue construida antes de 1978 y puede contener pintura a base de plomo. La exposición a polvo o pintura de plomo puede causar daños graves a la salud, especialmente en niños pequeños. Contacte a su médico para información sobre pruebas de plomo.'
       : '',
-    deposit_return_policy: `El depósito de seguridad de $${contract.security_deposit} será devuelto dentro de treinta (30) días calendario después de la terminación del arrendamiento, menos las deducciones por daños más allá del desgaste normal, de conformidad con la Ley 14 de 2022.`,
-    termination_notice_clause: 'Cualquiera de las partes podrá dar por terminado este contrato al vencimiento de su término mediante notificación escrita con no menos de sesenta (60) días de anticipación, conforme al Artículo 13 de la Ley 14 de 2022.',
-    no_waiver_clause: 'Ninguna disposición de este contrato constituye una renuncia a los derechos del arrendatario establecidos en la Ley 14 de 2022. Toda cláusula que pretenda renunciar a dichos derechos es nula y sin efecto legal.',
+    deposit_return_policy: `Las partes acuerdan que el depósito de seguridad de $${contract.security_deposit} será devuelto dentro de treinta (30) días calendario después de la terminación del arrendamiento, menos las deducciones documentadas por daños más allá del desgaste normal o por cantidades adeudadas bajo este contrato.`,
+    termination_notice_clause: 'Cualquiera de las partes podrá notificar por escrito, con no menos de sesenta (60) días de anticipación al vencimiento del término, su intención de no renovar este contrato.',
+    no_waiver_clause: 'Nada en este contrato limita los derechos que la ley aplicable reconoce al arrendatario. Cualquier cláusula contraria a la ley se tendrá por no puesta, sin afectar la validez de las demás.',
   };
 }

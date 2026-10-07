@@ -36,10 +36,11 @@ export async function middleware(request: NextRequest) {
   const isInvitePage = pathname.startsWith("/invite");
   const isPortalPage = pathname.startsWith("/portal");
   const isPricingPage = pathname === "/pricing";
+  const isLegalPage = ["/terminos", "/privacidad", "/en/terms", "/en/privacy"].includes(pathname);
   const isResetPassword = pathname.startsWith("/reset-password");
 
   // Public routes — no auth required
-  if (!user && (isAuthPage || isApiRoute || isLandingPage || isInvitePage || isPricingPage)) {
+  if (!user && (isAuthPage || isApiRoute || isLandingPage || isInvitePage || isPricingPage || isLegalPage)) {
     return supabaseResponse;
   }
 
