@@ -6,7 +6,6 @@ import Link from "next/link";
 import { createBrowserClient } from "@/lib/supabase";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { SplineScene } from "@/components/ui/splite";
-import { MeshGradientBg } from "@/components/ui/mesh-gradient-bg";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -37,7 +36,6 @@ export default function ForgotPasswordPage() {
   return (
     <main className="min-h-screen w-full relative overflow-hidden">
       {/* Background layers */}
-      <MeshGradientBg />
       <SplineScene
         scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
         className="absolute inset-0 w-full h-full"

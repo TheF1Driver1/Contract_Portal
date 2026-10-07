@@ -1,34 +1,30 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
-import Sidebar from "@/components/Sidebar";
-import { MeshGradientBg } from "@/components/ui/mesh-gradient-bg";
+import { getAlerts } from "@/lib/alerts";
+import { AppShell } from "@/components/shell/AppShell";
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) redirect("/login");
 
+  const [{ data: profile }, alerts, cookieStore] = await Promise.all([
+    supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle(),
+    getAlerts(supabase),
+    cookies(),
+  ]);
+
   return (
-    <div className="flex h-screen overflow-hidden flex-col md:flex-row bg-black relative">
-      <MeshGradientBg />
-
-      {/* Ambient background orbs */}
-      <div className="orb orb-blue" />
-      <div className="orb orb-indigo" />
-      <div className="orb orb-teal" />
-
-      <Sidebar userEmail={user.email ?? ""} />
-
-      <main className="relative z-10 flex-1 overflow-y-auto pt-14 md:pt-0 pb-16 md:pb-0">
-        <div className="mx-auto max-w-6xl px-6 py-8 md:py-10">{children}</div>
-      </main>
-    </div>
+    <AppShell
+      email={user.email ?? ""}
+      plan={profile?.plan ?? "free"}
+      alerts={alerts}
+      defaultOpen={cookieStore.get("sidebar_state")?.value !== "false"}
+    >
+      {children}
+    </AppShell>
   );
 }

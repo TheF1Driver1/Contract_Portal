@@ -26,6 +26,32 @@ export default defineConfig([{
         }],
     },
 }, {
+    // Design system guardrail (Plan 29): colors come from tokens in globals.css.
+    files: ["app/**/*.tsx", "components/**/*.tsx"],
+    ignores: [
+      "components/ui/**",          // vendored shadcn primitives
+      "components/*Chart*.tsx",    // charts may set series colors
+      "components/*Map*.tsx",
+      "app/opengraph-image.tsx",
+      "app/**/opengraph-image.tsx",
+    ],
+    rules: {
+      "no-restricted-syntax": ["warn",
+        {
+          selector: "JSXAttribute[name.name='style'] > JSXExpressionContainer > ObjectExpression",
+          message: "Use Tailwind utilities and design tokens instead of inline style objects.",
+        },
+        {
+          selector: "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+          message: "No hex colors in components; use a token (bg-primary, text-muted-foreground, ...).",
+        },
+        {
+          selector: "TemplateElement[value.raw=/#[0-9a-fA-F]{3,8}\\b/]",
+          message: "No hex colors in components; use a token.",
+        },
+      ],
+    },
+}, {
     files: ["app/**/*.tsx", "app/**/*.ts", "components/**/*.tsx"],
 
     rules: {

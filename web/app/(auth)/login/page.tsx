@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createBrowserClient } from "@/lib/supabase";
 import { Loader2, ArrowRight } from "lucide-react";
-import { MeshGradientBg } from "@/components/ui/mesh-gradient-bg";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,7 +33,6 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen w-full relative overflow-hidden">
       {/* Background layers */}
-      <MeshGradientBg />
       {/* Foreground — hero left + form right */}
       <div className="pointer-events-none relative z-10 flex items-center h-screen">
         {/* Left hero text */}

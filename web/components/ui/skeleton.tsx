@@ -1,24 +1,13 @@
-import { CSSProperties } from "react";
+import { cn } from "@/lib/utils"
 
-interface SkeletonProps {
-  className?: string;
-  style?: CSSProperties;
-}
-
-export function Skeleton({ className = "", style }: SkeletonProps) {
-  return <div className={`skeleton ${className}`} style={style} />;
-}
-
-export function SkeletonText({ lines = 1, className = "" }: { lines?: number; className?: string }) {
+function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div className={`space-y-2 ${className}`}>
-      {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton
-          key={i}
-          className="h-4"
-          style={{ width: i === lines - 1 && lines > 1 ? "60%" : "100%" }}
-        />
-      ))}
-    </div>
-  );
+    <div
+      data-slot="skeleton"
+      className={cn("animate-pulse rounded-md bg-accent", className)}
+      {...props}
+    />
+  )
 }
+
+export { Skeleton }
