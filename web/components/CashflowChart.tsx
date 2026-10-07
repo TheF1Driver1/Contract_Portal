@@ -21,11 +21,11 @@ function CustomTooltip({ active, payload, label }: any) {
       className="glass rounded-xl px-4 py-3"
       style={{ boxShadow: "0 8px 24px rgba(44,51,61,0.10)" }}
     >
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-[#acb2bf] mb-1">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-outline-variant mb-1">
         {label}
       </p>
       <p
-        className="text-lg font-bold text-[#2c333d]"
+        className="text-lg font-bold text-on-surface"
         style={{ letterSpacing: "-0.02em" }}
       >
         {new Intl.NumberFormat("en-US", {

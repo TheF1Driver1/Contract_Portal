@@ -61,7 +61,7 @@ export default function EditPropertyModal({ property }: { property: Property }) 
 
       {open && createPortal(
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-9999 flex items-center justify-center p-4 animate-fade-in"
           style={{ background: "rgba(0,0,0,0.50)", backdropFilter: "blur(6px)" }}
           onClick={() => setOpen(false)}
         >
@@ -186,7 +186,7 @@ export default function EditPropertyModal({ property }: { property: Property }) 
                   >
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded accent-[#10b981]"
+                      className="h-4 w-4 rounded accent-tertiary-container"
                       checked={form.parking_available}
                       onChange={(e) => setForm({ ...form, parking_available: e.target.checked })}
                     />

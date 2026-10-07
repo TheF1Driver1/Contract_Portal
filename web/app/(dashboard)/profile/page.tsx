@@ -95,7 +95,7 @@ function StyledInput({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       autoComplete={autoComplete}
-      className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
+      className="w-full rounded-xl px-4 py-2.5 text-sm outline-hidden transition-all"
       style={{
         background: S.input,
         border: `1px solid ${S.inputBorder}`,

@@ -142,7 +142,7 @@ export default function TemplateUploader({ templates, onUploaded, onDeleted, onS
               placeholder="e.g. Sabana Gardens Lease"
               value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+              className="w-full rounded-xl px-3 py-2 text-sm outline-hidden"
               style={{
                 background: S.surfaceMid,
                 border: `1px solid ${S.border}`,
@@ -157,7 +157,7 @@ export default function TemplateUploader({ templates, onUploaded, onDeleted, onS
             <select
               value={form.contract_type}
               onChange={e => setForm(f => ({ ...f, contract_type: e.target.value }))}
-              className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+              className="w-full rounded-xl px-3 py-2 text-sm outline-hidden"
               style={{
                 background: S.surfaceMid,
                 border: `1px solid ${S.border}`,

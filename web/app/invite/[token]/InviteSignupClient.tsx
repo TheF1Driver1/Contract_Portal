@@ -131,7 +131,7 @@ export default function InviteSignupClient({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-hidden focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
                 placeholder="Your full name"
               />
             </div>
@@ -145,7 +145,7 @@ export default function InviteSignupClient({
               type="email"
               value={tenantEmail}
               readOnly
-              className="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-2.5 text-sm text-neutral-500 outline-none cursor-not-allowed"
+              className="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-2.5 text-sm text-neutral-500 outline-hidden cursor-not-allowed"
             />
           </div>
 
@@ -161,7 +161,7 @@ export default function InviteSignupClient({
               minLength={6}
               placeholder="••••••••"
               autoComplete={tab === "signup" ? "new-password" : "current-password"}
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-hidden focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
             />
           </div>
 

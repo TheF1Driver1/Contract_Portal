@@ -20,7 +20,7 @@ export default function BillingSuccessPage() {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center px-4">
       {status === "loading" ? (
-        <Loader2 size={40} className="text-[#10b981] animate-spin mb-6" />
+        <Loader2 size={40} className="text-tertiary-container animate-spin mb-6" />
       ) : (
         <CheckCircle size={56} className="mb-6" style={{ color: "#30d158" }} />
       )}

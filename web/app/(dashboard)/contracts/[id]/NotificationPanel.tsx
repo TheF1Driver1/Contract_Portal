@@ -66,7 +66,7 @@ export default function NotificationPanel({
           aria-label={remindersOn ? "Turn off reminders" : "Turn on reminders"}
         >
           <span
-            className="h-4 w-4 rounded-full bg-white shadow transition-transform duration-200"
+            className="h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
             style={{ transform: remindersOn ? "translateX(18px)" : "translateX(2px)" }}
           />
         </button>

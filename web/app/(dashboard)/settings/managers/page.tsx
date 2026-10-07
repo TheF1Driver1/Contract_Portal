@@ -112,7 +112,7 @@ export default function ManagersSettingsPage() {
           Settings
         </p>
         <h1
-          className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
+          className="font-display text-4xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]"
           style={{ letterSpacing: "-0.03em" }}
         >
           Property Managers
@@ -174,7 +174,7 @@ export default function ManagersSettingsPage() {
               placeholder="manager@example.com"
               required
               disabled={!canInvite}
-              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-all"
+              className="w-full rounded-xl px-3 py-2.5 text-sm outline-hidden transition-all"
               style={{
                 background: "rgba(255,255,255,0.06)",
                 border: `1px solid ${S.border}`,

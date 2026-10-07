@@ -156,7 +156,7 @@ function RecipientRow({
       <label className="flex items-center gap-2.5 cursor-pointer">
         <input
           type="checkbox"
-          className="h-4 w-4 rounded accent-[#10b981]"
+          className="h-4 w-4 rounded accent-tertiary-container"
           checked={checked}
           onChange={(e) => onCheck(e.target.checked)}
         />

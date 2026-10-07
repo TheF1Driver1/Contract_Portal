@@ -64,7 +64,7 @@ export default async function ContractDetailPage(
         <div className="flex items-start gap-3">
           <Link
             href="/contracts"
-            className="btn-tonal mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full"
+            className="btn-tonal mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>

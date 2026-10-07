@@ -88,7 +88,7 @@ export default async function ExpensesPage(props: PageProps) {
           <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
             Finance
           </p>
-          <h1 className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]" style={{ letterSpacing: "-0.03em" }}>
+          <h1 className="font-display text-4xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]" style={{ letterSpacing: "-0.03em" }}>
             Expenses
           </h1>
         </div>
@@ -223,7 +223,7 @@ export default async function ExpensesPage(props: PageProps) {
             <div className="surface-card overflow-hidden">
               <div className="space-y-0 divide-y" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                 {all.map((e) => (
-                  <div key={e.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors group">
+                  <div key={e.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-white/2 transition-colors group">
                     <div className="flex items-center gap-3 min-w-0">
                       <span
                         className="h-2 w-2 rounded-full shrink-0"

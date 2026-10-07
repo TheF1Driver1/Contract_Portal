@@ -717,7 +717,7 @@ export default function ContractBuilder({
                       "Revisión por un abogado recomendada",
                     ].map((item) => (
                       <div key={item} className="flex items-center gap-2 text-xs" style={{ color: "rgba(200,210,230,0.80)" }}>
-                        <Check className="h-3 w-3 text-[#10b981] shrink-0" />
+                        <Check className="h-3 w-3 text-tertiary-container shrink-0" />
                         {item}
                       </div>
                     ))}
@@ -933,7 +933,7 @@ export default function ContractBuilder({
                   >
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded accent-[#10b981]"
+                      className="h-4 w-4 rounded accent-tertiary-container"
                       {...register("parking_available")}
                     />
                     <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Yes</span>
@@ -984,7 +984,7 @@ export default function ContractBuilder({
                   >
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded accent-[#10b981]"
+                      className="h-4 w-4 rounded accent-tertiary-container"
                       {...register(name as keyof ContractFormValues)}
                     />
                     <span className="text-sm" style={{ color: "var(--text-secondary)" }}>

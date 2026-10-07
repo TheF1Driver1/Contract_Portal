@@ -163,7 +163,7 @@ export default function ExpiryReminderBar() {
               placeholder="30"
               autoFocus
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              className="w-14 bg-transparent text-sm font-semibold text-center outline-none"
+              className="w-14 bg-transparent text-sm font-semibold text-center outline-hidden"
               style={{ color: "var(--text-primary)" }}
             />
             <span className="text-xs" style={{ color: "var(--text-muted)" }}>days before expiry</span>

@@ -217,7 +217,7 @@ export default function NotificationsSettingsPage() {
                 aria-label={trigger.is_active ? "Deactivate" : "Activate"}
               >
                 <span
-                  className="h-4 w-4 rounded-full bg-white shadow transition-transform"
+                  className="h-4 w-4 rounded-full bg-white shadow-sm transition-transform"
                   style={{ transform: trigger.is_active ? "translateX(18px)" : "translateX(2px)" }}
                 />
               </button>

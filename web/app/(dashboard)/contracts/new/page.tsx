@@ -62,7 +62,7 @@ export default async function NewContractPage(
           className="flex items-start gap-3 rounded-2xl p-4 text-sm"
           style={{ background: "rgba(255,149,0,0.1)", color: "var(--text-primary)" }}
         >
-          <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: "#ff9500" }} />
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#ff9500" }} />
           <div className="space-y-1">
             {!properties?.length && (
               <p>Add at least one <strong>property</strong> before creating a contract.</p>

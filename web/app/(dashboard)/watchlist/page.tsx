@@ -52,7 +52,7 @@ export default async function WatchlistPage() {
           Saved
         </p>
         <h1
-          className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
+          className="font-display text-4xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]"
           style={{ letterSpacing: "-0.03em" }}
         >
           Watchlist
@@ -129,7 +129,7 @@ export default async function WatchlistPage() {
                 )}
 
                 {/* Bottom gradient overlay */}
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/25 to-transparent pointer-events-none" />
               </div>
 
               {/* ── Content ── */}

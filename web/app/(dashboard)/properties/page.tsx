@@ -54,7 +54,7 @@ export default async function PropertiesPage() {
             Portfolio
           </p>
           <h1
-            className="font-display text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#f2efe6] to-[#a3a196]"
+            className="font-display text-4xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]"
             style={{ letterSpacing: "-0.03em" }}
           >
             Properties

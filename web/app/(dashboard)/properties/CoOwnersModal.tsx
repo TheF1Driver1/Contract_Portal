@@ -105,7 +105,7 @@ export default function CoOwnersModal({ property }: { property: Property }) {
 
       {open && createPortal(
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-9999 flex items-center justify-center p-4 animate-fade-in"
           style={{ background: "rgba(0,0,0,0.50)", backdropFilter: "blur(6px)" }}
           onClick={() => setOpen(false)}
         >

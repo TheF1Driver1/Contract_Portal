@@ -26,7 +26,7 @@ export function HelpTooltip({ text, side = "top" }: HelpTooltipProps) {
         onMouseLeave={() => setVisible(false)}
         onFocus={() => setVisible(true)}
         onBlur={() => setVisible(false)}
-        className="inline-flex items-center justify-center rounded-full opacity-40 hover:opacity-70 transition-opacity focus:outline-none"
+        className="inline-flex items-center justify-center rounded-full opacity-40 hover:opacity-70 transition-opacity focus:outline-hidden"
         aria-label="Help"
       >
         <HelpCircle className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
