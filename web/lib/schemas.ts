@@ -218,6 +218,13 @@ export const PropertyUpdateSchema = z.object({
   jurisdiction: z.enum(['pr', 'us_mainland', 'other']).optional(),
 });
 
+export const PropertyCreateSchema = PropertyUpdateSchema.required({
+  name: true,
+  address: true,
+  city: true,
+  state: true,
+});
+
 // ── Tenant portal signing ─────────────────────────────────────────────────────
 
 export const TenantSignatureSchema = z.object({
@@ -250,7 +257,21 @@ export const TenantUpdateSchema = z.object({
   monthly_income: nonNeg.optional().nullable(),
   emergency_contact_name: z.string().max(200).optional().nullable(),
   emergency_contact_phone: z.string().max(30).optional().nullable(),
+  current_street: z.string().max(300).optional().nullable(),
+  current_unit: z.string().max(100).optional().nullable(),
+  current_city: z.string().max(100).optional().nullable(),
+  current_state: z.string().max(100).optional().nullable(),
+  current_zip: z.string().max(20).optional().nullable(),
+  current_country: z.string().max(100).optional().nullable(),
+  previous_street: z.string().max(300).optional().nullable(),
+  previous_unit: z.string().max(100).optional().nullable(),
+  previous_city: z.string().max(100).optional().nullable(),
+  previous_state: z.string().max(100).optional().nullable(),
+  previous_zip: z.string().max(20).optional().nullable(),
+  previous_country: z.string().max(100).optional().nullable(),
 });
+
+export const TenantCreateSchema = TenantUpdateSchema.required({ full_name: true });
 
 // ── Subscription ──────────────────────────────────────────────────────────────
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/supabase";
+import { createTenant } from "@/lib/actions/records";
 import { Plus, Loader2, X } from "lucide-react";
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
 
@@ -26,7 +26,6 @@ export default function AddTenantModal({ userId }: { userId: string }) {
   const [cur, setCur] = useState({ ...EMPTY_ADDR });
   const [prev, setPrev] = useState({ ...EMPTY_ADDR });
   const router = useRouter();
-  const supabase = createBrowserClient();
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -35,8 +34,7 @@ export default function AddTenantModal({ userId }: { userId: string }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.from("tenants").insert({
-      owner_id: userId,
+    const { ok: saved } = await createTenant({
       ...form,
       current_street: cur.street || null,
       current_unit: cur.unit || null,
@@ -53,7 +51,7 @@ export default function AddTenantModal({ userId }: { userId: string }) {
       previous_country: prev.country || null,
     });
     setLoading(false);
-    if (!error) {
+    if (saved) {
       setOpen(false);
       setForm({ full_name: "", email: "", phone: "", ssn_last4: "", license_number: "" });
       setCur({ ...EMPTY_ADDR });

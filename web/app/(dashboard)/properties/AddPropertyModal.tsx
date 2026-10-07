@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/supabase";
 import { Plus, Loader2, X } from "lucide-react";
-import { planLimitMessage } from "@/lib/plan-errors";
+import { createProperty } from "@/lib/actions/records";
 
 export default function AddPropertyModal({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false);
@@ -20,19 +19,15 @@ export default function AddPropertyModal({ userId }: { userId: string }) {
     unit_count: 1,
   });
   const router = useRouter();
-  const supabase = createBrowserClient();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error: insertError } = await supabase.from("properties").insert({
-      owner_id: userId,
-      ...form,
-    });
+    const result = await createProperty(form);
     setLoading(false);
-    if (insertError) {
-      setError(planLimitMessage(insertError) ?? "No se pudo guardar la propiedad. Intenta de nuevo.");
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
     setOpen(false);

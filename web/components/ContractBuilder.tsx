@@ -11,11 +11,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SignaturePad from "@/components/SignaturePad";
-import { createBrowserClient } from "@/lib/supabase";
-import type { Property, Tenant, ContractFormValues, ContractTemplate, Contract } from "@/lib/types";
+import type { Property, Tenant, ContractFormValues, ContractTemplate, Contract, GoverningLaw } from "@/lib/types";
 import { Loader2, Download, Send, Check, Plus, X, Save, BookOpen, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { planLimitMessage } from "@/lib/plan-errors";
+import { saveContract } from "@/lib/actions/contracts";
 import type { ContractCustomSection, UserSectionTemplate } from "@/lib/types";
 
 interface ContractBuilderProps {
@@ -76,7 +75,6 @@ export default function ContractBuilder({
   initialData,
 }: ContractBuilderProps) {
   const router = useRouter();
-  const supabase = createBrowserClient();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [savedId, setSavedId] = useState<string | null>(initialData?.id ?? null);
@@ -293,29 +291,21 @@ export default function ContractBuilder({
         custom_amenities: data.custom_amenities || null,
       };
 
-      const payload = {
-        owner_id: userId,
+      const contract = {
         property_id: data.property_id,
         tenant_id: data.tenant_id,
         contract_type: data.contract_type,
-        status: (
-          data.landlord_signature &&
-          data.tenant_signature &&
-          additionalTenantIds.filter(Boolean).every((_, i) => !!coTenantSignatures[i])
-            ? "signed"
-            : "draft"
-        ) as "signed" | "draft",
         unit_number: data.unit_number || null,
-        lease_start: data.lease_start || null,
-        lease_end: data.lease_end || null,
+        lease_start: data.lease_start,
+        lease_end: data.lease_end,
         lease_months: data.lease_months,
-        rent_amount: data.rent_amount || 0,
+        rent_amount: data.rent_amount,
         rent_amount_verbal: data.rent_amount_verbal || null,
         security_deposit: data.security_deposit || 0,
         payment_due_day: data.payment_due_day,
-        late_fee_day: (data.payment_due_day ?? 1) + (data.late_fee_grace_period_days ?? 0),
+        late_fee_day: Math.min(31, (data.payment_due_day ?? 1) + (data.late_fee_grace_period_days ?? 0)),
         occupant_names: data.occupant_names
-          ? data.occupant_names.split(",").map((s) => s.trim())
+          ? data.occupant_names.split(",").map((s) => s.trim()).filter(Boolean)
           : [],
         occupant_count: data.occupant_count,
         amenities,
@@ -323,141 +313,28 @@ export default function ContractBuilder({
         template_id: data.template_id || null,
         landlord_signature: data.landlord_signature || null,
         tenant_signature: data.tenant_signature || null,
-        signed_at:
-          data.landlord_signature &&
-          data.tenant_signature &&
-          additionalTenantIds.filter(Boolean).every((_, i) => !!coTenantSignatures[i])
-            ? new Date().toISOString()
-            : null,
         late_fee_type: data.late_fee_type,
         late_fee_grace_period_days: data.late_fee_grace_period_days,
         late_fee_fixed_amount: data.late_fee_fixed_amount || 0,
         late_fee_daily_amount: data.late_fee_daily_amount || 0,
-        governing_law: data.jurisdiction === "pr" ? "codigo_civil_pr_2020" : data.jurisdiction === "us_mainland" ? "us_state" : "other",
+        governing_law: (data.jurisdiction === "pr" ? "codigo_civil_pr_2020" : data.jurisdiction === "us_mainland" ? "us_state" : "other") as GoverningLaw,
       };
 
-      let contractId = savedId;
-      if (contractId) {
-        const { error } = await supabase
-          .from("contracts")
-          .update(payload)
-          .eq("id", contractId);
-        if (error) throw error;
-      } else {
-        const { data: created, error } = await supabase
-          .from("contracts")
-          .insert(payload)
-          .select("id")
-          .single();
-        if (error) {
-          setSaveError(planLimitMessage(error) ?? "No se pudo guardar el contrato. Intenta de nuevo.");
-          throw error;
-        }
-        contractId = created.id;
-        setSavedId(contractId);
+      const result = await saveContract({
+        id: savedId,
+        contract,
+        coTenants: additionalTenantIds
+          .map((tid, i) => ({ tenant_id: tid, signature: coTenantSignatures[i] || null }))
+          .filter((c) => !!c.tenant_id),
+        sections: localSections,
+      });
+      if (!result.ok) {
+        setSaveError(result.error);
+        throw new Error(result.error);
       }
-
-      // Write immutable snapshots for legal accuracy
-      const selectedProperty = properties.find((p) => p.id === data.property_id);
-      const selectedTenant   = tenants.find((t) => t.id === data.tenant_id);
-      if (selectedProperty || selectedTenant) {
-        await supabase.from("contracts").update({
-          property_snapshot: selectedProperty ? {
-            name: selectedProperty.name,
-            address: selectedProperty.address,
-            unit: selectedProperty.unit ?? null,
-            city: selectedProperty.city,
-            state: selectedProperty.state,
-            zip: selectedProperty.zip ?? null,
-            country: selectedProperty.country ?? null,
-            unit_count: selectedProperty.unit_count,
-            bathroom_count: selectedProperty.bathroom_count ?? data.bathroom_count,
-            parking_available: selectedProperty.parking_available ?? data.parking_available,
-            parking_count: selectedProperty.parking_count ?? null,
-          } : null,
-          tenant_snapshot: selectedTenant ? {
-            full_name: selectedTenant.full_name,
-            email: selectedTenant.email ?? null,
-            phone: selectedTenant.phone ?? null,
-            ssn_last4: selectedTenant.ssn_last4 ?? null,
-            license_number: selectedTenant.license_number ?? null,
-            current_address: selectedTenant.current_address ?? null,
-            date_of_birth: selectedTenant.date_of_birth ?? null,
-            employer_name: selectedTenant.employer_name ?? null,
-            employer_phone: selectedTenant.employer_phone ?? null,
-            monthly_income: selectedTenant.monthly_income ?? null,
-            emergency_contact_name: selectedTenant.emergency_contact_name ?? null,
-            emergency_contact_phone: selectedTenant.emergency_contact_phone ?? null,
-          } : null,
-        }).eq("id", contractId!);
-      }
-
-      // Sync co-tenants to contract_occupants (clean slate then re-insert)
-      await supabase
-        .from("contract_occupants")
-        .delete()
-        .eq("contract_id", contractId!)
-        .eq("role", "co_tenant");
-
-      const validCoTenants = additionalTenantIds.filter(Boolean);
-      if (validCoTenants.length > 0) {
-        const occupantRows = validCoTenants.map((tid, i) => {
-          const t = tenants.find((t) => t.id === tid);
-          if (!t) return null;
-          const sig = coTenantSignatures[i] || null;
-          return {
-            contract_id: contractId!,
-            owner_id: userId,
-            role: "co_tenant" as const,
-            tenant_id: tid,
-            full_name: t.full_name,
-            email: t.email ?? null,
-            phone: t.phone ?? null,
-            ssn_last4: t.ssn_last4 ?? null,
-            license_number: t.license_number ?? null,
-            current_address: t.current_address ?? null,
-            date_of_birth: t.date_of_birth ?? null,
-            signature: sig,
-            signed_at: sig ? new Date().toISOString() : null,
-            snapshot: {
-              full_name: t.full_name,
-              email: t.email ?? null,
-              phone: t.phone ?? null,
-              ssn_last4: t.ssn_last4 ?? null,
-              license_number: t.license_number ?? null,
-              current_address: t.current_address ?? null,
-              date_of_birth: t.date_of_birth ?? null,
-              employer_name: t.employer_name ?? null,
-              employer_phone: t.employer_phone ?? null,
-              monthly_income: t.monthly_income ?? null,
-              emergency_contact_name: t.emergency_contact_name ?? null,
-              emergency_contact_phone: t.emergency_contact_phone ?? null,
-            },
-          };
-        }).filter(Boolean);
-        if (occupantRows.length > 0) {
-          await supabase.from("contract_occupants").insert(occupantRows);
-        }
-      }
-
-      // Sync custom sections (full replace)
-      await supabase
-        .from("contract_custom_sections")
-        .delete()
-        .eq("contract_id", contractId!);
-      if (localSections.length > 0) {
-        await supabase.from("contract_custom_sections").insert(
-          localSections.map((s, i) => ({
-            contract_id: contractId!,
-            owner_id: userId,
-            title: s.title,
-            body: s.body,
-            order_index: i,
-          }))
-        );
-      }
-
-      return contractId!;
+      setSaveError("");
+      setSavedId(result.id);
+      return result.id;
     } finally {
       setLoading(false);
     }

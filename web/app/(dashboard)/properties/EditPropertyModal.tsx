@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/supabase";
+import { updateProperty } from "@/lib/actions/records";
 import { Pencil, Loader2, X, AlertTriangle } from "lucide-react";
 import type { Property } from "@/lib/types";
 
@@ -22,14 +22,11 @@ export default function EditPropertyModal({ property }: { property: Property }) 
     parking_count: property.parking_count ?? 0,
   });
   const router = useRouter();
-  const supabase = createBrowserClient();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase
-      .from("properties")
-      .update({
+    const { ok: saved } = await updateProperty(property.id, {
         name: form.name,
         address: form.address,
         city: form.city,
@@ -39,10 +36,9 @@ export default function EditPropertyModal({ property }: { property: Property }) 
         bathroom_count: form.bathroom_count,
         parking_available: form.parking_available,
         parking_count: form.parking_available ? form.parking_count : null,
-      })
-      .eq("id", property.id);
+      });
     setLoading(false);
-    if (!error) {
+    if (saved) {
       setOpen(false);
       router.refresh();
     }

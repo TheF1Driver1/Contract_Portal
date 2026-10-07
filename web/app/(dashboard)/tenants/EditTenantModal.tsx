@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/supabase";
+import { updateTenant } from "@/lib/actions/records";
 import { Pencil, Loader2, X, AlertTriangle } from "lucide-react";
 import type { Tenant } from "@/lib/types";
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
@@ -45,7 +45,6 @@ export default function EditTenantModal({ tenant }: { tenant: Tenant }) {
     country: tenant.previous_country ?? "US",
   });
   const router = useRouter();
-  const supabase = createBrowserClient();
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -54,9 +53,7 @@ export default function EditTenantModal({ tenant }: { tenant: Tenant }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase
-      .from("tenants")
-      .update({
+    const { ok: saved } = await updateTenant(tenant.id, {
         full_name: form.full_name,
         email: form.email || null,
         phone: form.phone || null,
@@ -81,10 +78,9 @@ export default function EditTenantModal({ tenant }: { tenant: Tenant }) {
         previous_state: prev.state || null,
         previous_zip: prev.zip || null,
         previous_country: prev.country || null,
-      })
-      .eq("id", tenant.id);
+      });
     setLoading(false);
-    if (!error) {
+    if (saved) {
       setOpen(false);
       router.refresh();
     }
