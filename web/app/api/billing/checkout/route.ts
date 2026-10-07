@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(new URL("/pricing", req.url), 303);
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.redirect(new URL(`/signup?plan=${encodeURIComponent(plan)}`, req.url), 303);

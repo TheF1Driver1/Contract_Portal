@@ -37,7 +37,7 @@ vi.mock("@/lib/rate-limit", () => ({ rateLimitWrite: async () => null }));
 import { POST, DELETE } from "@/app/api/contracts/[id]/signature/route";
 
 const SIG = "data:image/png;base64," + "A".repeat(200);
-const params = { params: { id: "c1" } };
+const params = { params: Promise.resolve({ id: "c1" }) };
 
 function post(body: unknown) {
   return POST(

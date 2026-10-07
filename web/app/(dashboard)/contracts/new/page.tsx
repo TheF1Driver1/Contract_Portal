@@ -4,12 +4,13 @@ import { redirect } from "next/navigation";
 import type { Property, Tenant, ContractTemplate, Contract } from "@/lib/types";
 import { AlertTriangle } from "lucide-react";
 
-export default async function NewContractPage({
-  searchParams,
-}: {
-  searchParams: { edit?: string };
-}) {
-  const supabase = createClient();
+export default async function NewContractPage(
+  props: {
+    searchParams: Promise<{ edit?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

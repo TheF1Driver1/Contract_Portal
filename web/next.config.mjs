@@ -4,11 +4,9 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["docxtemplater", "pizzip", "@react-pdf/renderer"],
-    outputFileTracingIncludes: {
-      '/api/generate': ['./templates/**'],
-    },
+  serverExternalPackages: ["docxtemplater", "pizzip", "@react-pdf/renderer"],
+  outputFileTracingIncludes: {
+    "/api/generate": ["./templates/**"],
   },
   images: {
     remotePatterns: [

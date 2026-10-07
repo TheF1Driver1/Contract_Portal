@@ -10,11 +10,11 @@ export function createAdminClient() {
   );
 }
 
-export function createClient() {
+export async function createClient() {
   // Native clients (e.g. the iOS app) authenticate with a bearer token
   // instead of a cookie session. Honor it here, still scoped to the
   // anon key so RLS is enforced exactly as it is for the cookie path.
-  const authHeader = headers().get("authorization");
+  const authHeader = (await headers()).get("authorization");
   const bearerToken = authHeader?.toLowerCase().startsWith("bearer ")
     ? authHeader.slice(7)
     : null;
@@ -30,7 +30,7 @@ export function createClient() {
     );
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

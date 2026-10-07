@@ -18,12 +18,13 @@ const STATUS_PILL: Record<string, string> = {
   cancelled: "pill-expired",
 };
 
-export default async function ContractDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const supabase = createClient();
+export default async function ContractDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

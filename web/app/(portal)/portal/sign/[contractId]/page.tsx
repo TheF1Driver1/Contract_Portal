@@ -5,8 +5,9 @@ import { createClient, createAdminClient } from "@/lib/supabase-server";
 import TenantSigningClient from "./TenantSigningClient";
 import type { Contract } from "@/lib/types";
 
-export default async function TenantSignPage({ params }: { params: { contractId: string } }) {
-  const supabase = createClient();
+export default async function TenantSignPage(props: { params: Promise<{ contractId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 

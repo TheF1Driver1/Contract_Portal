@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { token: string } }
-) {
+export async function GET(_req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const admin = createAdminClient();
 
   const { data: invite } = await admin

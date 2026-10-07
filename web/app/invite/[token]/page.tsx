@@ -1,3 +1,4 @@
+import Link from "next/link";
 export const dynamic = 'force-dynamic';
 
 import { createAdminClient } from "@/lib/supabase-server";
@@ -10,7 +11,8 @@ interface InviteData {
   propertyName: string;
 }
 
-export default async function InvitePage({ params }: { params: { token: string } }) {
+export default async function InvitePage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const admin = createAdminClient();
 
   const { data: invite } = await admin
@@ -34,12 +36,12 @@ export default async function InvitePage({ params }: { params: { token: string }
           <p className="mt-2 text-sm text-neutral-400">
             This invite link has expired or has already been used. Please contact your landlord for a new link.
           </p>
-          <a
+          <Link
             href="/"
             className="mt-6 inline-block text-sm text-neutral-500 hover:text-white transition-colors"
           >
             Go to homepage
-          </a>
+          </Link>
         </div>
       </div>
     );

@@ -6,7 +6,7 @@ import AddTenantModal from "./AddTenantModal";
 import EditTenantModal from "./EditTenantModal";
 
 export default async function TenantsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

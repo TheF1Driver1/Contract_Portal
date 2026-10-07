@@ -16,12 +16,13 @@ const STATUS_PILL: Record<string, string> = {
 
 const STATUS_FILTERS = ["all", "draft", "sent", "signed", "expired", "cancelled"];
 
-export default async function ContractsPage({
-  searchParams,
-}: {
-  searchParams: { q?: string; status?: string };
-}) {
-  const supabase = createClient();
+export default async function ContractsPage(
+  props: {
+    searchParams: Promise<{ q?: string; status?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

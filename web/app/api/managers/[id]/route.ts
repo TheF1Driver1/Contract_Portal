@@ -4,11 +4,9 @@ import { createClient } from "@/lib/supabase-server";
 export const dynamic = "force-dynamic";
 
 // DELETE /api/managers/[id] — revoke a manager invite
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
-  const supabase = createClient();
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

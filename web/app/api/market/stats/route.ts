@@ -8,13 +8,13 @@ export async function GET(req: NextRequest) {
   const limited = await rateLimitPublic(ip);
   if (limited) return limited;
 
-  const supabaseUser = createClient();
+  const supabaseUser = await createClient();
   const { data: { user } } = await supabaseUser.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const gated = await requireFeature(supabaseUser, user.id, "market");
   if (gated) return gated;
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("zillow_market")
     .select("id,city,price,beds,street,state,imgSrc,detailUrl,daysOnZillow,homeStatus,desperation_score,num_price_cuts,price_cut_pct")

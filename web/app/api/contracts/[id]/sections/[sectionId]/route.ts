@@ -5,9 +5,10 @@ import { ContractCustomSectionUpdateSchema } from "@/lib/schemas";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string; sectionId: string } }
+  props: { params: Promise<{ id: string; sectionId: string }> }
 ) {
-  const supabase = createClient();
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -36,9 +37,10 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string; sectionId: string } }
+  props: { params: Promise<{ id: string; sectionId: string }> }
 ) {
-  const supabase = createClient();
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

@@ -11,8 +11,9 @@ function motivationColor(score: number) {
   return "var(--text-muted)"
 }
 
-export default async function MarketPropertyPage({ params }: { params: { id: string } }) {
-  const supabase = createClient()
+export default async function MarketPropertyPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data } = await supabase
@@ -173,5 +174,5 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
         {value.replace(/_/g, " ").toLowerCase()}
       </span>
     </div>
-  )
+  );
 }

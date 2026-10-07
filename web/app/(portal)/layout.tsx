@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase-server";
 import { MeshGradientBg } from "@/components/ui/mesh-gradient-bg";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 

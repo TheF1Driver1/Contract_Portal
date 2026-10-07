@@ -8,7 +8,7 @@ import type { Contract, Profile } from "@/lib/types";
 import { sendTwilioSms } from "@/lib/notify";
 
 export async function POST(req: Request) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

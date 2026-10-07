@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 // GET /api/managers — list all manager invites for the owner
 export async function GET() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -25,7 +25,7 @@ export async function GET() {
 
 // POST /api/managers — send a manager invite
 export async function POST(req: Request) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

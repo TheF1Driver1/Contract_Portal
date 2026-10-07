@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -72,9 +73,9 @@ export default function ManagerInviteClient({ token, managerEmail, ownerName, pr
         <p className="mt-2 text-sm text-neutral-400">
           You&apos;ve declined this invitation. Contact {ownerName} if this was a mistake.
         </p>
-        <a href="/" className="mt-6 inline-block text-sm text-neutral-500 hover:text-white transition-colors">
+        <Link href="/" className="mt-6 inline-block text-sm text-neutral-500 hover:text-white transition-colors">
           Go to homepage
-        </a>
+        </Link>
       </div>
     );
   }

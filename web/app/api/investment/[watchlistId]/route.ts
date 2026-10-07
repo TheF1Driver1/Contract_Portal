@@ -4,11 +4,9 @@ import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
 import { InvestmentAnalysisSchema } from "@/lib/schemas";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { watchlistId: string } }
-) {
-  const supabase = createClient();
+export async function GET(_req: NextRequest, props: { params: Promise<{ watchlistId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -29,11 +27,9 @@ export async function GET(
   return NextResponse.json(data ?? null);
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { watchlistId: string } }
-) {
-  const supabase = createClient();
+export async function PUT(req: NextRequest, props: { params: Promise<{ watchlistId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

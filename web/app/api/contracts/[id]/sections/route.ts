@@ -3,11 +3,9 @@ import { createClient } from "@/lib/supabase-server";
 import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
 import { ContractCustomSectionCreateSchema } from "@/lib/schemas";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
-  const supabase = createClient();
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -34,11 +32,9 @@ export async function GET(
   return NextResponse.json(data ?? []);
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const supabase = createClient();
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

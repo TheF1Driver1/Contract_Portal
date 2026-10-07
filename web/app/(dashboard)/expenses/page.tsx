@@ -34,11 +34,12 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 interface PageProps {
-  searchParams: { property_id?: string; year?: string; category?: string };
+  searchParams: Promise<{ property_id?: string; year?: string; category?: string }>;
 }
 
-export default async function ExpensesPage({ searchParams }: PageProps) {
-  const supabase = createClient();
+export default async function ExpensesPage(props: PageProps) {
+  const searchParams = await props.searchParams;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 

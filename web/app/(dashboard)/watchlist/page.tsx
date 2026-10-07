@@ -17,7 +17,7 @@ function motivationBadge(score: number | null | undefined) {
 }
 
 export default async function WatchlistPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

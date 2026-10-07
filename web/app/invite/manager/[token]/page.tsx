@@ -1,9 +1,11 @@
+import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 import { createAdminClient } from "@/lib/supabase-server";
 import ManagerInviteClient from "./ManagerInviteClient";
 
-export default async function ManagerInvitePage({ params }: { params: { token: string } }) {
+export default async function ManagerInvitePage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const admin = createAdminClient();
 
   const { data: invite } = await admin
@@ -25,9 +27,9 @@ export default async function ManagerInvitePage({ params }: { params: { token: s
           <p className="mt-2 text-sm text-neutral-400">
             This invitation link has already been used, declined, or revoked. Contact the property owner for a new invite.
           </p>
-          <a href="/" className="mt-6 inline-block text-sm text-neutral-500 hover:text-white transition-colors">
+          <Link href="/" className="mt-6 inline-block text-sm text-neutral-500 hover:text-white transition-colors">
             Go to homepage
-          </a>
+          </Link>
         </div>
       </div>
     );

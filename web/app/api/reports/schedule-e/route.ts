@@ -19,7 +19,7 @@ const SCHEDULE_E_LINES: Record<string, { line: number; label: string }> = {
 };
 
 export async function GET(req: NextRequest) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

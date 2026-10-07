@@ -3,12 +3,13 @@ import { notFound, redirect } from "next/navigation";
 import InvestmentAnalyzer from "@/components/InvestmentAnalyzer";
 import type { WatchlistItem, InvestmentAnalysis } from "@/lib/types";
 
-export default async function AnalyzePage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const supabase = createClient();
+export default async function AnalyzePage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

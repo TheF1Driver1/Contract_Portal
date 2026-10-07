@@ -6,7 +6,7 @@ import type { Contract } from "@/lib/types";
 import { downloadTemplate } from "@/lib/template-storage";
 
 export async function fetchTemplate(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   contractTypeVal: string,
   templateId: string | null,

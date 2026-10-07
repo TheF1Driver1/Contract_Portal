@@ -4,9 +4,10 @@ import { rateLimitWrite } from "@/lib/rate-limit";
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string; attachId: string } }
+  props: { params: Promise<{ id: string; attachId: string }> }
 ) {
-  const supabase = createClient();
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

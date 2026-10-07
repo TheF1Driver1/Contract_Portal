@@ -4,11 +4,9 @@ import { createClient, createAdminClient } from "@/lib/supabase-server";
 export const dynamic = "force-dynamic";
 
 // POST /api/managers/invite/[token] — accept or decline a manager invite
-export async function POST(
-  req: Request,
-  { params }: { params: { token: string } }
-) {
-  const supabase = createClient();
+export async function POST(req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
