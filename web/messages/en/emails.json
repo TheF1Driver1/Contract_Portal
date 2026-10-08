@@ -114,5 +114,52 @@
       "transfer": "Bank transfer",
       "other": "Other"
     }
+  },
+  "maintenance": {
+    "tenantFallback": "Your tenant",
+    "category": {
+      "plumbing": "Plumbing",
+      "electrical": "Electrical",
+      "appliance": "Appliances",
+      "ac": "Air conditioning",
+      "pest": "Pests",
+      "structural": "Structure (roof, walls, doors)",
+      "other": "Other"
+    },
+    "urgency": {
+      "low": "Low",
+      "normal": "Normal",
+      "urgent": "Urgent",
+      "emergency": "Emergency"
+    },
+    "newRequest": {
+      "subject": "New maintenance request · {property}",
+      "subjectUrgent": "{urgency}: maintenance request · {property}",
+      "heading": "Your tenant asked for a repair",
+      "body": "{tenant} asked for a repair at {property}: “{title}” ({category}, {urgency} urgency).",
+      "cta": "View request"
+    },
+    "footerLandlord": "You get this email because a tenant used the ContractOS portal.",
+    "status": {
+      "scheduledSubject": "Repair scheduled · {property}",
+      "scheduledHeading": "Your repair is scheduled",
+      "scheduledBody": "Hi {name}: your request “{title}” at {property} is scheduled for {date}.",
+      "scheduledNoDate": "Hi {name}: your request “{title}” at {property} is scheduled. Your landlord will confirm the date.",
+      "vendor": "Handled by: {vendor}.",
+      "resolvedSubject": "Repair resolved · {property}",
+      "resolvedHeading": "Your repair is resolved",
+      "resolvedBody": "Hi {name}: your landlord marked your request “{title}” at {property} as resolved. If the problem continues, let them know from the portal.",
+      "cta": "Open my portal"
+    },
+    "inspection": {
+      "kind": {
+        "move_in": "move-in inspection",
+        "move_out": "move-out inspection"
+      },
+      "subject": "Review your {kind} · {property}",
+      "heading": "Your landlord completed the {kind}",
+      "body": "Hi {name}: your landlord completed the {kind} for {property}. Review it in your portal and confirm you saw it.",
+      "cta": "Review inspection"
+    }
   }
 }

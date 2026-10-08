@@ -102,6 +102,83 @@ type Payment = {
   created_at: string;
 };
 
+// ── Plan 36: maintenance requests and inspections (migration 024) ──────────
+type MaintenanceCategory = "plumbing" | "electrical" | "appliance" | "ac" | "pest" | "structural" | "other";
+type MaintenanceUrgency = "low" | "normal" | "urgent" | "emergency";
+type MaintenanceStatus = "open" | "scheduled" | "in_progress" | "resolved" | "cancelled";
+type MaintenanceRequest = {
+  id: string;
+  contract_id: string | null;
+  property_id: string;
+  owner_id: string;
+  submitted_by: string | null;
+  submitted_by_kind: "tenant" | "landlord";
+  title: string;
+  description: string | null;
+  category: MaintenanceCategory;
+  urgency: MaintenanceUrgency;
+  status: MaintenanceStatus;
+  vendor_name: string | null;
+  vendor_phone: string | null;
+  scheduled_for: string | null;
+  resolved_at: string | null;
+  cost: number | null;
+  expense_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+type MaintenanceUpdate = {
+  id: string;
+  request_id: string;
+  owner_id: string;
+  author_kind: "tenant" | "landlord" | "system";
+  note: string | null;
+  status_change: MaintenanceStatus | null;
+  created_at: string;
+};
+type MaintenancePhoto = { id: string; request_id: string; owner_id: string; path: string; uploaded_by: string | null; created_at: string };
+type InspectionKind = "move_in" | "move_out";
+type InspectionCondition = "good" | "fair" | "poor" | "damaged" | "na";
+type Inspection = {
+  id: string;
+  contract_id: string;
+  owner_id: string;
+  kind: InspectionKind;
+  status: "draft" | "completed";
+  inspected_on: string;
+  notes: string | null;
+  landlord_signed_at: string | null;
+  tenant_acknowledged_at: string | null;
+  tenant_ack_name: string | null;
+  tenant_ack_ip: string | null;
+  created_at: string;
+  updated_at: string;
+};
+type InspectionItem = {
+  id: string;
+  inspection_id: string;
+  owner_id: string;
+  room: string;
+  item: string;
+  condition: InspectionCondition | null;
+  note: string | null;
+  sort: number;
+};
+type InspectionPhoto = { id: string; inspection_id: string; item_id: string | null; owner_id: string; path: string; uploaded_by: string | null; created_at: string };
+
+type LifecycleTables = {
+  maintenance_requests: Table<
+    MaintenanceRequest,
+    Partial<Omit<MaintenanceRequest, "id">> & Pick<MaintenanceRequest, "property_id" | "owner_id" | "title">
+  >;
+  maintenance_updates: Table<MaintenanceUpdate, Partial<Omit<MaintenanceUpdate, "id">> & Pick<MaintenanceUpdate, "request_id" | "owner_id" | "author_kind">>;
+  maintenance_photos: Table<MaintenancePhoto, Partial<Omit<MaintenancePhoto, "id">> & Pick<MaintenancePhoto, "request_id" | "owner_id" | "path">>;
+  inspections: Table<Inspection, Partial<Omit<Inspection, "id">> & Pick<Inspection, "contract_id" | "owner_id" | "kind">>;
+  inspection_items: Table<InspectionItem, Partial<Omit<InspectionItem, "id">> & Pick<InspectionItem, "inspection_id" | "owner_id" | "room" | "item">>;
+  inspection_photos: Table<InspectionPhoto, Partial<Omit<InspectionPhoto, "id">> & Pick<InspectionPhoto, "inspection_id" | "owner_id" | "path">>;
+};
+// ── end Plan 36 ─────────────────────────────────────────────────────────────
+
 type PendingTables = {
   rent_ledgers: Table<RentLedger, Partial<RentLedger> & Pick<RentLedger, "contract_id" | "owner_id" | "started_on">>;
   rent_charges: Table<RentCharge, Partial<RentCharge> & Pick<RentCharge, "contract_id" | "owner_id" | "kind" | "due_date" | "amount">>;
@@ -179,10 +256,24 @@ export type Database = Omit<Generated, "public"> & {
       tenants: TenantsPatched;
       contracts: ContractsPatched;
       profiles: ProfilesPatched;
-    } & PendingTables;
+    } & PendingTables &
+      LifecycleTables;
   };
 };
 
 export type { ContractSigner, SignatureEvent, RentLedger, RentCharge, Payment, PaymentMethod };
+export type {
+  MaintenanceCategory,
+  MaintenanceUrgency,
+  MaintenanceStatus,
+  MaintenanceRequest,
+  MaintenanceUpdate,
+  MaintenancePhoto,
+  InspectionKind,
+  InspectionCondition,
+  Inspection,
+  InspectionItem,
+  InspectionPhoto,
+};
 
 export type Row<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];

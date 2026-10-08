@@ -114,5 +114,52 @@
       "transfer": "Transferencia bancaria",
       "other": "Otro"
     }
+  },
+  "maintenance": {
+    "tenantFallback": "Tu inquilino",
+    "category": {
+      "plumbing": "Plomería",
+      "electrical": "Electricidad",
+      "appliance": "Enseres",
+      "ac": "Aire acondicionado",
+      "pest": "Plagas",
+      "structural": "Estructura (techo, paredes, puertas)",
+      "other": "Otro"
+    },
+    "urgency": {
+      "low": "Baja",
+      "normal": "Normal",
+      "urgent": "Urgente",
+      "emergency": "Emergencia"
+    },
+    "newRequest": {
+      "subject": "Nueva solicitud de mantenimiento · {property}",
+      "subjectUrgent": "{urgency}: solicitud de mantenimiento · {property}",
+      "heading": "Tu inquilino pidió una reparación",
+      "body": "{tenant} pidió una reparación en {property}: «{title}» ({category}, urgencia {urgency}).",
+      "cta": "Ver solicitud"
+    },
+    "footerLandlord": "Recibes este correo porque un inquilino usó el portal de ContractOS.",
+    "status": {
+      "scheduledSubject": "Reparación programada · {property}",
+      "scheduledHeading": "Tu reparación está programada",
+      "scheduledBody": "Hola {name}: tu solicitud «{title}» en {property} está programada para el {date}.",
+      "scheduledNoDate": "Hola {name}: tu solicitud «{title}» en {property} está programada. Tu arrendador te confirmará la fecha.",
+      "vendor": "La atenderá: {vendor}.",
+      "resolvedSubject": "Reparación resuelta · {property}",
+      "resolvedHeading": "Tu reparación está resuelta",
+      "resolvedBody": "Hola {name}: tu arrendador marcó como resuelta tu solicitud «{title}» en {property}. Si el problema sigue, avísale desde el portal.",
+      "cta": "Abrir mi portal"
+    },
+    "inspection": {
+      "kind": {
+        "move_in": "inspección de entrada",
+        "move_out": "inspección de salida"
+      },
+      "subject": "Revisa tu {kind} · {property}",
+      "heading": "Tu arrendador completó la {kind}",
+      "body": "Hola {name}: tu arrendador completó la {kind} de {property}. Revísala en tu portal y confirma que la viste.",
+      "cta": "Revisar inspección"
+    }
   }
 }
