@@ -6,7 +6,14 @@ type Client = Awaited<ReturnType<typeof createClient>>;
 export type Alert =
   | { kind: "expiring"; contractId: string; title: string; days: number }
   | { kind: "unsigned"; contractId: string; title: string; days: number }
-  | { kind: "failed"; contractId: string; title: string; channel: string };
+  | { kind: "failed"; contractId: string; title: string; channel: string }
+  // Plan 35: unpaid CRIM installment due within 30 days.
+  | { kind: "crim"; propertyId: string; title: string; days: number };
+
+/** Where an alert leads. */
+export const alertHref = (a: Alert) => (a.kind === "crim" ? `/properties?crim=${a.propertyId}` : `/contracts/${a.contractId}`);
+
+const CRIM_WINDOW_DAYS = 30;
 
 const EXPIRING_WINDOW_DAYS = 60;
 const UNSIGNED_AFTER_DAYS = 3;
@@ -22,7 +29,9 @@ export async function getAlerts(supabase: Client, today = new Date()): Promise<A
   const sentBefore = new Date(today.getTime() - UNSIGNED_AFTER_DAYS * 86_400_000).toISOString();
   const failedSince = new Date(today.getTime() - 14 * 86_400_000).toISOString();
 
-  const [expiring, unsigned, failed] = await Promise.all([
+  const crimHorizon = new Date(today.getTime() + CRIM_WINDOW_DAYS * 86_400_000).toISOString().slice(0, 10);
+
+  const [expiring, unsigned, failed, crim] = await Promise.all([
     supabase
       .from("contracts")
       .select("id, lease_end, property:properties(name), tenant:tenants(full_name)")
@@ -45,6 +54,15 @@ export async function getAlerts(supabase: Client, today = new Date()): Promise<A
       .gte("sent_at", failedSince)
       .order("sent_at", { ascending: false })
       .limit(10),
+    supabase
+      .from("crim_bills")
+      .select("property_id, due_date, property:properties(name)")
+      .is("paid_on", null)
+      .is("voided_at", null)
+      .gte("due_date", iso)
+      .lte("due_date", crimHorizon)
+      .order("due_date")
+      .limit(10),
   ]);
 
   const alerts: Alert[] = [];
@@ -57,6 +75,11 @@ export async function getAlerts(supabase: Client, today = new Date()): Promise<A
   }
   for (const f of failed.data ?? []) {
     alerts.push({ kind: "failed", contractId: f.contract_id, title: "", channel: f.channel });
+  }
+  // Missing table (migration 025 not applied yet) leaves `data` null: no CRIM alerts.
+  for (const b of crim.data ?? []) {
+    const name = (b.property as { name?: string } | null)?.name ?? "";
+    alerts.push({ kind: "crim", propertyId: b.property_id, title: name ? `CRIM · ${name}` : "CRIM", days: daysBetween(iso, b.due_date) });
   }
   return alerts;
 }

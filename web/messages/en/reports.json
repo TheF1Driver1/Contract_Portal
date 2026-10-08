@@ -18,7 +18,7 @@
     "net": "Net",
     "properties": "{count, plural, one {# property} other {# properties}}"
   },
-  "incomeHint": "Income is estimated from the rent on signed contracts that cover the year.",
+  "incomeHint": "Properties with a rent ledger use the payments received in the year; the rest are estimated from the rent of signed leases covering the year.",
   "table": {
     "line": "Line",
     "concept": "Item",

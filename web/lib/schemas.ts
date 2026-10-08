@@ -332,3 +332,46 @@ export const VoidSchema = z.object({
   id: z.string().uuid(),
   reason: z.string().trim().min(1).max(300),
 });
+
+// ── PR tax pack (Plan 35) ─────────────────────────────────────────────────────
+
+const optText = (max: number) => z.string().trim().max(max).optional().nullable().transform((s) => (s ? s : null));
+const optMoney = z.number().min(0).max(100_000_000).optional().nullable().transform((n) => (n == null ? null : Math.round(n * 100) / 100));
+
+export const TaxResidencySchema = z.object({
+  tax_residency: z.enum(["pr_resident", "non_resident"]).nullable(),
+});
+
+export const CrimAccountSchema = z.object({
+  property_id: z.string().uuid(),
+  catastro_number: optText(40),
+  account_number: optText(40),
+  municipality: optText(60),
+  assessed_value: optMoney,
+  exemption_principal_residence: z.boolean().default(false),
+  exoneration_amount: optMoney,
+  notes: optText(1000),
+  purchase_price: optMoney,
+  building_pct: z.number().min(0).max(100).optional().nullable().transform((n) => (n == null ? null : Math.round(n * 100) / 100)),
+  placed_in_service: isoDate.optional().nullable(),
+});
+
+export const CrimBillCreateSchema = z.object({
+  property_id: z.string().uuid(),
+  fiscal_year: z.string().regex(/^\d{4}-\d{2}$/),
+  installment: z.number().int().min(1).max(4),
+  amount: z.number().positive().max(10_000_000).transform((n) => Math.round(n * 100) / 100),
+  due_date: isoDate,
+});
+
+export const CrimBillPaySchema = z.object({
+  id: z.string().uuid(),
+  paid_on: isoDate,
+  payment_reference: optText(100),
+  create_expense: z.boolean().default(true),
+});
+
+export const CrimBillVoidSchema = z.object({
+  id: z.string().uuid(),
+  reason: z.string().trim().min(1).max(300),
+});

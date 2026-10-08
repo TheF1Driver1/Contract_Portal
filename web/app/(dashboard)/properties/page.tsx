@@ -2,9 +2,12 @@ import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import type { Property } from "@/lib/types";
 import { PropertiesView, type PropertyRow } from "@/components/properties/PropertiesView";
+import type { CrimSheetData } from "@/components/tax/CrimSheet";
+import type { CrimBill, PropertyCrim } from "@/lib/db";
+import { todayPR } from "@/lib/rent/service";
 
 export default async function PropertiesPage(props: {
-  searchParams: Promise<{ q?: string; new?: string; import?: string }>;
+  searchParams: Promise<{ q?: string; new?: string; import?: string; crim?: string }>;
 }) {
   const searchParams = await props.searchParams;
   const supabase = await createClient();
@@ -40,6 +43,24 @@ export default async function PropertiesPage(props: {
     expenseByProperty[e.property_id] = (expenseByProperty[e.property_id] ?? 0) + e.amount;
   }
 
+  // Plan 35: `?crim=<property id>` opens the CRIM sheet for that property.
+  let crim: CrimSheetData | null = null;
+  const crimProperty = searchParams.crim ? all.find((p) => p.id === searchParams.crim) : undefined;
+  if (crimProperty) {
+    const [{ data: account }, { data: bills }, { data: rates }] = await Promise.all([
+      supabase.from("property_crim").select("*").eq("property_id", crimProperty.id).maybeSingle(),
+      supabase.from("crim_bills").select("*").eq("property_id", crimProperty.id).order("due_date", { ascending: false }),
+      supabase.from("crim_tax_rates").select("municipality, fiscal_year, inmueble_rate"),
+    ]);
+    crim = {
+      property: { id: crimProperty.id, name: crimProperty.name, city: crimProperty.city ?? null },
+      account: (account as PropertyCrim | null) ?? null,
+      bills: (bills ?? []) as CrimBill[],
+      rates: rates ?? [],
+      today: todayPR(),
+    };
+  }
+
   const rows: PropertyRow[] = all.map((p) => ({
     ...p,
     activeLeases: leasesByProperty[p.id] ?? 0,
@@ -53,6 +74,7 @@ export default async function PropertiesPage(props: {
       initialQuery={searchParams.q}
       openNew={searchParams.new === "1"}
       openImport={searchParams.import === "1"}
+      crim={crim}
     />
   );
 }

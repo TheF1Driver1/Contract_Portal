@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Bell, CalendarClock, PenLine } from "lucide-react";
+import { AlertTriangle, Bell, CalendarClock, Landmark, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { Alert } from "@/lib/alerts";
+import { alertHref, type Alert } from "@/lib/alerts";
 
-const ICON = { expiring: CalendarClock, unsigned: PenLine, failed: AlertTriangle } as const;
-const TONE = { expiring: "text-warning", unsigned: "text-info", failed: "text-danger" } as const;
+const ICON = { expiring: CalendarClock, unsigned: PenLine, failed: AlertTriangle, crim: Landmark } as const;
+const TONE = { expiring: "text-warning", unsigned: "text-info", failed: "text-danger", crim: "text-warning" } as const;
 
 export function NotificationBell({ alerts }: { alerts: Alert[] }) {
   const t = useTranslations("nav");
+  const tTax = useTranslations("tax.alerts");
   const count = alerts.length;
 
   return (
@@ -35,15 +36,17 @@ export function NotificationBell({ alerts }: { alerts: Alert[] }) {
             {alerts.map((a, i) => {
               const Icon = ICON[a.kind];
               const detail =
-                a.kind === "expiring"
+                a.kind === "crim"
+                  ? tTax("crimDue", { days: a.days })
+                  : a.kind === "expiring"
                   ? t("alertExpiring", { days: a.days })
                   : a.kind === "unsigned"
                     ? t("alertUnsigned", { days: a.days })
                     : t("alertFailed", { channel: a.channel.toUpperCase() });
               return (
-                <li key={`${a.kind}-${a.contractId}-${i}`}>
+                <li key={`${a.kind}-${a.kind === "crim" ? a.propertyId : a.contractId}-${i}`}>
                   <Link
-                    href={`/contracts/${a.contractId}`}
+                    href={alertHref(a)}
                     className="flex gap-3 px-4 py-2.5 hover:bg-surface-hover"
                   >
                     <Icon className={`mt-0.5 size-4 shrink-0 ${TONE[a.kind]}`} />

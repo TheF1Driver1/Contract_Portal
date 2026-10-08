@@ -18,7 +18,7 @@
     "net": "Neto",
     "properties": "{count, plural, one {# propiedad} other {# propiedades}}"
   },
-  "incomeHint": "Los ingresos se estiman con la renta de los contratos firmados que cubren el año.",
+  "incomeHint": "Si la propiedad tiene cuenta de renta, se usan los pagos recibidos en el año; si no, se estiman con la renta de los contratos firmados que cubren el año.",
   "table": {
     "line": "Línea",
     "concept": "Concepto",

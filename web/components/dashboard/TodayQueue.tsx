@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { AlertTriangle, CalendarClock, CheckCircle2, FileEdit, Send, type LucideIcon } from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckCircle2, FileEdit, Landmark, Send, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -8,9 +8,11 @@ export type QueueItem =
   | { kind: "draft"; contractId: string; title: string }
   | { kind: "unsigned"; contractId: string; title: string; days: number }
   | { kind: "expiring"; contractId: string; title: string; days: number }
-  | { kind: "failed"; contractId: string; title: string; channel: string };
+  | { kind: "failed"; contractId: string; title: string; channel: string }
+  | { kind: "crim"; propertyId: string; title: string; days: number };
 
-const KIND: Record<QueueItem["kind"], { icon: LucideIcon; tone: string; action: "send" | "remind" | "renew" | "review" }> = {
+const KIND: Record<QueueItem["kind"], { icon: LucideIcon; tone: string; action: "send" | "remind" | "renew" | "review" | "pay" }> = {
+  crim: { icon: Landmark, tone: "bg-warning-soft text-warning", action: "pay" },
   failed: { icon: AlertTriangle, tone: "bg-danger-soft text-danger", action: "review" },
   expiring: { icon: CalendarClock, tone: "bg-warning-soft text-warning", action: "renew" },
   unsigned: { icon: Send, tone: "bg-info-soft text-info", action: "remind" },
@@ -22,6 +24,7 @@ const MAX_ITEMS = 8;
 /** "Hoy": actionable contract items, most urgent first. */
 export async function TodayQueue({ items }: { items: QueueItem[] }) {
   const t = await getTranslations("dashboard.today");
+  const tTax = await getTranslations("tax.alerts");
   const shown = items.slice(0, MAX_ITEMS);
   const hidden = items.length - shown.length;
 
@@ -35,6 +38,8 @@ export async function TodayQueue({ items }: { items: QueueItem[] }) {
         return t("expiring", { days: item.days });
       case "failed":
         return t("failed", { channel: item.channel === "sms" ? "SMS" : item.channel });
+      case "crim":
+        return tTax("crimDue", { days: item.days });
     }
   }
 
@@ -59,9 +64,11 @@ export async function TodayQueue({ items }: { items: QueueItem[] }) {
         <ul className="divide-y divide-border">
           {shown.map((item) => {
             const { icon: Icon, tone, action } = KIND[item.kind];
-            const verb = t(`action.${action}`);
+            const verb = action === "pay" ? tTax("pay") : t(`action.${action}`);
+            const id = item.kind === "crim" ? item.propertyId : item.contractId;
+            const href = item.kind === "crim" ? `/properties?crim=${item.propertyId}` : `/contracts/${item.contractId}`;
             return (
-              <li key={`${item.kind}-${item.contractId}-${"channel" in item ? item.channel : ""}`} className="flex items-center gap-3 py-2.5">
+              <li key={`${item.kind}-${id}-${"channel" in item ? item.channel : ""}`} className="flex items-center gap-3 py-2.5">
                 <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", tone)}>
                   <Icon className="size-4" aria-hidden />
                 </span>
@@ -70,7 +77,7 @@ export async function TodayQueue({ items }: { items: QueueItem[] }) {
                   <p className="truncate text-sm text-muted-foreground">{detail(item)}</p>
                 </div>
                 <Button asChild variant="outline" size="sm" className="h-10 shrink-0 sm:h-8">
-                  <Link href={`/contracts/${item.contractId}`} aria-label={`${verb}: ${item.title || t("untitled")}`}>
+                  <Link href={href} aria-label={`${verb}: ${item.title || t("untitled")}`}>
                     {verb}
                   </Link>
                 </Button>
