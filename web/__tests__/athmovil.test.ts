@@ -368,7 +368,7 @@ describe("connectAthMovil", () => {
 describe("createAthPayment", () => {
   function leaseDb() {
     const d = db({
-      tenant_invites: [{ id: "inv", contract_id: CONTRACT, used_by: PAYER, used: true }],
+      tenant_invites: [{ id: "inv", contract_id: CONTRACT, owner_id: OWNER, used_by: PAYER, used: true }],
       contracts: [{ id: CONTRACT, owner_id: OWNER, status: "signed", unit_number: "2B" }],
       rent_ledgers: [{ contract_id: CONTRACT, owner_id: OWNER, started_on: "2026-01-01", late_fees: false }],
       rent_charges: [{ id: "c1", contract_id: CONTRACT, kind: "rent", period: "2026-01-01", due_date: "2026-01-01", amount: 1150, voided_at: null }],

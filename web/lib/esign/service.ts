@@ -22,7 +22,9 @@ type Admin = ReturnType<typeof createAdminClient>;
 export const BUCKET = "signed-documents";
 export const TOKEN_TTL_DAYS = 7;
 const OTP_TTL_MS = 10 * 60_000;
-const OTP_MAX_ATTEMPTS = 5;
+// Wrong codes allowed per signing link, across resends (only a new link from
+// the landlord resets it), so a leaked link can't be brute-forced.
+const OTP_MAX_ATTEMPTS = 8;
 const MAX_SIGNATURE_BYTES = 400_000;
 
 export type Meta = { ip: string | null; userAgent: string | null };
@@ -76,10 +78,12 @@ export async function loadAgreement(admin: Admin, contractId: string): Promise<A
     .maybeSingle();
   if (!contract) throw new SignError("not_found", 404);
   const [{ data: clauses }, { data: profile }] = await Promise.all([
-    admin.from("contract_custom_sections").select("title, body").eq("contract_id", contractId).order("order_index"),
+    admin.from("contract_custom_sections").select("title, body").eq("contract_id", contractId).eq("owner_id", contract.owner_id).order("order_index"),
     admin.from("profiles").select("*").eq("id", contract.owner_id).maybeSingle(),
   ]);
   const c = contract as unknown as Agreement["contract"];
+  // Only the owner's own co-tenants/guarantors count (defense in depth against injected rows).
+  c.occupants = (c.occupants ?? []).filter((o) => (o as { owner_id?: string }).owner_id === contract.owner_id);
   const snap = (c.property_snapshot ?? c.property ?? null) as { name?: string; address?: string; city?: string } | null;
   return {
     contract: c,
@@ -140,6 +144,7 @@ export async function requestSignatures(admin: Admin, opts: { contractId: string
         sign_order: p.order,
         token_hash: hashToken(token),
         token_expires_at: expires,
+        otp_attempts: 0,
       })
       .select("*")
       .single();
@@ -275,7 +280,7 @@ export async function sendCode(admin: Admin, s: SignerSession, channel: "sms" | 
   const code = newOtp();
   await admin
     .from("contract_signers")
-    .update({ otp_hash: hashOtp(s.signer.id, code), otp_expires_at: new Date(Date.now() + OTP_TTL_MS).toISOString(), otp_attempts: 0, otp_channel: channel })
+    .update({ otp_hash: hashOtp(s.signer.id, code), otp_expires_at: new Date(Date.now() + OTP_TTL_MS).toISOString(), otp_channel: channel })
     .eq("id", s.signer.id);
   const { lang, t } = emailT(s.signer.locale);
   const vars = { code, property: s.agreement.propertyLabel };
@@ -296,14 +301,25 @@ export async function verifyCode(admin: Admin, s: SignerSession, code: string, m
   assertOpen(s);
   const sg = s.signer;
   if (!sg.otp_hash || !sg.otp_expires_at) throw new SignError("code_missing", 400);
-  if (sg.otp_attempts >= OTP_MAX_ATTEMPTS) throw new SignError("code_locked", 429);
+  const attempts = sg.otp_attempts ?? 0;
+  if (attempts >= OTP_MAX_ATTEMPTS) throw new SignError("code_locked", 429);
   if (new Date(sg.otp_expires_at).getTime() < Date.now()) throw new SignError("code_expired", 400);
+  // Claim an attempt before comparing (compare-and-set on the counter), so
+  // parallel guesses can't share one attempt.
+  const { data: claimed } = await admin
+    .from("contract_signers")
+    .update({ otp_attempts: attempts + 1 })
+    .eq("id", sg.id)
+    .eq("otp_attempts", attempts)
+    .select("id")
+    .maybeSingle();
+  if (!claimed) throw new SignError("code_busy", 409);
   if (!safeEqualHex(sg.otp_hash, hashOtp(sg.id, code))) {
-    await admin.from("contract_signers").update({ otp_attempts: sg.otp_attempts + 1 }).eq("id", sg.id);
-    await logEvent(admin, { contractId: sg.contract_id, signerId: sg.id, event: "otp_failed", actor: sg.name, meta, detail: { attempt: sg.otp_attempts + 1 } });
-    throw new SignError("code_wrong", 400);
+    await logEvent(admin, { contractId: sg.contract_id, signerId: sg.id, event: "otp_failed", actor: sg.name, meta, detail: { attempt: attempts + 1 } });
+    const locked = attempts + 1 >= OTP_MAX_ATTEMPTS;
+    throw new SignError(locked ? "code_locked" : "code_wrong", locked ? 429 : 400);
   }
-  await admin.from("contract_signers").update({ verified_at: new Date().toISOString(), otp_hash: null }).eq("id", sg.id);
+  await admin.from("contract_signers").update({ verified_at: new Date().toISOString(), otp_hash: null, otp_attempts: 0 }).eq("id", sg.id);
   await logEvent(admin, { contractId: sg.contract_id, signerId: sg.id, event: "otp_verified", actor: sg.name, meta, detail: { channel: sg.otp_channel } });
 }
 
@@ -423,7 +439,7 @@ async function seal(admin: Admin, ag: Agreement, signers: ContractSigner[], appU
     .maybeSingle();
 
   const sigBlocks: PdfSignature[] = [
-    { role: "ARRENDADOR(A)", name: landlordName(ag.profile), image: await loadSignature(admin, c.landlord_signature), signedAt: landlordEvent?.created_at ?? null },
+    { role: "ARRENDADOR(A)", name: landlordName(ag.profile), image: await loadSignature(admin, c.landlord_signature, c.owner_id), signedAt: landlordEvent?.created_at ?? null },
   ];
   for (const s of signers) {
     sigBlocks.push({

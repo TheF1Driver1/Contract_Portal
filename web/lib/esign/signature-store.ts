@@ -44,10 +44,15 @@ export async function storeSignature(admin: Admin, ownerId: string, value: strin
   return PREFIX + path;
 }
 
-/** Image for rendering (data URL), from a stored ref or a legacy data URL. */
-export async function loadSignature(admin: Admin, value: string | null | undefined): Promise<string | null> {
+/**
+ * Image for rendering (data URL), from a stored ref or a legacy data URL.
+ * A stored ref is only followed inside the contract owner's folder, so a row
+ * edited to point at someone else's object reads nothing.
+ */
+export async function loadSignature(admin: Admin, value: string | null | undefined, ownerId: string): Promise<string | null> {
   if (!value) return null;
-  if (!isStoredSignature(value)) return value;
+  if (!isStoredSignature(value)) return /^data:image\/(png|jpeg);base64,/.test(value) ? value : null;
+  if (!ownsSignature(value, ownerId)) return null;
   const path = value.slice(PREFIX.length);
   const { data, error } = await admin.storage.from(BUCKET).download(path);
   if (error || !data) {

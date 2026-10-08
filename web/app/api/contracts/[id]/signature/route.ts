@@ -88,7 +88,7 @@ export async function GET(_req: Request, props: { params: Promise<{ id: string }
     .maybeSingle();
   if (!contract) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const image = await loadSignature(createAdminClient(), contract.landlord_signature);
+  const image = await loadSignature(createAdminClient(), contract.landlord_signature, user.id);
   return NextResponse.json({ image }, { headers: { "Cache-Control": "private, no-store" } });
 }
 

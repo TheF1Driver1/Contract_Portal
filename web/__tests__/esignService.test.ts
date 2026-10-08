@@ -55,7 +55,7 @@ function setup() {
     tenant_snapshot: { full_name: "José Martínez" },
     property_snapshot: { name: "Las Palmas 2B", address: "Calle Loíza 1850", city: "San Juan" },
     tenant: { full_name: "José Martínez", email: "jose@test", phone: "+17875550101", preferred_locale: "es" },
-    occupants: [{ role: "co_tenant", full_name: "Ana Colón", email: "ana@test", phone: null }],
+    occupants: [{ role: "co_tenant", owner_id: OWNER, full_name: "Ana Colón", email: "ana@test", phone: null }],
     document_sha256: null,
     sealed_pdf_path: null,
   };
@@ -114,17 +114,39 @@ describe("e-sign service", () => {
     await expect(sign(admin, s, { signature: PNG, method: "drawn" }, meta, "x")).rejects.toMatchObject({ code: "verification_required" });
   });
 
-  it("locks the code after five wrong attempts", async () => {
+  it("locks the link after eight wrong codes, even across resends", async () => {
     const { admin } = setup();
     await requestSignatures(admin, { contractId: C, ownerId: OWNER, appUrl: "https://app.test", meta });
     const token = lastToken();
     await sendCode(admin, await signerFromToken(admin, token), "sms", meta);
-    const sentCode = /(\d{6})/.exec(sent.sms.at(-1)!.body)![1];
-    const wrong = sentCode === "000000" ? "111111" : "000000";
-    for (let i = 0; i < 5; i++) {
-      await expect(verifyCode(admin, await signerFromToken(admin, token), wrong, meta)).rejects.toMatchObject({ code: "code_wrong" });
+    let code = /(\d{6})/.exec(sent.sms.at(-1)!.body)![1];
+    const wrongFor = (c: string) => (c === "000000" ? "111111" : "000000");
+    for (let i = 0; i < 4; i++) {
+      await expect(verifyCode(admin, await signerFromToken(admin, token), wrongFor(code), meta)).rejects.toMatchObject({ code: "code_wrong" });
     }
-    await expect(verifyCode(admin, await signerFromToken(admin, token), "123456", meta)).rejects.toMatchObject({ code: "code_locked" });
+    // A new code does not reset the counter.
+    await sendCode(admin, await signerFromToken(admin, token), "sms", meta);
+    code = /(\d{6})/.exec(sent.sms.at(-1)!.body)![1];
+    for (let i = 0; i < 3; i++) {
+      await expect(verifyCode(admin, await signerFromToken(admin, token), wrongFor(code), meta)).rejects.toMatchObject({ code: "code_wrong" });
+    }
+    await expect(verifyCode(admin, await signerFromToken(admin, token), wrongFor(code), meta)).rejects.toMatchObject({ code: "code_locked" });
+    await expect(verifyCode(admin, await signerFromToken(admin, token), code, meta)).rejects.toMatchObject({ code: "code_locked" });
+  });
+
+  it("parallel guesses can't share one attempt", async () => {
+    const { admin } = setup();
+    await requestSignatures(admin, { contractId: C, ownerId: OWNER, appUrl: "https://app.test", meta });
+    const token = lastToken();
+    await sendCode(admin, await signerFromToken(admin, token), "sms", meta);
+    const code = /(\d{6})/.exec(sent.sms.at(-1)!.body)![1];
+    const wrong = code === "000000" ? "111111" : "000000";
+    // Two requests read the signer before either writes (separate snapshots, like two HTTP requests).
+    const snap = async () => JSON.parse(JSON.stringify(await signerFromToken(admin, token)));
+    const [a, b] = [await snap(), await snap()];
+    const results = await Promise.allSettled([verifyCode(admin, a, wrong, meta), verifyCode(admin, b, wrong, meta)]);
+    const codes = results.map((r) => (r.status === "rejected" ? (r.reason as { code: string }).code : "ok")).sort();
+    expect(codes).toEqual(["code_busy", "code_wrong"]);
   });
 
   it("signs in order, refuses changed terms, and seals with every party's copy", async () => {

@@ -46,7 +46,7 @@ export default async function NewContractPage(
     draftContract = (data as Contract | null) ?? null;
     // The builder's signature pad needs the image itself, not the storage reference.
     if (draftContract?.landlord_signature) {
-      draftContract = { ...draftContract, landlord_signature: (await loadSignature(createAdminClient(), draftContract.landlord_signature)) ?? "" };
+      draftContract = { ...draftContract, landlord_signature: (await loadSignature(createAdminClient(), draftContract.landlord_signature, user.id)) ?? "" };
     }
   }
 

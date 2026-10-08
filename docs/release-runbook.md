@@ -1,6 +1,6 @@
 # Release runbook: `feature/roadmap-execution` → `dev` → `main`
 
-This branch carries Plans 24–40. The code expects database migrations 012–031,
+This branch carries Plans 24–40. The code expects database migrations 012–032,
 which are **not** in production yet (011 was applied on 2026-10-07). Deploy in
 the order below. Steps 1–3 can run before the code ships, because every migration
 is additive and backward compatible with the current `main`. The exception is
@@ -40,6 +40,16 @@ a copy of the production schema, together with role-based behavior checks.
 | 029 | `029_ai_qa.sql` | Adds `qa` to the AI usage feature check | |
 | 030 | `030_referrals.sql` | `referral_codes`, `referrals` | Server-only writes; self-referrals rejected |
 | 031 | `031_ath_movil.sql` | `ath_movil_accounts` (encrypted tokens only), `ath_movil_payments`, `ath_movil_status()` | Needs `FIELD_ENCRYPTION_KEY` set before landlords connect |
+| 032 | `032_security_hardening.sql` | Locks `tenant_invites` to server writes, adds WITH CHECK on contract children and photo/attachment paths, server-only tenant evidence | **Apply to production now, ahead of the release** (see note below) |
+
+**About 032 (urgent).** The tenant-invite and contract-children policies it
+fixes are already live in production: today any signed-in user can insert a
+`tenant_invites` row for another landlord's contract and read it through the
+tenant portal policies. Part 1 (tenant_invites) and part 2 (contract children)
+work with the app currently on `main`, because every invite write there goes
+through the service role. Parts 3–4 refer to tables from 024 and must wait
+until 024 is applied, so for production today apply only sections 1 and 2 of
+the file (or the whole file after 024).
 
 **About 020.** After 020, only the server (service role) can mark a contract
 `signed`, write `tenant_signature` or set sealing fields. This affects two things:

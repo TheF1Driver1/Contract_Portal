@@ -55,6 +55,11 @@ async function ownerFor(admin: Admin, sub: { customer?: string; metadata?: { own
 }
 
 export async function POST(req: NextRequest) {
+  // Fail closed: with an empty secret anyone could sign events themselves.
+  if (!STRIPE_WEBHOOK_SECRET) {
+    console.error(JSON.stringify({ level: "error", msg: "STRIPE_WEBHOOK_SECRET not set; rejecting webhook" }));
+    return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+  }
   const body = await req.text();
   const sig = req.headers.get("stripe-signature") ?? "";
   const stripe = await getStripe();

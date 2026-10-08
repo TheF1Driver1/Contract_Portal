@@ -296,7 +296,7 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
             <ContractSignatures
               contractId={c.id}
               tenantName={c.tenant?.full_name}
-              landlordSignature={await loadSignature(createAdminClient(), c.landlord_signature)}
+              landlordSignature={await loadSignature(createAdminClient(), c.landlord_signature, c.owner_id)}
               tenantSignature={c.tenant_signature}
               coTenantSignatures={coTenants
                 .map((ct, i) => ({

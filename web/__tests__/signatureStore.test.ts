@@ -51,10 +51,20 @@ describe("signature store", () => {
   it("loads stored images back as data URLs and passes legacy values through", async () => {
     const { admin } = fakeAdmin();
     const ref = (await storeSignature(admin, OWNER, PNG))!;
-    expect(await loadSignature(admin, ref)).toBe(PNG);
-    expect(await loadSignature(admin, PNG)).toBe(PNG);
-    expect(await loadSignature(admin, null)).toBeNull();
+    expect(await loadSignature(admin, ref, OWNER)).toBe(PNG);
+    expect(await loadSignature(admin, PNG, OWNER)).toBe(PNG);
+    expect(await loadSignature(admin, null, OWNER)).toBeNull();
     vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(await loadSignature(admin, `sig:landlord-signatures/${OWNER}/missing.png`)).toBeNull();
+    expect(await loadSignature(admin, `sig:landlord-signatures/${OWNER}/missing.png`, OWNER)).toBeNull();
+  });
+
+  it("never follows a reference outside the contract owner's folder", async () => {
+    const { admin } = fakeAdmin();
+    const ref = (await storeSignature(admin, OWNER, PNG))!;
+    const other = "22222222-2222-2222-2222-222222222222";
+    expect(await loadSignature(admin, ref, other)).toBeNull();
+    // A row edited to point at another object in the bucket reads nothing.
+    expect(await loadSignature(admin, "sig:cccc/sealed/1.pdf", OWNER)).toBeNull();
+    expect(await loadSignature(admin, "javascript:alert(1)", OWNER)).toBeNull();
   });
 });

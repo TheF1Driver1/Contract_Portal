@@ -34,6 +34,8 @@ export async function GET(_req: Request, props: { params: Promise<{ id: string }
   const supabaseAdmin = createAdminClient();
   const withUrls = await Promise.all(
     (data ?? []).map(async (att) => {
+      // Only sign objects in the owner's own folder.
+      if (!att.storage_path.startsWith(`${user.id}/`) || att.storage_path.includes("..")) return { ...att, signed_url: null };
       const { data: signed } = await supabaseAdmin.storage
         .from("contracts")
         .createSignedUrl(att.storage_path, 3600);

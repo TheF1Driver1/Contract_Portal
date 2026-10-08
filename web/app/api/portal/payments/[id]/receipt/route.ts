@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { tenantHasLease } from "@/lib/maintenance/service";
 import { createAdminClient, createClient } from "@/lib/supabase-server";
 import { receiptFor } from "@/lib/rent/receipt-data";
 import { receiptNumber, renderReceipt } from "@/lib/rent/receipt";
@@ -16,15 +17,7 @@ export async function GET(_req: Request, props: { params: Promise<{ id: string }
   const admin = createAdminClient();
   const { data: payment } = await admin.from("payments").select("contract_id, voided_at").eq("id", id).maybeSingle();
   if (!payment || payment.voided_at) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const { data: invite } = await admin
-    .from("tenant_invites")
-    .select("id")
-    .eq("contract_id", payment.contract_id)
-    .eq("used_by", user.id)
-    .eq("used", true)
-    .limit(1)
-    .maybeSingle();
-  if (!invite) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!(await tenantHasLease(admin, user.id, payment.contract_id))) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const r = await receiptFor(admin, id);
   if (!r) return NextResponse.json({ error: "Not found" }, { status: 404 });

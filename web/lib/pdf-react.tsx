@@ -284,7 +284,7 @@ export async function renderContractPdf(
   try {
     // Stored ("sig:") landlord signatures are fetched from private storage for the PDF.
     if (isStoredSignature(contract.landlord_signature)) {
-      contract = { ...contract, landlord_signature: await loadSignature(createAdminClient(), contract.landlord_signature) };
+      contract = { ...contract, landlord_signature: await loadSignature(createAdminClient(), contract.landlord_signature, contract.owner_id) };
     }
     const buf = await renderToBuffer(
       <LeaseDocument contract={contract} profile={profile} sections={sections} signatures={opts.signatures} />

@@ -26,7 +26,9 @@ export async function DELETE(
 
   // Remove from storage
   const supabaseAdmin = createAdminClient();
-  await supabaseAdmin.storage.from("contracts").remove([att.storage_path]);
+  if (att.storage_path.startsWith(`${user.id}/`) && !att.storage_path.includes("..")) {
+    await supabaseAdmin.storage.from("contracts").remove([att.storage_path]);
+  }
 
   const { error } = await supabase
     .from("contract_attachments")

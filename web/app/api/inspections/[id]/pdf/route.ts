@@ -43,6 +43,7 @@ export async function GET(_req: Request, props: { params: Promise<{ id: string }
   let budget = MAX_IMAGES;
   for (const p of loaded.photos as InspectionPhoto[]) {
     if (!p.item_id || budget <= 0) continue;
+    if (!p.path.startsWith(`${p.owner_id}/`) || p.path.includes("..")) continue;
     const format = /\.jpg$/i.test(p.path) ? "jpg" : /\.png$/i.test(p.path) ? "png" : null;
     if (!format) continue;
     const { data: blob } = await admin.storage.from(PHOTO_BUCKET).download(p.path);

@@ -14,15 +14,19 @@ const appBase = () => SITE_URL.replace(/\/$/, "");
 
 /** True when this user redeemed a tenant invite for the lease. */
 export async function tenantHasLease(admin: Client, userId: string, contractId: string): Promise<boolean> {
-  const { data } = await admin
-    .from("tenant_invites")
-    .select("id")
-    .eq("contract_id", contractId)
-    .eq("used_by", userId)
-    .eq("used", true)
-    .limit(1)
-    .maybeSingle();
-  return !!data;
+  const [{ data }, { data: contract }] = await Promise.all([
+    admin
+      .from("tenant_invites")
+      .select("id, owner_id")
+      .eq("contract_id", contractId)
+      .eq("used_by", userId)
+      .eq("used", true)
+      .limit(1)
+      .maybeSingle(),
+    admin.from("contracts").select("owner_id").eq("id", contractId).maybeSingle(),
+  ]);
+  // The invite must come from the contract's owner (forged rows can't grant access).
+  return !!data && !!contract && data.owner_id === contract.owner_id;
 }
 
 /** Leases this user can see in the tenant portal. */
