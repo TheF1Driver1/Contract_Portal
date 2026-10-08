@@ -1,4 +1,5 @@
 import { SCHEDULE_E_LINE_BY_CATEGORY } from "@/components/reports/schedule-e-data";
+import { SCHEDULE_E_LINES as OFFICIAL_LINES, type ScheduleELine } from "@/lib/tax/mapping";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { canExportScheduleE } from "@/lib/subscription";
@@ -7,21 +8,9 @@ import type { PropertyReport } from "@/lib/pdf-schedule-e";
 import { ledgerIncomeByProperty } from "@/lib/tax/load";
 import React from "react";
 
-// Line numbers are shared with the on-screen summary so the two can't drift.
-const LINE_LABELS: Record<string, string> = {
-  advertising: "Advertising",
-  insurance: "Insurance",
-  management: "Management fees",
-  mortgage: "Mortgage interest (deductible)",
-  repairs: "Repairs",
-  maintenance: "Repairs & maintenance",
-  taxes: "Taxes",
-  utilities: "Utilities",
-  hoa: "Other (HOA)",
-  other: "Other",
-};
+// Line numbers and official labels come from the shared tax mapping.
 const SCHEDULE_E_LINES: Record<string, { line: number; label: string }> = Object.fromEntries(
-  Object.entries(SCHEDULE_E_LINE_BY_CATEGORY).map(([cat, line]) => [cat, { line, label: LINE_LABELS[cat] ?? "Other" }])
+  Object.entries(SCHEDULE_E_LINE_BY_CATEGORY).map(([cat, line]) => [cat, { line, label: OFFICIAL_LINES[line as ScheduleELine] ?? "Other" }])
 );
 
 export async function GET(req: NextRequest) {

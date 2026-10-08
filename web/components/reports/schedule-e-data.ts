@@ -1,23 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/db";
 import { ledgerIncomeByProperty } from "@/lib/tax/load";
+import { TAX_MAPPING } from "@/lib/tax/mapping";
 
-/**
- * Expense category -> Schedule E line. Mirrors SCHEDULE_E_LINES in
- * app/api/reports/schedule-e/route.ts so the on-screen summary matches the PDF.
- */
-export const SCHEDULE_E_LINE_BY_CATEGORY: Record<string, number> = {
-  advertising: 5,
-  insurance: 9,
-  management: 11,
-  mortgage: 12,
-  repairs: 14,
-  maintenance: 14,
-  taxes: 16,
-  utilities: 17,
-  hoa: 19,
-  other: 19,
-};
+/** Expense category -> Schedule E line, from the shared tax mapping (PDF and screen agree). */
+export const SCHEDULE_E_LINE_BY_CATEGORY: Record<string, number> = Object.fromEntries(
+  Object.entries(TAX_MAPPING).map(([category, m]) => [category, m.scheduleE])
+);
 
 export type ScheduleELine = { line: number; amount: number };
 

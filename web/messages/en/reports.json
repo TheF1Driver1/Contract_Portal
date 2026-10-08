@@ -30,10 +30,11 @@
   },
   "lines": {
     "5": "Advertising",
+    "7": "Cleaning and maintenance",
     "9": "Insurance",
     "11": "Management fees",
     "12": "Mortgage interest",
-    "14": "Repairs and maintenance",
+    "14": "Repairs",
     "16": "Property taxes (CRIM)",
     "17": "Utilities",
     "19": "Other (includes HOA)"
