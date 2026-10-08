@@ -1,6 +1,6 @@
 # Release runbook: `feature/roadmap-execution` → `dev` → `main`
 
-This branch carries Plans 24–40. The code expects database migrations 012–028,
+This branch carries Plans 24–40. The code expects database migrations 012–031,
 which are **not** in production yet (011 was applied on 2026-10-07). Deploy in
 the order below. Steps 1–3 can run before the code ships, because every migration
 is additive and backward compatible with the current `main`. The exception is
@@ -37,6 +37,9 @@ a copy of the production schema, together with role-based behavior checks.
 | 026 | `026_market_status.sql` | `rea.scrape_runs`, `market_data_updated_at()`, `zillow_market` view gains `rentZestimate`/`livingArea`, `zillow_historical` primary key, indexes, `unaccent` | Recreates the `zillow_market` view (columns appended, grants kept) |
 | 027 | `027_ai_usage.sql` | `ai_usage_events` (per-plan monthly AI quotas) | Stores no prompt or document content |
 | 028 | `028_tenant_pii_encryption.sql` | `date_of_birth_enc` on `tenants` and `contract_occupants` | Then set `FIELD_ENCRYPTION_KEY` and run the backfill (§3) |
+| 029 | `029_ai_qa.sql` | Adds `qa` to the AI usage feature check | |
+| 030 | `030_referrals.sql` | `referral_codes`, `referrals` | Server-only writes; self-referrals rejected |
+| 031 | `031_ath_movil.sql` | `ath_movil_accounts` (encrypted tokens only), `ath_movil_payments`, `ath_movil_status()` | Needs `FIELD_ENCRYPTION_KEY` set before landlords connect |
 
 **About 020.** After 020, only the server (service role) can mark a contract
 `signed`, write `tenant_signature` or set sealing fields. This affects two things:
@@ -79,6 +82,7 @@ New or changed on this branch. `web/.env.example` has the full list.
 | `FIELD_ENCRYPTION_KEY` (+ `FIELD_ENCRYPTION_KEY_PREVIOUS` when rotating) | Encrypts tenant license/ID numbers and birth dates | `openssl rand -base64 32`. **Keep a copy in a password manager**: losing it makes those fields unreadable. After deploying with it set, run `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://<app>/api/cron/encrypt-pii` until it returns `"done": true`. Sent and signed leases keep their snapshot as signed |
 | `ANTHROPIC_API_KEY` | AI receipt scanning in Expenses, lease Q&A | Unset hides every AI feature. Monthly quotas per plan are in `web/lib/ai/usage.ts` |
 | `AI_LEASE_HELP` | Tenant lease Q&A on the signing page | Set to `1` only after the attorney approves a sample of answers |
+| `STRIPE_REFERRAL_COUPON_ID` | Referral reward (one free month) | Optional. Create a 100%-off, duration "once" coupon in Stripe. Without it, converted referrals wait for a manual credit. Also add the **`invoice.paid`** event to the Stripe webhook endpoint, or referrals never convert |
 | `CONTACT_EMAIL` | Enterprise contact form (`/contacto`) | Defaults to `hola@prcontract.online` |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Rate limiting | Without them the limiter is in-memory and per-instance only |
 | `FROM_EMAIL` | All email | Must be on a domain verified in Resend (SPF, DKIM, DMARC) |
@@ -113,6 +117,8 @@ handled there).
 - [ ] Inspections: create a move-in inspection on a signed lease, complete it, and download the PDF.
 - [ ] Reports: `/reports/annual` loads for last year; CSV and PDF export work.
 - [ ] Send a test text to the Twilio number with "AYUDA"; you get the bilingual help reply.
+- [ ] Referrals: open `/r/<your code>` in a private window, sign up, subscribe in Stripe test mode; the referral shows as converted in Settings › Billing.
+- [ ] `/socios` loads and the partner form emails `CONTACT_EMAIL`.
 - [ ] Next morning, `select * from cron_runs order by started_at desc limit 5` shows `ok = true` for both jobs.
 
 ## 6. Rollback
@@ -131,6 +137,8 @@ handled there).
 - [ ] **iOS (Plan 38)**: branch `feature/esign-handoff` in Contract-Portal-iOS moves signing to the web flow. It was written without a compiler: build it in Xcode and test on a device against a backend with 020, then ship before 020 reaches production.
 - [ ] **Scraper (Plan 40)**: merge `feature/market-reliability` in Real-Estate-Search-Automation after adding the Action secrets/variables (`ZILLOW_2026_API_URL`, `RESEND_API_KEY`, `ALERT_EMAIL`, `REPORT_EMAIL`, optional `MAX_PAGES`). The current workflow never passed `ZILLOW_2026_API_URL`, so past runs likely scraped nothing while showing green.
 - [ ] **Revoke the Gmail app password** hardcoded in the scraper's `modules/email_integration.py` on `main` (sender jakotcontact@gmail.com). The branch removes it from the code; revoking it in the Google account is what makes it safe.
+- [ ] **ATH Móvil (Plan 33)**: each landlord pastes their public token (and optionally the private token, only needed for refunds) from ATH Business → Configuración → Integración con API into Cobros → ATH Móvil Business. There is no sandbox: do a $1 payment from a tenant account first and confirm it reaches the ATH Business account and the ledger.
+- [ ] **Attorney review** of the new Terms section "Programa de referidos", the AI clause-translation glossary (`web/lib/ai/glossary.ts`, then set `reviewed: true`), and notice templates before any automatic sending is added.
 - [ ] **Licensing review** of Zillow data and links shown in the app (listing photos are no longer displayed).
 - [ ] **CPA review** of the expense → Schedule E / Anejo N mapping (`web/lib/tax/mapping.ts`) and the year-end package.
 - [ ] **AI (Plan 39)**: build the eval set (50 anonymized receipts, 20 clauses) and check receipt accuracy before announcing the feature; attorney sign-off before `AI_LEASE_HELP=1`.
