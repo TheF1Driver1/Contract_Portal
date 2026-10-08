@@ -49,6 +49,16 @@ const server = http.createServer(async (req, res) => {
   }
   if (url.pathname === "/auth/v1/logout") return send(res, 204);
 
+  // Test control: replace a fixture table (or RPC result) at runtime.
+  if (url.pathname === "/__mock/set" && req.method === "POST") {
+    let body = "";
+    for await (const chunk of req) body += chunk;
+    const { table, rows, rpc: rpcName, value } = JSON.parse(body || "{}");
+    if (table) TABLES[table] = rows ?? [];
+    if (rpcName) RPCS[rpcName] = value;
+    return send(res, 200, { ok: true });
+  }
+
   const rpc = url.pathname.match(/^\/rest\/v1\/rpc\/([a-z_]+)/);
   if (rpc && rpc[1] in RPCS) return send(res, 200, RPCS[rpc[1]]);
 

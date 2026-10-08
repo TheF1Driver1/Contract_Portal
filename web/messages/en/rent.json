@@ -39,7 +39,8 @@
     "payment": "Payment · {method}",
     "voided": "Voided",
     "due": "Due {date}",
-    "receiptSent": "Receipt sent"
+    "receiptSent": "Receipt sent",
+    "athBadge": "Paid with ATH Móvil"
   },
   "payment": {
     "title": "Record payment",
@@ -94,5 +95,32 @@
       "overdue": "Overdue",
       "nextDue": "Next payment"
     }
+  },
+  "ath": {
+    "title": "ATH Móvil Business",
+    "body": "Your tenants pay rent with ATH Móvil from their portal. The money goes straight to your ATH Business account; ContractOS never touches it. Every confirmed payment is posted to the rent ledger and the tenant gets a receipt.",
+    "statusOn": "Connected",
+    "statusOff": "Not connected",
+    "connectedSince": "Connected since {date} · {business}",
+    "noName": "no business name",
+    "step1": "Open the ATH Business app on your phone.",
+    "step2": "Go to Settings (Configuración) → API Integration (Integración con API).",
+    "step3": "Paste the public token here. The private token is optional: it is only needed for refunds.",
+    "businessName": "Name tenants will see (optional)",
+    "businessNameHint": "For example, your business name in ATH Business.",
+    "publicToken": "Public token",
+    "privateToken": "Private token (optional)",
+    "privateTokenHint": "Only for refunds. Stored encrypted and never shown.",
+    "noSandbox": "ATH Móvil has no test environment: a tenant's first real payment is the test. We suggest asking one tenant to pay $1 first and checking that it reaches your account.",
+    "security": "We store the tokens encrypted. You can disconnect ATH Móvil at any time.",
+    "connect": "Connect ATH Móvil",
+    "save": "Save tokens",
+    "update": "Update tokens",
+    "cancel": "Cancel",
+    "disconnect": "Disconnect",
+    "disconnectTitle": "Disconnect ATH Móvil?",
+    "disconnectBody": "Your tenants will no longer see “Pay with ATH Móvil”. Payments already recorded stay in the rent ledger.",
+    "connected": "ATH Móvil connected",
+    "disconnected": "ATH Móvil disconnected"
   }
 }

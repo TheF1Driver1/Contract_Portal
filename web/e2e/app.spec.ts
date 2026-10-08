@@ -313,3 +313,82 @@ test.describe("market data (Plan 40)", () => {
     });
   }
 });
+
+// ── Plan 33: ATH Móvil ──────────────────────────────────────────────────────
+test.describe("ATH Móvil", () => {
+  test.skip(!MOCK_URL, "MOCK_SUPABASE_URL not set");
+  test.describe.configure({ mode: "serial" }); // the portal tests swap a fixture table
+
+  const axe = async (page: import("@playwright/test").Page) => {
+    const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+    return r.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(", ")}`);
+  };
+  const setTable = (request: import("@playwright/test").APIRequestContext, table: string, rows: unknown[]) =>
+    request.post(`${MOCK_URL}/__mock/set`, { data: { table, rows } });
+
+  for (const scheme of ["light", "dark"] as const) {
+    test(`landlord card on Cobros (${scheme})`, async ({ page, context, baseURL }, info) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      await signInMock(context, baseURL!, MOCK_URL!);
+      await page.goto("/rent");
+      const card = page.locator("section", { has: page.getByRole("heading", { name: "ATH Móvil Business" }) });
+      await expect(card.getByText("Conectado", { exact: true })).toBeVisible();
+      await expect(card.getByText(/Rivera Propiedades/)).toBeVisible();
+      await card.getByRole("button", { name: "Actualizar tokens" }).click();
+      await expect(card.getByText(/Configuración → Integración con API/)).toBeVisible();
+      await expect(card.getByText(/no tiene ambiente de prueba/)).toBeVisible();
+      expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`ath-card-${scheme}.png`), fullPage: true });
+    });
+  }
+
+  test("saving tokens is refused without a server encryption key", async ({ page, context, baseURL }) => {
+    test.skip(!!process.env.FIELD_ENCRYPTION_KEY, "server has an encryption key");
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/rent");
+    const card = page.locator("section", { has: page.getByRole("heading", { name: "ATH Móvil Business" }) });
+    await card.getByRole("button", { name: "Actualizar tokens" }).click();
+    await card.getByLabel("Token público").fill("pk_demo_1234567890");
+    await card.getByRole("button", { name: "Guardar tokens" }).click();
+    await expect(page.getByText(/falta la clave de cifrado/)).toBeVisible();
+  });
+
+  test("the ledger marks payments made with ATH Móvil", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/contracts/30000000-0000-4000-8000-000000000001");
+    await expect(page.getByText("Pagado con ATH Móvil")).toBeVisible();
+  });
+
+  for (const scheme of ["light", "dark"] as const) {
+    test(`tenant portal offers ATH Móvil when connected (${scheme})`, async ({ page, context, baseURL }, info) => {
+      // The hide test below swaps a shared fixture table; keep portal checks in one project.
+      test.skip(info.project.name !== "desktop", "portal ATH checks run on desktop only");
+      await page.emulateMedia({ colorScheme: scheme });
+      await signInMock(context, baseURL!, MOCK_URL!, { role: "tenant" });
+      await page.goto("/portal");
+      await expect(page.getByRole("heading", { level: 1, name: "Mis contratos" })).toBeVisible();
+      await page.getByRole("button", { name: "Pagar con ATH Móvil" }).click();
+      await expect(page.getByLabel("Cantidad")).not.toHaveValue("");
+      await expect(page.getByLabel("Tu teléfono de ATH Móvil")).toHaveValue("7875550101");
+      await expect(page.getByText(/va directo a Rivera Propiedades/)).toBeVisible();
+      expect(await axe(page)).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`portal-ath-${scheme}.png`), fullPage: true });
+    });
+  }
+
+  test("tenant portal hides ATH Móvil when the landlord is not connected", async ({ page, context, baseURL, request }, info) => {
+    test.skip(info.project.name !== "desktop", "portal ATH checks run on desktop only");
+    const res = await request.get(`${MOCK_URL}/rest/v1/ath_movil_accounts`);
+    const saved = await res.json();
+    await setTable(request, "ath_movil_accounts", []);
+    try {
+      await signInMock(context, baseURL!, MOCK_URL!, { role: "tenant" });
+      await page.goto("/portal");
+      await expect(page.getByRole("heading", { level: 1, name: "Mis contratos" })).toBeVisible();
+      await expect(page.getByText("Pagos recientes")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Pagar con ATH Móvil" })).toHaveCount(0);
+    } finally {
+      await setTable(request, "ath_movil_accounts", saved);
+    }
+  });
+});

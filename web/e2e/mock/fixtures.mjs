@@ -227,7 +227,19 @@ TABLES.watchlist = [
 ];
 TABLES.investment_analyses = [];
 
+// ── Plan 33: ATH Móvil ──
+// The first ledger payment came in through the portal; the landlord has ATH
+// Business connected; the demo user also redeemed a tenant invite for C1 so
+// /portal renders when the session carries app_role "tenant".
+TABLES.payments[0] = { ...TABLES.payments[0], source: "ath_movil", external_id: "athm:ATH-48213" };
+TABLES.ath_movil_accounts = [{ owner_id: USER.id, public_token_enc: "enc:v1:mock", private_token_enc: null, business_name: "Rivera Propiedades", connected_at: ts(-30), updated_at: ts(-30) }];
+TABLES.ath_movil_payments = [];
+TABLES.tenant_invites = [
+  { id: "f0000000-0000-4000-8000-000000000001", contract_id: C1, owner_id: USER.id, tenant_email: T1.email, token: "demo-invite-token", used: true, used_by: USER.id, used_at: ts(-280), created_at: ts(-290), expires_at: ts(-270) },
+];
+
 // RPC results (POST /rest/v1/rpc/<name>).
 export const RPCS = {
   market_data_updated_at: ts(-3),
+  ath_movil_status: [{ connected: true, business_name: "Rivera Propiedades", connected_at: ts(-30) }],
 };

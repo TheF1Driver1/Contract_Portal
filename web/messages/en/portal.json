@@ -51,5 +51,25 @@
     "payments": "Recent payments",
     "receipt": "Receipt {number}",
     "noPayments": "No payments recorded yet."
+  },
+  "ath": {
+    "pay": "Pay with ATH Móvil",
+    "title": "Pay with ATH Móvil",
+    "intro": "The payment goes straight to {business}. You'll get a notification in the ATH Móvil app to confirm it.",
+    "amount": "Amount",
+    "amountHint": "Between $1 and {max}.",
+    "amountRange": "The amount must be between $1 and {max}.",
+    "phone": "Your ATH Móvil phone",
+    "phoneHint": "The number registered in your ATH Móvil app (10 digits).",
+    "submit": "Send to ATH Móvil",
+    "close": "Close",
+    "waiting": "Open ATH Móvil on your phone and confirm the {amount} payment to {business}.",
+    "countdown": "Time left to confirm:",
+    "cancel": "Cancel payment",
+    "done": "{amount} payment received! We emailed you the receipt.",
+    "cancelled": "The payment was cancelled or expired. You were not charged.",
+    "failedBody": "We couldn't complete the payment.",
+    "retry": "Try again",
+    "landlordFallback": "your landlord"
   }
 }

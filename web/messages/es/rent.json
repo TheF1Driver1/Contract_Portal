@@ -39,7 +39,8 @@
     "payment": "Pago · {method}",
     "voided": "Anulado",
     "due": "Vence {date}",
-    "receiptSent": "Recibo enviado"
+    "receiptSent": "Recibo enviado",
+    "athBadge": "Pagado con ATH Móvil"
   },
   "payment": {
     "title": "Registrar pago",
@@ -94,5 +95,32 @@
       "overdue": "Vencido",
       "nextDue": "Próximo pago"
     }
+  },
+  "ath": {
+    "title": "ATH Móvil Business",
+    "body": "Tus inquilinos pagan la renta con ATH Móvil desde su portal. El dinero va directo a tu cuenta ATH Business; ContractOS no lo toca. Cada pago confirmado se anota en la cuenta de renta y le enviamos el recibo al inquilino.",
+    "statusOn": "Conectado",
+    "statusOff": "No conectado",
+    "connectedSince": "Conectado desde {date} · {business}",
+    "noName": "sin nombre de negocio",
+    "step1": "Abre la app ATH Business en tu teléfono.",
+    "step2": "Ve a Configuración → Integración con API.",
+    "step3": "Copia el token público aquí. El token privado es opcional: solo hace falta para reembolsos.",
+    "businessName": "Nombre que verá el inquilino (opcional)",
+    "businessNameHint": "Por ejemplo, el nombre de tu negocio en ATH Business.",
+    "publicToken": "Token público",
+    "privateToken": "Token privado (opcional)",
+    "privateTokenHint": "Solo para reembolsos. Lo guardamos cifrado y nunca se muestra.",
+    "noSandbox": "ATH Móvil no tiene ambiente de prueba: el primer pago real de un inquilino es la prueba. Te recomendamos pedirle a un inquilino que pague $1 primero y confirmar que aparece en tu cuenta.",
+    "security": "Guardamos los tokens cifrados. Puedes desconectar ATH Móvil cuando quieras.",
+    "connect": "Conectar ATH Móvil",
+    "save": "Guardar tokens",
+    "update": "Actualizar tokens",
+    "cancel": "Cancelar",
+    "disconnect": "Desconectar",
+    "disconnectTitle": "¿Desconectar ATH Móvil?",
+    "disconnectBody": "Tus inquilinos dejarán de ver «Pagar con ATH Móvil». Los pagos ya registrados se quedan en la cuenta de renta.",
+    "connected": "ATH Móvil conectado",
+    "disconnected": "ATH Móvil desconectado"
   }
 }
