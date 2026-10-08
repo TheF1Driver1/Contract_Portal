@@ -35,6 +35,7 @@ on conflict (plan) do update set
   managers = excluded.managers;
 
 alter table public.plan_entitlements enable row level security;
+drop policy if exists plan_entitlements_read on public.plan_entitlements;
 create policy plan_entitlements_read on public.plan_entitlements
   for select to anon, authenticated using (true);
 revoke insert, update, delete, truncate on public.plan_entitlements from anon, authenticated;

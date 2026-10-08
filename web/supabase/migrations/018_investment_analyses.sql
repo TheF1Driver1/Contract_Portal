@@ -27,6 +27,7 @@ create table if not exists public.investment_analyses (
 create index if not exists investment_analyses_watchlist_idx on public.investment_analyses (watchlist_id);
 
 alter table public.investment_analyses enable row level security;
+drop policy if exists investment_analyses_own on public.investment_analyses;
 create policy investment_analyses_own on public.investment_analyses
   for all to authenticated
   using (owner_id = (select auth.uid()))
@@ -37,6 +38,7 @@ returns trigger language plpgsql set search_path = '' as $$
 begin new.updated_at = now(); return new; end;
 $$;
 
+drop trigger if exists investment_analyses_updated_at on public.investment_analyses;
 create trigger investment_analyses_updated_at
   before update on public.investment_analyses
   for each row execute function public.touch_updated_at();

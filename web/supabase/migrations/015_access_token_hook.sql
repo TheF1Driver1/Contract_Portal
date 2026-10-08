@@ -31,5 +31,6 @@ grant execute on function public.custom_access_token_hook(jsonb) to supabase_aut
 revoke execute on function public.custom_access_token_hook(jsonb) from authenticated, anon, public;
 
 grant select on table public.profiles to supabase_auth_admin;
+drop policy if exists "auth_admin_reads_profiles_for_hook" on public.profiles;
 create policy "auth_admin_reads_profiles_for_hook" on public.profiles
   as permissive for select to supabase_auth_admin using (true);

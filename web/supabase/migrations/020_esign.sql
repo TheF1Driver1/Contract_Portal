@@ -44,6 +44,7 @@ create index if not exists contract_signers_owner_idx on public.contract_signers
 
 alter table public.contract_signers enable row level security;
 -- Landlords read their signers (live status); every write goes through the server.
+drop policy if exists contract_signers_owner_read on public.contract_signers;
 create policy contract_signers_owner_read on public.contract_signers
   for select to authenticated using (owner_id = (select auth.uid()));
 revoke insert, update, delete on public.contract_signers from anon, authenticated;
@@ -74,6 +75,7 @@ create index if not exists signature_events_contract_idx on public.signature_eve
 create index if not exists signature_events_signer_idx on public.signature_events (signer_id);
 
 alter table public.signature_events enable row level security;
+drop policy if exists signature_events_owner_read on public.signature_events;
 create policy signature_events_owner_read on public.signature_events
   for select to authenticated
   using (exists (select 1 from public.contracts c where c.id = contract_id and c.owner_id = (select auth.uid())));
