@@ -127,9 +127,15 @@ export function buildContext(contract: Contract) {
       ? 'las leyes del estado donde ubica la propiedad'
       : 'el Código Civil de Puerto Rico de 2020 (Ley 55-2020) y demás leyes aplicables de Puerto Rico',
     daco_notice: 'Para información sobre sus derechos como arrendatario, comuníquese con el Departamento de Asuntos del Consumidor (DACO) al 787-722-7555 o visite www.daco.pr.gov.',
-    lead_paint_notice: String((prop as Record<string, unknown>)?.year_built ?? '') < '1978'
-      ? 'AVISO: Esta propiedad fue construida antes de 1978 y puede contener pintura a base de plomo. La exposición a polvo o pintura de plomo puede causar daños graves a la salud, especialmente en niños pequeños. Contacte a su médico para información sobre pruebas de plomo.'
-      : '',
+    // Only for properties with a known construction year before 1978 (federal
+    // lead-based paint disclosure). There is no year_built column yet, so this
+    // stays empty instead of appearing on every lease.
+    lead_paint_notice: (() => {
+      const year = Number((prop as Record<string, unknown> | null)?.year_built);
+      return Number.isFinite(year) && year > 0 && year < 1978
+        ? 'AVISO: Esta propiedad fue construida antes de 1978 y puede contener pintura a base de plomo. La exposición a polvo o pintura de plomo puede causar daños graves a la salud, especialmente en niños pequeños. Contacte a su médico para información sobre pruebas de plomo.'
+        : '';
+    })(),
     deposit_return_policy: `Las partes acuerdan que el depósito de seguridad de $${contract.security_deposit} será devuelto dentro de treinta (30) días calendario después de la terminación del arrendamiento, menos las deducciones documentadas por daños más allá del desgaste normal o por cantidades adeudadas bajo este contrato.`,
     termination_notice_clause: 'Cualquiera de las partes podrá notificar por escrito, con no menos de sesenta (60) días de anticipación al vencimiento del término, su intención de no renovar este contrato.',
     no_waiver_clause: 'Nada en este contrato limita los derechos que la ley aplicable reconoce al arrendatario. Cualquier cláusula contraria a la ley se tendrá por no puesta, sin afectar la validez de las demás.',

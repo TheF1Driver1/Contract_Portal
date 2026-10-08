@@ -1,419 +1,290 @@
 /**
- * Contract PDF renderer using @react-pdf/renderer.
- * Pure Node.js — no Puppeteer / headless Chrome required.
+ * Lease PDF (Spanish, the governing text) rendered with @react-pdf/renderer.
+ * Clause wording comes from buildContext() so the PDF and the DOCX template
+ * say the same thing. Pure Node.js; no headless browser.
  */
 import React from "react";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  Image,
-  StyleSheet,
-  renderToBuffer,
-} from "@react-pdf/renderer";
-import type {
-  Contract,
-  Profile,
-  Tenant,
-  TenantSnapshot,
-  Property,
-  PropertySnapshot,
-} from "@/lib/types";
+import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import type { Contract, Profile, Tenant, TenantSnapshot, Property, PropertySnapshot } from "@/lib/types";
+import { buildContext, MONTHS_ES } from "@/lib/contract-context";
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+// ─── formatting ─────────────────────────────────────────────────────────────
 
-function fmtDate(d: string | null | undefined): string {
+export function fechaLarga(d: string | null | undefined): string {
   if (!d) return "";
-  const [y, m, day] = d.split("-");
-  const months = [
-    "", "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
-  return `${months[parseInt(m)]} ${parseInt(day)}, ${y}`;
+  const [y, m, day] = d.slice(0, 10).split("-");
+  if (!y || !m || !day) return "";
+  return `${parseInt(day)} de ${MONTHS_ES[parseInt(m)]} de ${y}`;
 }
 
-function fmtMoney(n: number | null | undefined): string {
+export function dinero(n: number | null | undefined): string {
   if (n == null) return "";
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+  return new Intl.NumberFormat("es-US", { style: "currency", currency: "USD" }).format(n);
 }
 
-// ─── styles ─────────────────────────────────────────────────────────────────
+// ─── styles (PDF output needs literal colors) ───────────────────────────────
 
 const S = StyleSheet.create({
-  page: {
-    fontFamily: "Helvetica",
-    fontSize: 10.5,
-    lineHeight: 1.55,
-    color: "#111111",
-    paddingTop: 50,
-    paddingBottom: 60,
-    paddingHorizontal: 62,
-    backgroundColor: "#ffffff",
-  },
-
-  // Header
-  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18, paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: "#111111" },
-  landlordName: { fontFamily: "Helvetica-Bold", fontSize: 11, marginBottom: 2 },
-  landlordInfo: { fontSize: 9 },
-  docMeta: { textAlign: "right", fontSize: 9, color: "#444444" },
-  docTitle: { textAlign: "center", fontFamily: "Helvetica-Bold", fontSize: 15, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 3 },
-  docSubtitle: { textAlign: "center", fontSize: 8.5, color: "#666666", marginBottom: 18 },
-
-  // Sections
-  section: { marginBottom: 14 },
-  sectionTitleWrap: { borderBottomWidth: 1, borderBottomColor: "#cccccc", paddingBottom: 3, marginBottom: 7 },
-  sectionTitle: { fontFamily: "Helvetica-Bold", fontSize: 8, textTransform: "uppercase", letterSpacing: 1, color: "#333333" },
-
-  // Party grid (2-col)
-  partyGrid: { flexDirection: "row", gap: 16 },
-  partyBlock: { flex: 1 },
-  partyLabel: { fontFamily: "Helvetica-Bold", fontSize: 7.5, textTransform: "uppercase", letterSpacing: 0.8, color: "#555555", marginBottom: 4 },
-
-  // Key/value rows
-  row: { flexDirection: "row", marginBottom: 2 },
-  rowLabel: { width: "38%", fontSize: 9, color: "#555555" },
-  rowValue: { flex: 1, fontSize: 10 },
-
-  // Sub-section label
-  subLabel: { fontFamily: "Helvetica-Bold", fontSize: 8, textTransform: "uppercase", letterSpacing: 0.7, color: "#666666", marginTop: 8, marginBottom: 3 },
-
-  // Amenity pills
-  pillWrap: { flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 4 },
-  pill: { fontSize: 8.5, borderWidth: 1, borderColor: "#cccccc", borderRadius: 3, paddingVertical: 1.5, paddingHorizontal: 6, color: "#333333" },
-
-  // Signatures
-  sigSection: { marginTop: 20 },
-  sigGrid: { flexDirection: "row", gap: 24, marginTop: 12 },
-  sigBlock: { flex: 1 },
-  sigRole: { fontFamily: "Helvetica-Bold", fontSize: 7.5, textTransform: "uppercase", letterSpacing: 0.8, color: "#555555", marginBottom: 6 },
-  sigImage: { maxWidth: 200, maxHeight: 48, marginBottom: 2 },
-  sigLine: { borderBottomWidth: 1, borderBottomColor: "#333333", marginBottom: 4, height: 44 },
-  sigName: { fontFamily: "Helvetica-Bold", fontSize: 9 },
-  sigDate: { fontSize: 8.5, color: "#555555", marginTop: 4 },
-
-  // Footer
-  footer: { marginTop: 20, paddingTop: 8, borderTopWidth: 1, borderTopColor: "#dddddd", fontSize: 8, color: "#888888", lineHeight: 1.4 },
-
-  // Page number
-  pageNum: { position: "absolute", bottom: 20, left: 0, right: 0, textAlign: "center", fontSize: 8, color: "#999999" },
+  page: { fontFamily: "Helvetica", fontSize: 10.5, lineHeight: 1.55, color: "#111111", paddingTop: 54, paddingBottom: 64, paddingHorizontal: 64 },
+  header: { flexDirection: "row", justifyContent: "space-between", fontSize: 8.5, color: "#555555", marginBottom: 18 },
+  title: { textAlign: "center", fontFamily: "Helvetica-Bold", fontSize: 15, letterSpacing: 1.2, marginBottom: 4 },
+  subtitle: { textAlign: "center", fontSize: 9, color: "#555555", marginBottom: 18 },
+  intro: { marginBottom: 10, textAlign: "justify" },
+  clause: { marginBottom: 9 },
+  clauseTitle: { fontFamily: "Helvetica-Bold", fontSize: 10.5, marginBottom: 2 },
+  para: { textAlign: "justify" },
+  notice: { marginTop: 8, padding: 8, borderWidth: 1, borderColor: "#999999", fontSize: 9.5 },
+  sigSection: { marginTop: 22 },
+  sigGrid: { flexDirection: "row", flexWrap: "wrap", gap: 24, marginTop: 10 },
+  sigBlock: { width: "45%", marginBottom: 14 },
+  sigImage: { maxWidth: 200, maxHeight: 50, marginBottom: 2 },
+  sigLine: { borderBottomWidth: 1, borderBottomColor: "#333333", height: 46, marginBottom: 4 },
+  sigRole: { fontFamily: "Helvetica-Bold", fontSize: 8, letterSpacing: 0.6, color: "#444444", marginBottom: 4 },
+  sigName: { fontFamily: "Helvetica-Bold", fontSize: 9.5 },
+  sigMeta: { fontSize: 8.5, color: "#555555" },
+  footer: { position: "absolute", bottom: 26, left: 64, right: 64, flexDirection: "row", justifyContent: "space-between", fontSize: 8, color: "#888888" },
 });
 
-// ─── primitives ─────────────────────────────────────────────────────────────
+// ─── model ──────────────────────────────────────────────────────────────────
 
-function Row({ label, value }: { label: string; value?: string | number | null }) {
-  if (value == null || value === "" || value === 0) return null;
-  return (
-    <View style={S.row}>
-      <Text style={S.rowLabel}>{label}</Text>
-      <Text style={S.rowValue}>{String(value)}</Text>
-    </View>
-  );
-}
+export type PdfSignature = { role: string; name: string; image: string | null; signedAt?: string | null };
+interface CustomSection { title: string; body: string }
 
-function SectionBlock({ title, children }: { title: string; children: React.ReactNode }) {
+const AMENITY_LABELS: Record<string, string> = {
+  fridge: "nevera",
+  stove_count: "estufa(s)",
+  microwave: "microondas",
+  ac: "aire acondicionado",
+  fan_count: "abanico(s) de techo",
+  mini_blinds: "cortinas mini-blinds",
+  mirror_doors: "puertas de espejo en closets",
+  renovated_bathroom: "baño remodelado",
+  sofa: "sofá",
+  futon: "futón",
+  stool_count: "banqueta(s)",
+  wall_art: "cuadros",
+};
+
+function Clause({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <View style={S.section}>
-      <View style={S.sectionTitleWrap}>
-        <Text style={S.sectionTitle}>{title}</Text>
-      </View>
+    <View style={S.clause} wrap={false}>
+      <Text style={S.clauseTitle}>{n}. {title}</Text>
       {children}
     </View>
   );
 }
 
-// ─── document ────────────────────────────────────────────────────────────────
+function P({ children }: { children: React.ReactNode }) {
+  return <Text style={S.para}>{children}</Text>;
+}
 
-interface CustomSection { title: string; body: string }
-interface Props { contract: Contract; profile: Profile | null; sections?: CustomSection[] }
-
-function ContractDocument({ contract, profile, sections = [] }: Props) {
+function LeaseDocument({
+  contract,
+  profile,
+  sections,
+  signatures,
+}: {
+  contract: Contract;
+  profile: Profile | null;
+  sections: CustomSection[];
+  signatures?: PdfSignature[];
+}) {
+  const ctx = buildContext(contract);
   const amenities = (contract.amenities ?? {}) as Record<string, string | number | boolean>;
-  const tenant    = (contract.tenant_snapshot ?? contract.tenant) as (TenantSnapshot | Tenant) | null;
-  const property  = (contract.property_snapshot ?? contract.property) as (PropertySnapshot | Property) | null;
-
-  const ten  = tenant   as Record<string, unknown> | null;
+  const tenant = (contract.tenant_snapshot ?? contract.tenant ?? null) as (TenantSnapshot | Tenant) | null;
+  const property = (contract.property_snapshot ?? contract.property ?? null) as (PropertySnapshot | Property) | null;
   const prop = property as Record<string, unknown> | null;
+  const ten = tenant as Record<string, unknown> | null;
 
-  const today      = new Date();
-  const todayFmt   = fmtDate(today.toISOString().split("T")[0]);
+  const landlordName = (profile?.company_name || profile?.full_name || "").trim() || "________________";
+  const tenantName = String(ten?.full_name ?? "") || "________________";
+  const address = [prop?.address, contract.unit_number ? `Unidad ${contract.unit_number}` : null, prop?.city, prop?.state, prop?.zip]
+    .filter(Boolean)
+    .join(", ");
   const contractNo = contract.id.slice(-8).toUpperCase();
 
-  const landlordName  = (profile?.company_name || profile?.full_name || "Landlord").trim();
-  const landlordEmail = profile?.email  ?? "";
-  const landlordPhone = profile?.phone  ?? "";
+  const furnishings = Object.entries(AMENITY_LABELS)
+    .map(([key, label]) => {
+      const v = amenities[key];
+      if (v === true) return label;
+      if (typeof v === "number" && v > 0) return `${v} ${label}`;
+      return null;
+    })
+    .filter(Boolean) as string[];
+  if (typeof amenities.custom_amenities === "string" && amenities.custom_amenities.trim()) {
+    furnishings.push(amenities.custom_amenities.trim());
+  }
 
-  // Lease duration label
-  const years     = Math.floor(contract.lease_months / 12);
-  const remMonths = contract.lease_months % 12;
-  const durationParts: string[] = [];
-  if (years > 0)     durationParts.push(`${years} year${years !== 1 ? "s" : ""}`);
-  if (remMonths > 0) durationParts.push(`${remMonths} month${remMonths !== 1 ? "s" : ""}`);
-  const duration = durationParts.join(" and ") || `${contract.lease_months} months`;
+  const parking = Boolean(prop?.parking_available ?? amenities.parking);
+  const coTenants = (contract.occupants ?? []).filter((o) => o.role === "co_tenant").map((o) => o.full_name);
+  const occupants = [...(contract.occupant_names ?? []), ...coTenants].filter(Boolean);
 
-  // Late fee
-  const lfType  = contract.late_fee_type ?? "fixed";
-  const lfGrace = contract.late_fee_grace_period_days ?? 0;
-  const lfFixed = contract.late_fee_fixed_amount ?? 0;
-  const lfDaily = contract.late_fee_daily_amount ?? 0;
-  const showLateFee = lfFixed > 0 || lfDaily > 0 || lfGrace > 0;
+  const sigs: PdfSignature[] =
+    signatures ??
+    [
+      { role: "ARRENDADOR(A)", name: landlordName, image: contract.landlord_signature ?? null, signedAt: contract.signed_at },
+      { role: "ARRENDATARIO(A)", name: tenantName, image: contract.tenant_signature ?? null, signedAt: contract.signed_at },
+    ];
 
-  // Parking
-  const parkingAvailable = (prop?.parking_available as boolean | undefined) ?? Boolean(amenities.parking);
-  const parkingCount     = (prop?.parking_count as number | null | undefined) ?? 0;
-  const parkingSpot      = amenities.parking_spot ? String(amenities.parking_spot) : "";
-
-  // Amenities pills
-  const amenityLabels: Record<string, string> = {
-    mirror_doors:       "Mirror Closet Doors",
-    renovated_bathroom: "Renovated Bathroom",
-    microwave:          "Microwave",
-    fridge:             "Refrigerator",
-    ac:                 "Air Conditioning",
-    mini_blinds:        "Mini Blinds",
-    sofa:               "Sofa",
-    futon:              "Futon",
-    wall_art:           "Wall Art",
-    fan_count:          "Ceiling Fans",
-    stool_count:        "Bar Stools",
-    stove_count:        "Stoves",
-  };
-
-  const activePills = Object.entries(amenityLabels).filter(([key]) => {
-    const v = amenities[key];
-    return v === true || (typeof v === "number" && v > 0);
-  });
-
-  // Occupants
-  const occupantNames = contract.occupant_names ?? [];
-  const occupantCount = contract.occupant_count ?? 1;
-
-  // Signatures
-  const signedDate = contract.signed_at ? fmtDate(contract.signed_at.split("T")[0]) : "";
-
-  const hasEmployer  = ten && (ten.employer_name || ten.employer_phone || ten.monthly_income);
-  const hasEmergency = ten && (ten.emergency_contact_name || ten.emergency_contact_phone);
-
+  let n = 0;
   return (
-    <Document>
+    <Document title={`Contrato de arrendamiento ${contractNo}`} language="es" author="ContractOS">
       <Page size="LETTER" style={S.page}>
-        {/* Page numbers */}
-        <Text
-          style={S.pageNum}
-          render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
-          fixed
-        />
-
-        {/* ── Header ── */}
-        <View style={S.headerRow}>
-          <View>
-            <Text style={S.landlordName}>{landlordName}</Text>
-            {!!landlordEmail && <Text style={S.landlordInfo}>{landlordEmail}</Text>}
-            {!!landlordPhone && <Text style={S.landlordInfo}>{landlordPhone}</Text>}
-          </View>
-          <View>
-            <Text style={S.docMeta}>Date: {todayFmt}</Text>
-            <Text style={S.docMeta}>Contract No: {contractNo}</Text>
-          </View>
+        <View style={S.header} fixed>
+          <Text>{landlordName}</Text>
+          <Text>Contrato núm. {contractNo}</Text>
         </View>
 
-        <Text style={S.docTitle}>Lease Agreement</Text>
-        <Text style={S.docSubtitle}>
-          {contract.contract_type.charAt(0).toUpperCase() + contract.contract_type.slice(1)}
-          {" — "}{fmtDate(contract.lease_start)} through {fmtDate(contract.lease_end)}
+        <Text style={S.title}>CONTRATO DE ARRENDAMIENTO</Text>
+        <Text style={S.subtitle}>
+          {fechaLarga(contract.lease_start)} al {fechaLarga(contract.lease_end)}
         </Text>
 
-        {/* ── Parties ── */}
-        <SectionBlock title="Parties">
-          <View style={S.partyGrid}>
-            <View style={S.partyBlock}>
-              <Text style={S.partyLabel}>Landlord</Text>
-              <Row label="Name"  value={landlordName} />
-              <Row label="Email" value={landlordEmail} />
-              <Row label="Phone" value={landlordPhone} />
-            </View>
-            <View style={S.partyBlock}>
-              {ten ? (
-                <>
-                  <Text style={S.partyLabel}>Tenant</Text>
-                  <Row label="Full Name"        value={String(ten.full_name ?? "")} />
-                  <Row label="Email"            value={String(ten.email ?? "")} />
-                  <Row label="Phone"            value={String(ten.phone ?? "")} />
-                  <Row label="License / ID"     value={String(ten.license_number ?? "")} />
-                  {ten.ssn_last4 ? <Row label="SSN (Last 4)" value={`xxx-xx-${ten.ssn_last4}`} /> : null}
-                  <Row label="Date of Birth"    value={fmtDate(String(ten.date_of_birth ?? ""))} />
-                  <Row label="Current Address"  value={String(ten.current_address ?? "")} />
-                </>
-              ) : (
-                <Text style={{ fontSize: 9, color: "#888888" }}>No tenant on record</Text>
-              )}
-            </View>
-          </View>
-        </SectionBlock>
+        <Text style={S.intro}>
+          De una parte, {landlordName}, en adelante la PARTE ARRENDADORA; y de la otra parte, {tenantName}
+          {ten?.license_number ? `, con identificación núm. ${String(ten.license_number)}` : ""}
+          {ten?.current_address ? `, con dirección en ${String(ten.current_address)}` : ""}, en adelante la PARTE
+          ARRENDATARIA. Ambas partes, con capacidad legal para obligarse, acuerdan el presente contrato sujeto a
+          las siguientes cláusulas:
+        </Text>
 
-        {/* ── Additional Tenant Details ── */}
-        {(hasEmployer || hasEmergency) ? (
-          <SectionBlock title="Additional Tenant Details">
-            {hasEmployer ? (
-              <>
-                <Text style={S.subLabel}>Employment</Text>
-                <Row label="Employer"       value={String(ten!.employer_name ?? "")} />
-                <Row label="Employer Phone" value={String(ten!.employer_phone ?? "")} />
-                {ten!.monthly_income != null ? (
-                  <Row label="Monthly Income" value={fmtMoney(Number(ten!.monthly_income))} />
-                ) : null}
-              </>
-            ) : null}
-            {hasEmergency ? (
-              <>
-                <Text style={S.subLabel}>Emergency Contact</Text>
-                <Row label="Name"  value={String(ten!.emergency_contact_name ?? "")} />
-                <Row label="Phone" value={String(ten!.emergency_contact_phone ?? "")} />
-              </>
-            ) : null}
-          </SectionBlock>
-        ) : null}
+        <Clause n={++n} title="PROPIEDAD">
+          <P>
+            La PARTE ARRENDADORA arrienda a la PARTE ARRENDATARIA la propiedad ubicada en {address || "________________"}
+            {prop?.name ? ` («${String(prop.name)}»)` : ""}, para uso exclusivo de vivienda.
+          </P>
+        </Clause>
 
-        {/* ── Property ── */}
-        {prop ? (
-          <SectionBlock title="Property">
-            <Row label="Property Name" value={String(prop.name ?? "")} />
-            <Row label="Address"       value={String(prop.address ?? "")} />
-            <Row label="City / State"  value={[prop.city, prop.state].filter(Boolean).join(", ")} />
-            <Row label="ZIP"           value={String(prop.zip ?? "")} />
-            <Row label="Unit"          value={contract.unit_number} />
-          </SectionBlock>
-        ) : null}
+        <Clause n={++n} title="TÉRMINO">
+          <P>
+            El arrendamiento tendrá una duración de {contract.lease_months} meses, comenzando el{" "}
+            {fechaLarga(contract.lease_start)} y terminando el {fechaLarga(contract.lease_end)}.
+          </P>
+        </Clause>
 
-        {/* ── Unit Details ── */}
-        <SectionBlock title="Unit Details">
-          {amenities.room_count ? <Row label="Bedrooms"       value={String(amenities.room_count)} /> : null}
-          {(prop?.bathroom_count as number | undefined) ? <Row label="Bathrooms" value={String(prop!.bathroom_count)} /> : null}
-          <Row label="Parking"        value={parkingAvailable ? "Yes" : "No"} />
-          {parkingAvailable && parkingCount ? <Row label="Parking Spaces" value={String(parkingCount)} /> : null}
-          {parkingAvailable && parkingSpot  ? <Row label="Parking Spot"   value={parkingSpot} /> : null}
-          {contract.key_count ? <Row label="Keys Provided" value={String(contract.key_count)} /> : null}
-        </SectionBlock>
+        <Clause n={++n} title="RENTA">
+          <P>
+            La renta mensual será de {dinero(contract.rent_amount)}
+            {contract.rent_amount_verbal ? ` (${contract.rent_amount_verbal})` : ""}, pagadera no más tarde del día{" "}
+            {contract.payment_due_day} de cada mes.
+          </P>
+        </Clause>
 
-        {/* ── Lease Term ── */}
-        <SectionBlock title="Lease Term">
-          <Row label="Start Date" value={fmtDate(contract.lease_start)} />
-          <Row label="End Date"   value={fmtDate(contract.lease_end)} />
-          <Row label="Duration"   value={duration} />
-        </SectionBlock>
+        <Clause n={++n} title="RECARGOS POR ATRASO">
+          <P>
+            Si la renta no se recibe a tiempo, aplicará un recargo: {ctx.descripcion_mora}.
+          </P>
+        </Clause>
 
-        {/* ── Financial Terms ── */}
-        <SectionBlock title="Financial Terms">
-          <View style={S.row}>
-            <Text style={S.rowLabel}>Monthly Rent</Text>
-            <Text style={S.rowValue}>
-              {fmtMoney(contract.rent_amount)}
-              {contract.rent_amount_verbal ? `  (${contract.rent_amount_verbal})` : ""}
-            </Text>
-          </View>
-          {contract.security_deposit ? <Row label="Security Deposit" value={fmtMoney(contract.security_deposit)} /> : null}
-          <Row label="Payment Due"    value={`Day ${contract.payment_due_day} of each month`} />
-          <Row label="Late Fee After" value={`Day ${contract.late_fee_day} of each month`} />
-        </SectionBlock>
+        <Clause n={++n} title="DEPÓSITO">
+          {contract.security_deposit > 0 ? (
+            <P>
+              A la firma de este contrato, la PARTE ARRENDATARIA entrega un depósito de {dinero(contract.security_deposit)}.{" "}
+              {/* Function replacer: a string replacement would read "$1" in "$1,150" as a capture group. */}
+              {ctx.deposit_return_policy.replace(/el depósito de seguridad de \$[\d.,]+ /, () => "dicho depósito ")}
+            </P>
+          ) : (
+            <P>No se requiere depósito.</P>
+          )}
+        </Clause>
 
-        {/* ── Late Fee Policy ── */}
-        {showLateFee ? (
-          <SectionBlock title="Late Fee Policy">
-            <Row label="Fee Type"
-              value={lfType === "fixed" ? "Fixed Amount" : lfType === "daily" ? "Daily Accrual" : "Fixed + Daily"}
-            />
-            {lfGrace > 0 ? <Row label="Grace Period" value={`${lfGrace} day${lfGrace !== 1 ? "s" : ""}`} /> : null}
-            {(lfType === "fixed" || lfType === "both") && lfFixed > 0
-              ? <Row label="Fixed Late Fee" value={fmtMoney(lfFixed)} /> : null}
-            {(lfType === "daily" || lfType === "both") && lfDaily > 0
-              ? <Row label="Daily Penalty" value={`${fmtMoney(lfDaily)} / day`} /> : null}
-          </SectionBlock>
-        ) : null}
+        <Clause n={++n} title="OCUPANTES">
+          <P>
+            La propiedad será ocupada por {contract.occupant_count} persona(s)
+            {occupants.length ? `: ${occupants.join(", ")}` : ""}. Cualquier ocupante adicional requiere el
+            consentimiento escrito de la PARTE ARRENDADORA.
+          </P>
+        </Clause>
 
-        {/* ── Included Amenities ── */}
-        {activePills.length > 0 ? (
-          <SectionBlock title="Included Amenities">
-            <View style={S.pillWrap}>
-              {activePills.map(([key, label]) => {
-                const v = amenities[key];
-                const display = typeof v === "number" ? `${v} ${label}` : label;
-                return <Text key={key} style={S.pill}>{display}</Text>;
-              })}
-            </View>
-          </SectionBlock>
-        ) : null}
+        <Clause n={++n} title="LLAVES Y ESTACIONAMIENTO">
+          <P>
+            Se entregan {contract.key_count} llave(s).{" "}
+            {parking
+              ? `Incluye estacionamiento${prop?.parking_count ? ` para ${String(prop.parking_count)} vehículo(s)` : ""}${amenities.parking_spot ? ` (espacio ${String(amenities.parking_spot)})` : ""}.`
+              : "No incluye estacionamiento."}
+          </P>
+        </Clause>
 
-        {/* ── Additional Occupants ── */}
-        {(occupantNames.length > 0 || occupantCount > 1) ? (
-          <SectionBlock title="Additional Occupants">
-            {occupantNames.length > 0
-              ? <Row label="Names"          value={occupantNames.join(", ")} />
-              : null}
-            <Row label="Total Occupants" value={String(occupantCount)} />
-          </SectionBlock>
-        ) : null}
+        {furnishings.length > 0 && (
+          <Clause n={++n} title="MOBILIARIO Y ENSERES">
+            <P>
+              La propiedad se entrega con: {furnishings.join(", ")}. La PARTE ARRENDATARIA los devolverá en el mismo
+              estado, salvo el desgaste normal.
+            </P>
+          </Clause>
+        )}
 
-        {/* ── Custom Sections ── */}
-        {sections.map((sec, i) => (
-          <SectionBlock key={i} title={sec.title}>
-            <Text style={{ fontSize: 10, lineHeight: 1.5 }}>{sec.body}</Text>
-          </SectionBlock>
+        <Clause n={++n} title="AVISO DE NO RENOVACIÓN">
+          <P>{ctx.termination_notice_clause}</P>
+        </Clause>
+
+        {sections.map((s) => (
+          <Clause key={`${s.title}-${n}`} n={++n} title={s.title.toUpperCase()}>
+            <P>{s.body}</P>
+          </Clause>
         ))}
 
-        {/* ── Signatures ── */}
-        <View style={S.sigSection}>
-          <View style={S.sectionTitleWrap}>
-            <Text style={S.sectionTitle}>Signatures</Text>
-          </View>
+        <Clause n={++n} title="LEY APLICABLE">
+          <P>
+            Este contrato se rige por {ctx.ley_aplicable}. {ctx.no_waiver_clause}
+          </P>
+        </Clause>
+
+        <Clause n={++n} title="FIRMA ELECTRÓNICA">
+          <P>
+            Las partes aceptan firmar este contrato y recibir documentos relacionados por medios electrónicos,
+            conforme a la Ley 148-2006 de Transacciones Electrónicas de Puerto Rico y la ley federal ESIGN. Las
+            firmas electrónicas tienen el mismo efecto que las firmas manuscritas.
+          </P>
+        </Clause>
+
+        <View style={S.notice}>
+          <Text>{ctx.daco_notice}</Text>
+          {ctx.lead_paint_notice ? <Text style={{ marginTop: 6 }}>{ctx.lead_paint_notice}</Text> : null}
+        </View>
+
+        <View style={S.sigSection} wrap={false}>
+          <Text style={S.clauseTitle}>FIRMAS</Text>
+          <Text style={S.para}>
+            En prueba de conformidad, las partes firman este contrato en la fecha indicada junto a cada firma.
+          </Text>
           <View style={S.sigGrid}>
-            {/* Landlord */}
-            <View style={S.sigBlock}>
-              <Text style={S.sigRole}>Landlord</Text>
-              {contract.landlord_signature
-                ? <Image style={S.sigImage} src={contract.landlord_signature} />
-                : <View style={S.sigLine} />}
-              <Text style={S.sigName}>{landlordName}</Text>
-              <Text style={S.sigDate}>Date: {signedDate || "_________________"}</Text>
-            </View>
-            {/* Tenant */}
-            <View style={S.sigBlock}>
-              <Text style={S.sigRole}>Tenant</Text>
-              {contract.tenant_signature
-                ? <Image style={S.sigImage} src={contract.tenant_signature} />
-                : <View style={S.sigLine} />}
-              <Text style={S.sigName}>{String(ten?.full_name ?? "")}</Text>
-              <Text style={S.sigDate}>Date: {signedDate || "_________________"}</Text>
-            </View>
+            {sigs.map((s, i) => (
+              <View key={`${s.role}-${i}`} style={S.sigBlock}>
+                <Text style={S.sigRole}>{s.role}</Text>
+                {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt */}
+                {s.image ? <Image style={S.sigImage} src={s.image} /> : <View style={S.sigLine} />}
+                <Text style={S.sigName}>{s.name}</Text>
+                <Text style={S.sigMeta}>Fecha: {s.signedAt ? fechaLarga(s.signedAt) : "____________________"}</Text>
+              </View>
+            ))}
           </View>
         </View>
 
-        {/* ── Footer ── */}
-        <View style={S.footer}>
-          <Text>
-            This document constitutes a legally binding agreement between the parties listed above.
-            Any modifications must be made in writing and signed by both parties.
-            Contract ID: {contract.id}
-          </Text>
+        <View style={S.footer} fixed>
+          <Text>ContractOS · Contrato núm. {contractNo}</Text>
+          <Text render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} />
         </View>
       </Page>
     </Document>
   );
 }
 
-// ─── public API ──────────────────────────────────────────────────────────────
+// ─── public API ─────────────────────────────────────────────────────────────
 
 export async function renderContractPdf(
   contract: Contract,
   profile: Profile | null,
   sections: CustomSection[] = [],
+  opts: { signatures?: PdfSignature[] } = {}
 ): Promise<Buffer | null> {
   try {
     const buf = await renderToBuffer(
-      <ContractDocument contract={contract} profile={profile} sections={sections} />
+      <LeaseDocument contract={contract} profile={profile} sections={sections} signatures={opts.signatures} />
     );
     return Buffer.from(buf);
   } catch (err) {
-    console.error("[pdf-react] renderToBuffer failed:", err);
+    console.error(JSON.stringify({ level: "error", msg: "lease pdf render failed", err: String(err) }));
     return null;
   }
 }
