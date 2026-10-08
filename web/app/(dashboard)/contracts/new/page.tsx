@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase-server";
+import { createAdminClient, createClient } from "@/lib/supabase-server";
 import ContractBuilder from "@/components/ContractBuilder";
 import { redirect } from "next/navigation";
 import type { Property, Tenant, ContractTemplate, Contract } from "@/lib/types";
@@ -6,6 +6,10 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { loadSignature } from "@/lib/esign/signature-store";
+
+// Uses the admin client (signature images in private storage).
+export const dynamic = "force-dynamic";
 
 export default async function NewContractPage(
   props: {
@@ -39,6 +43,10 @@ export default async function NewContractPage(
       .eq("status", "draft")
       .single();
     draftContract = (data as Contract | null) ?? null;
+    // The builder's signature pad needs the image itself, not the storage reference.
+    if (draftContract?.landlord_signature) {
+      draftContract = { ...draftContract, landlord_signature: (await loadSignature(createAdminClient(), draftContract.landlord_signature)) ?? "" };
+    }
   }
 
   const landlordEmail = (profile as { email?: string } | null)?.email ?? user.email ?? "";

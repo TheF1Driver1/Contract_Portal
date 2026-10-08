@@ -1,6 +1,7 @@
 import type { createAdminClient } from "@/lib/supabase-server";
 import type { Json } from "@/lib/database.types";
 import { isEncrypted, revealPii, sealPii } from "./fields";
+import { storeSignature } from "@/lib/esign/signature-store";
 
 type Admin = ReturnType<typeof createAdminClient>;
 type Pii = { license_number?: string | null; date_of_birth?: string | null; date_of_birth_enc?: string | null };
@@ -29,12 +30,13 @@ async function plaintextRows(admin: Admin, table: "tenants" | "contract_occupant
 }
 
 /**
- * One batch of the one-off encryption of existing rows. Tenants and occupants
+ * One batch of the one-off encryption of existing rows (and moving inline
+ * landlord signature images into private storage). Tenants and occupants
  * are re-saved encrypted. Contract snapshots are only touched on drafts: a sent
  * or signed lease's snapshot is part of the signed agreement hash and stays as is.
  */
 export async function backfillPiiBatch(admin: Admin, limit = 200) {
-  const counts = { tenants: 0, occupants: 0, drafts: 0 };
+  const counts = { tenants: 0, occupants: 0, drafts: 0, signatures: 0 };
 
   const tenants = await plaintextRows(admin, "tenants", limit);
   for (const t of tenants) {
@@ -68,5 +70,20 @@ export async function backfillPiiBatch(admin: Admin, limit = 200) {
     if (counts.drafts >= limit) break;
   }
 
-  return { ...counts, done: counts.tenants + counts.occupants + counts.drafts === 0 };
+  // Landlord signature images still inline as data URLs -> private storage.
+  // Signed contracts are immutable (migration 020) and keep theirs.
+  const { data: inline } = await admin
+    .from("contracts")
+    .select("id, owner_id, landlord_signature")
+    .neq("status", "signed")
+    .like("landlord_signature", "data:image/%")
+    .limit(Math.min(limit, 50));
+  for (const c of inline ?? []) {
+    const ref = await storeSignature(admin, c.owner_id, c.landlord_signature).catch(() => null);
+    if (!ref) continue;
+    const { error } = await admin.from("contracts").update({ landlord_signature: ref }).eq("id", c.id).neq("status", "signed");
+    if (!error) counts.signatures++;
+  }
+
+  return { ...counts, done: counts.tenants + counts.occupants + counts.drafts + counts.signatures === 0 };
 }

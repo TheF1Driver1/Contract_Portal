@@ -4,6 +4,7 @@ import { createAdminClient, createClient } from "@/lib/supabase-server";
 import { appUrl } from "@/lib/app-url";
 import { logEvent, maybeSeal, requestMeta } from "@/lib/esign/service";
 import { rateLimitWrite } from "@/lib/rate-limit";
+import { loadSignature, storeSignature } from "@/lib/esign/signature-store";
 import { ContractSignatureSchema, ContractSignatureDeleteSchema } from "@/lib/schemas";
 
 export const dynamic = "force-dynamic";
@@ -33,9 +34,19 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     );
   }
 
+  // The image goes to private storage; the row keeps a short reference.
+  const admin = createAdminClient();
+  let ref: string | null;
+  try {
+    ref = await storeSignature(admin, user.id, signature);
+  } catch {
+    return NextResponse.json({ error: "No se pudo guardar la firma." }, { status: 500 });
+  }
+  if (!ref) return NextResponse.json({ error: "Firma inválida." }, { status: 400 });
+
   const { data, error } = await supabase
     .from("contracts")
-    .update({ landlord_signature: signature })
+    .update({ landlord_signature: ref })
     .eq("id", params.id)
     .eq("owner_id", user.id)
     .select("id")
@@ -51,7 +62,6 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Landlord signing may be the last step: seal if every tenant already signed.
-  const admin = createAdminClient();
   await logEvent(admin, { contractId: params.id, event: "landlord_signed", actor: user.email ?? null, meta: requestMeta(req) }).catch((e) =>
     console.error(JSON.stringify({ level: "error", msg: "landlord_signed event failed", contract: params.id, err: String(e) }))
   );
@@ -61,6 +71,25 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   });
 
   return NextResponse.json({ success: true, sealed });
+}
+
+/** The landlord's signature image as a data URL (stored images live in private storage). */
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: contract } = await supabase
+    .from("contracts")
+    .select("landlord_signature")
+    .eq("id", params.id)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!contract) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const image = await loadSignature(createAdminClient(), contract.landlord_signature);
+  return NextResponse.json({ image }, { headers: { "Cache-Control": "private, no-store" } });
 }
 
 export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {

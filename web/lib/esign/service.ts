@@ -15,6 +15,7 @@ import { getPlan, hasFeature } from "@/lib/entitlements";
 import { sendMessage } from "@/lib/messaging";
 import { agreementHash, hashOtp, hashToken, newOtp, newToken, safeEqualHex, sha256Hex } from "./crypto";
 import { renderCertificate } from "./certificate";
+import { loadSignature } from "./signature-store";
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -422,7 +423,7 @@ async function seal(admin: Admin, ag: Agreement, signers: ContractSigner[], appU
     .maybeSingle();
 
   const sigBlocks: PdfSignature[] = [
-    { role: "ARRENDADOR(A)", name: landlordName(ag.profile), image: c.landlord_signature ?? null, signedAt: landlordEvent?.created_at ?? null },
+    { role: "ARRENDADOR(A)", name: landlordName(ag.profile), image: await loadSignature(admin, c.landlord_signature), signedAt: landlordEvent?.created_at ?? null },
   ];
   for (const s of signers) {
     sigBlocks.push({

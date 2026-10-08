@@ -61,7 +61,7 @@ After all migrations:
 - [ ] **Authentication → Hooks → Customize Access Token (JWT) Claims**: enable it and select `public.custom_access_token_hook`. Without this hook the proxy falls back to a profile lookup on each request; it still works, just slower.
 - [ ] **Settings → JWT Keys**: migrate to asymmetric (ECC P-256) signing keys. `getClaims()` can then verify tokens locally instead of making a network call. Leave the legacy secret active until existing sessions have expired.
 - [ ] **Authentication → URL configuration**: add the production `/reset-password` and `/invite/*` URLs if they are missing.
-- [ ] **Storage**: confirm that `signed-documents` exists and is **private**.
+- [ ] **Storage**: confirm that `signed-documents` exists and is **private**. New landlord signature images are stored there under `landlord-signatures/<owner>/`; the contracts row keeps a `sig:` reference. The backfill call in §3 moves existing inline images (signed contracts keep theirs).
 
 ## 3. Environment variables (Vercel → Project → Settings → Environment Variables)
 

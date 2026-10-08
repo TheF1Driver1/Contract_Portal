@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { ArrowLeft, Bell, Building2, Calendar, ClipboardCheck, FileText, MessageSquare, PenLine, Users, Wallet } from "lucide-react";
-import { createClient } from "@/lib/supabase-server";
+import { createAdminClient, createClient } from "@/lib/supabase-server";
 import { daysUntil } from "@/lib/utils";
 import type { Contract, ContractNotificationLog, ContractOccupant } from "@/lib/types";
 import { StatusBadge } from "@/components/app/StatusBadge";
@@ -19,6 +19,10 @@ import { MessagesPanel, type MessageRow } from "@/components/messaging/MessagesP
 import { InspectionsSection } from "@/components/inspections/InspectionsSection";
 import type { InspectionSummary } from "@/components/inspections/types";
 import { revealPii } from "@/lib/crypto/fields";
+import { loadSignature } from "@/lib/esign/signature-store";
+
+// Uses the admin client (signature images in private storage).
+export const dynamic = "force-dynamic";
 
 const AMENITY_KEYS = [
   "ac",
@@ -289,7 +293,7 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
             <ContractSignatures
               contractId={c.id}
               tenantName={c.tenant?.full_name}
-              landlordSignature={c.landlord_signature}
+              landlordSignature={await loadSignature(createAdminClient(), c.landlord_signature)}
               tenantSignature={c.tenant_signature}
               coTenantSignatures={coTenants
                 .map((ct, i) => ({

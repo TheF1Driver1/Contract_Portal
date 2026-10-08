@@ -8,7 +8,8 @@ export const maxDuration = 60;
 
 /**
  * One-off: encrypts license numbers and birth dates written before
- * FIELD_ENCRYPTION_KEY was set. Not scheduled; call it until `done` is true:
+ * FIELD_ENCRYPTION_KEY was set, and moves inline landlord signature images
+ * into private storage. Not scheduled; call it until `done` is true:
  *   curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://<app>/api/cron/encrypt-pii
  */
 export async function POST(req: Request) {

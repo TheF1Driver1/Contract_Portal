@@ -34,6 +34,10 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 
 vi.mock("@/lib/rate-limit", () => ({ rateLimitWrite: async () => null }));
+// Signature images go to private storage; the row stores the returned reference.
+vi.mock("@/lib/esign/signature-store", () => ({
+  storeSignature: async (_admin: unknown, owner: string, v: string | null) => (v ? `sig:landlord-signatures/${owner}/img.png` : null),
+}));
 
 const esign = { logged: [] as string[], sealChecks: 0 };
 vi.mock("@/lib/esign/service", () => ({
@@ -88,7 +92,7 @@ describe("POST /api/contracts/[id]/signature", () => {
     state.contract = { id: "c1", status: "sent" };
     const res = await post({ role: "landlord", signature: SIG });
     expect(res.status).toBe(200);
-    expect(state.updates).toEqual([{ landlord_signature: SIG }]);
+    expect(state.updates).toEqual([{ landlord_signature: "sig:landlord-signatures/u1/img.png" }]);
     expect(state.filters).toContainEqual(["owner_id", "u1"]);
     expect(esign.logged).toEqual(["landlord_signed"]);
     expect(esign.sealChecks).toBe(1);

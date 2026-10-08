@@ -75,18 +75,19 @@ type PiiFields = { license_number?: string | null; date_of_birth?: string | null
  * moves the date of birth into `date_of_birth_enc` (the `date` column can't hold
  * ciphertext). Only keys present in `values` are touched, so partial updates work.
  */
-export function sealPii<T extends PiiFields>(values: T): T {
+export function sealPii<T extends Record<string, unknown>>(values: T): T & { date_of_birth_enc?: string | null } {
+  const v = values as PiiFields;
   const out: PiiFields = { ...values };
-  if ("license_number" in values) out.license_number = encryptField(values.license_number);
+  if ("license_number" in values) out.license_number = encryptField(v.license_number);
   if ("date_of_birth" in values) {
-    if (fieldEncryptionEnabled() && values.date_of_birth) {
-      out.date_of_birth_enc = encryptField(values.date_of_birth);
+    if (fieldEncryptionEnabled() && v.date_of_birth) {
+      out.date_of_birth_enc = encryptField(v.date_of_birth);
       out.date_of_birth = null;
     } else {
       out.date_of_birth_enc = null;
     }
   }
-  return out as T;
+  return out as T & { date_of_birth_enc?: string | null };
 }
 
 /** Readable copy for server-side rendering and display. */

@@ -2,7 +2,8 @@
 
 import { trackEvent } from "@/lib/analytics";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase-server";
+import { createAdminClient, createClient } from "@/lib/supabase-server";
+import { storeSignature } from "@/lib/esign/signature-store";
 import { revealPii, sealPii } from "@/lib/crypto/fields";
 import { ContractCreateSchema } from "@/lib/schemas";
 import { planLimitMessage } from "@/lib/plan-errors";
@@ -106,8 +107,19 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
   if (!tenant) return { ok: false, error: "Inquilino no encontrado." };
 
   const amenities = contract.amenities ?? {};
+  // Landlord signature image -> private storage; the row keeps a "sig:" reference.
+  // Only touched when the form sent the field (undefined keeps the stored one).
+  let signatureField: { landlord_signature?: string | null } = {};
+  if (contract.landlord_signature !== undefined) {
+    try {
+      signatureField = { landlord_signature: await storeSignature(createAdminClient(), user.id, contract.landlord_signature) };
+    } catch {
+      return { ok: false, error: "No se pudo guardar la firma." };
+    }
+  }
   const row = {
     ...contract,
+    ...signatureField,
     owner_id: user.id,
     // Only the verified signing flow marks a contract signed; tenants never
     // sign through this form (in-person signing also requires their code).
@@ -196,16 +208,17 @@ function piiFrom(src: PiiSource | null | undefined) {
 /**
  * Renewals are created in the browser without license numbers or birth dates;
  * this fills them server-side from the tenant rows (or the previous lease), so
- * the values stay encrypted and never round-trip through the client.
+ * the values stay encrypted and never round-trip through the client. It also
+ * moves the landlord's signature image into private storage.
  */
-export async function fillRenewalPii(contractId: string): Promise<{ ok: boolean }> {
+export async function finalizeRenewal(contractId: string): Promise<{ ok: boolean }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || !z.string().uuid().safeParse(contractId).success) return { ok: false };
 
   const { data: contract } = await supabase
     .from("contracts")
-    .select("id, status, tenant_id, tenant_snapshot, parent_contract_id")
+    .select("id, status, tenant_id, tenant_snapshot, parent_contract_id, landlord_signature")
     .eq("id", contractId)
     .eq("owner_id", user.id)
     .maybeSingle();
@@ -231,7 +244,12 @@ export async function fillRenewalPii(contractId: string): Promise<{ ok: boolean 
     (contract.tenant_id && byTenant.get(contract.tenant_id)) || (parent?.tenant_snapshot as PiiSource | null)
   );
   const snapshot = { ...((contract.tenant_snapshot as Record<string, unknown> | null) ?? {}), ...primary };
-  const { error } = await supabase.from("contracts").update({ tenant_snapshot: snapshot as Json }).eq("id", contractId);
+  // The renewal form posts the signature as a data URL; move it to storage.
+  const landlordSignature = await storeSignature(createAdminClient(), user.id, contract.landlord_signature).catch(() => contract.landlord_signature);
+  const { error } = await supabase
+    .from("contracts")
+    .update({ tenant_snapshot: snapshot as Json, landlord_signature: landlordSignature })
+    .eq("id", contractId);
   if (error) return { ok: false };
 
   for (const o of occupants ?? []) {

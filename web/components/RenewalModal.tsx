@@ -1,6 +1,6 @@
 "use client";
 
-import { fillRenewalPii } from "@/lib/actions/contracts";
+import { finalizeRenewal } from "@/lib/actions/contracts";
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
@@ -228,7 +228,7 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
           phone: primaryOccupant.phone,
           ssn_last4: primaryOccupant.ssn_last4,
           current_address: primaryOccupant.current_address,
-          // License and birth date are filled server-side (fillRenewalPii) so they stay encrypted.
+          // License and birth date are filled server-side (finalizeRenewal) so they stay encrypted.
         },
         property_snapshot: contract.property_snapshot ?? null,
       })
@@ -267,7 +267,7 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
       );
     }
 
-    await fillRenewalPii(newContract.id).catch(() => undefined);
+    await finalizeRenewal(newContract.id).catch(() => undefined);
 
     setNewContractId(newContract.id);
     setSaving(false);

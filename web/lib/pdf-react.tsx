@@ -8,6 +8,8 @@ import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@
 import type { Contract, Profile, Tenant, TenantSnapshot, Property, PropertySnapshot } from "@/lib/types";
 import { buildContext, MONTHS_ES } from "@/lib/contract-context";
 import { revealPii } from "@/lib/crypto/fields";
+import { isStoredSignature, loadSignature } from "@/lib/esign/signature-store";
+import { createAdminClient } from "@/lib/supabase-server";
 
 // ─── formatting ─────────────────────────────────────────────────────────────
 
@@ -280,6 +282,10 @@ export async function renderContractPdf(
   opts: { signatures?: PdfSignature[] } = {}
 ): Promise<Buffer | null> {
   try {
+    // Stored ("sig:") landlord signatures are fetched from private storage for the PDF.
+    if (isStoredSignature(contract.landlord_signature)) {
+      contract = { ...contract, landlord_signature: await loadSignature(createAdminClient(), contract.landlord_signature) };
+    }
     const buf = await renderToBuffer(
       <LeaseDocument contract={contract} profile={profile} sections={sections} signatures={opts.signatures} />
     );

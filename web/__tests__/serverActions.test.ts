@@ -24,7 +24,12 @@ function builder(table: string) {
   return b;
 }
 
+vi.mock("@/lib/esign/signature-store", () => ({
+  storeSignature: async (_admin: unknown, owner: string, v: string | null) => (v ? `sig:landlord-signatures/${owner}/img.png` : null),
+}));
+
 vi.mock("@/lib/supabase-server", () => ({
+  createAdminClient: () => ({}),
   createClient: async () => ({
     auth: { getUser: async () => ({ data: { user: state.user } }) },
     from: (t: string) => builder(t),
@@ -89,7 +94,8 @@ describe("saveContract", () => {
     // Signing only happens through the verified e-sign flow (Plan 31).
     expect(insert.status).toBe("draft");
     expect(insert.tenant_signature).toBeNull();
-    expect(insert.landlord_signature).toBe("x");
+    // The landlord's signature image is moved to storage; the row keeps the reference.
+    expect(insert.landlord_signature).toBe("sig:landlord-signatures/u1/img.png");
     expect((insert.tenant_snapshot as Record<string, unknown>).full_name).toBe("Ana");
     expect((insert.property_snapshot as Record<string, unknown>).name).toBe("Casa");
   });
