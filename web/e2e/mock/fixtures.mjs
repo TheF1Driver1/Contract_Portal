@@ -85,6 +85,15 @@ const payment = (n, back, amount, method, reference = null) => ({
   receipt_sent_at: ts(-30 * back), voided_at: null, void_reason: null, created_at: ts(-30 * back),
 });
 
+// Plan 35: CRIM for property 1 — one installment due in 12 days (bell + Hoy), one paid last year.
+const fyOf = (d) => {
+  const y = Number(d.slice(0, 4));
+  const start = Number(d.slice(5, 7)) >= 7 ? y : y - 1;
+  return `${start}-${String((start + 1) % 100).padStart(2, "0")}`;
+};
+const FY = fyOf(iso(0));
+const PREV_FY = `${Number(FY.slice(0, 4)) - 1}-${FY.slice(2, 4)}`;
+
 export const TABLES = {
   rent_ledgers: [{ contract_id: C1, owner_id: USER.id, started_on: monthStart(2), late_fees: true, created_at: ts(-70) }],
   rent_charges: [
@@ -94,7 +103,7 @@ export const TABLES = {
     charge(4, "late_fee", 0, 50, monthStart(0).slice(0, 8) + "07"),
   ],
   payments: [payment(1, 2, 1150, "ath_movil", "ATH-48213"), payment(2, 1, 1150, "check", "Cheque 1187")],
-  profiles: [{ id: USER.id, email: USER.email, full_name: "María Rivera", username: "mrivera", company_name: "Rivera Propiedades", phone: "+17875550100", role: "landlord", locale: "es", plan: "propietario", created_at: ts(-200) }],
+  profiles: [{ id: USER.id, email: USER.email, full_name: "María Rivera", username: "mrivera", company_name: "Rivera Propiedades", phone: "+17875550100", role: "landlord", locale: "es", plan: "propietario", tax_residency: "pr_resident", created_at: ts(-200) }],
   properties: [P1, P2, P3],
   tenants: [T1, T2, T3],
   contracts: [
@@ -124,4 +133,17 @@ export const TABLES = {
   ],
   contract_custom_sections: [],
   subscriptions: [{ id: "70000000-0000-4000-8000-000000000001", owner_id: USER.id, plan: "propietario", status: "active", stripe_customer_id: "cus_demo", stripe_subscription_id: "sub_demo", current_period_end: ts(20), created_at: ts(-60), updated_at: ts(-1) }],
+  // ── Plan 35: PR tax pack ──
+  crim_tax_rates: [
+    { municipality: "San Juan", fiscal_year: `${FY.slice(0, 4)}-${Number(FY.slice(0, 4)) + 1}`, mueble_rate: 8.83, inmueble_rate: 10.83, source_url: null },
+    { municipality: "Dorado", fiscal_year: `${FY.slice(0, 4)}-${Number(FY.slice(0, 4)) + 1}`, mueble_rate: 8.83, inmueble_rate: 10.58, source_url: null },
+    { municipality: "Bayamón", fiscal_year: `${FY.slice(0, 4)}-${Number(FY.slice(0, 4)) + 1}`, mueble_rate: 7.58, inmueble_rate: 9.58, source_url: null },
+  ],
+  property_crim: [
+    { id: "c1000000-0000-4000-8000-000000000001", property_id: P1.id, owner_id: USER.id, catastro_number: "040-012-345-67", account_number: "1234567", municipality: "San Juan", assessed_value: 42000, exemption_principal_residence: false, exoneration_amount: null, notes: null, purchase_price: 265000, building_pct: 80, placed_in_service: "2021-05-01", created_at: ts(-90), updated_at: ts(-10) },
+  ],
+  crim_bills: [
+    { id: "c2000000-0000-4000-8000-000000000001", property_id: P1.id, owner_id: USER.id, fiscal_year: FY, installment: 1, amount: 2274.3, due_date: iso(12), paid_on: null, payment_reference: null, expense_id: null, voided_at: null, void_reason: null, created_at: ts(-20), property: { name: P1.name } },
+    { id: "c2000000-0000-4000-8000-000000000002", property_id: P1.id, owner_id: USER.id, fiscal_year: PREV_FY, installment: 2, amount: 2274.3, due_date: iso(-200), paid_on: iso(-205), payment_reference: "CRIM-88412", expense_id: null, voided_at: null, void_reason: null, created_at: ts(-230), property: { name: P1.name } },
+  ],
 };
