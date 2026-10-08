@@ -15,6 +15,7 @@ import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { FormError } from "@/components/auth/FormError";
 import { authErrorKey } from "@/components/auth/auth-errors";
+import { claimReferral } from "@/lib/actions/referrals";
 
 const legalLink = (href: string) =>
   function LegalLink(chunks: React.ReactNode) {
@@ -52,7 +53,7 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -64,6 +65,9 @@ export default function SignupPage() {
       setError(t(`errors.${authErrorKey(error)}`));
       setLoading(false);
     } else {
+      // Signed up through a referral link: record it now if we already have a
+      // session; otherwise /auth/callback does it after email confirmation.
+      if (data.session) await claimReferral().catch(() => null);
       // Visitors who picked a paid plan on /pricing continue to checkout
       const plan = new URLSearchParams(window.location.search).get("plan");
       track("signup", { plan: plan ?? "free" });
