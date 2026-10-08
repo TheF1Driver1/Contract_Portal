@@ -3,7 +3,7 @@
 import { getLocale } from "next-intl/server";
 import { createAdminClient, createClient } from "@/lib/supabase-server";
 import { AiAskDataSchema, AiNoticeSchema, AiTranslateSchema } from "@/lib/schemas";
-import { rateLimitStrict } from "@/lib/rate-limit";
+import { rateLimitWrite } from "@/lib/rate-limit";
 import { getPlan } from "@/lib/entitlements";
 import { aiEnabled } from "@/lib/ai/client";
 import { aiQuotaRemaining, recordAiUsage, type AiFeature } from "@/lib/ai/usage";
@@ -43,7 +43,8 @@ async function gate(feature: AiFeature) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, fail: fail("expired") } as const;
-  if (await rateLimitStrict(`ai:${user.id}`)) return { ok: false, fail: fail("rate_limited") } as const;
+  // 20/min per landlord across AI drafting; the monthly quota bounds cost.
+  if (await rateLimitWrite(`ai:${user.id}`)) return { ok: false, fail: fail("rate_limited") } as const;
   // Metering table is written by the service role only.
   const admin = createAdminClient();
   const plan = await getPlan(supabase, user.id);

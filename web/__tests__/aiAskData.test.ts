@@ -102,7 +102,7 @@ describe("data tools (read-only, owner-scoped)", () => {
     for (const d of defs) {
       expect(d.input_schema.type).toBe("object");
       expect(d.input_schema).not.toHaveProperty("$schema");
-      expect(d.description.length).toBeGreaterThan(20);
+      expect(d.description?.length).toBeGreaterThan(20);
     }
     const month = defs.find((d) => d.name === "rent_collected")!.input_schema as { properties: Record<string, unknown>; required: string[] };
     expect(month.required).toEqual(["month"]);

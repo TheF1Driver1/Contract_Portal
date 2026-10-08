@@ -1,0 +1,97 @@
+{
+  "badge": "AI",
+  "errors": {
+    "disabled": "AI assistance isn't available.",
+    "expired": "Your session expired. Sign in again.",
+    "invalid": "Check the details and try again.",
+    "not_found": "We couldn't find the lease.",
+    "not_signed": "Only signed leases support notices.",
+    "missing_amount": "This lease has no rent ledger. Enter the balance due.",
+    "rate_limited": "Too many requests in a row. Wait a moment.",
+    "quota": "You reached your plan's monthly limit for this feature.",
+    "busy": "The service is busy. Try again in a minute.",
+    "refused": "A draft couldn't be generated for this text.",
+    "empty": "We didn't get an answer. Try again.",
+    "too_many_steps": "The question took too many steps. Make it more specific.",
+    "failed": "Couldn't finish. Try again."
+  },
+  "translate": {
+    "toEn": "Translate to English",
+    "toEs": "Translate to Spanish",
+    "toEnAria": "Translate clause {title} to English",
+    "toEsAria": "Translate clause {title} to Spanish",
+    "working": "Translating…",
+    "panelTitle": "Draft translation",
+    "original": "Original",
+    "draft": "Translation (you can edit it)",
+    "titleLabel": "Translated title",
+    "bodyLabel": "Translated text",
+    "notes": "Notes to review",
+    "glossaryPending": "Glossary pending legal review",
+    "disclaimer": "AI-generated draft. Review it before using it in a lease.",
+    "accept": "Use translation",
+    "discard": "Discard",
+    "accepted": "Translation ready. Review and save the clause."
+  },
+  "notice": {
+    "sectionHint": "Late-payment or renewal-offer drafts in the tenant's language. Nothing is sent automatically.",
+    "open": "Draft notice",
+    "title": "Draft a notice",
+    "description": "Generate a draft for {tenant}. You review it, edit it and send it yourself.",
+    "kindLabel": "Notice type",
+    "kinds": {
+      "late_payment": "Late payment",
+      "renewal_offer": "Renewal offer"
+    },
+    "kindHints": {
+      "late_payment": "Uses the rent ledger balance.",
+      "renewal_offer": "Uses the end date and current rent."
+    },
+    "ledgerBalance": "Past-due balance per the rent ledger: {amount}",
+    "noLedger": "This lease has no rent ledger. Enter the balance due.",
+    "amountLabel": "Balance due (USD)",
+    "proposedRentLabel": "Proposed rent (USD, optional)",
+    "proposedRentHint": "Leave empty to keep the current rent of {amount}.",
+    "termLabel": "New term in months (optional)",
+    "language": "Tenant language: {language}",
+    "languages": {
+      "es": "Spanish",
+      "en": "English"
+    },
+    "generate": "Generate draft",
+    "regenerate": "Generate again",
+    "working": "Drafting…",
+    "aiLabel": "AI-generated draft — review it before sending",
+    "subjectLabel": "Subject",
+    "bodyLabel": "Message",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyFailed": "Couldn't copy. Select the text and copy it manually.",
+    "download": "Download .txt",
+    "noSending": "ContractOS doesn't send this notice. Copy or download it to send it. It doesn't replace a legal notice; consult an attorney if the case calls for it.",
+    "close": "Close"
+  },
+  "ask": {
+    "title": "Ask your data",
+    "description": "AI answers from your leases, payments and repairs. Read-only.",
+    "label": "Your question",
+    "placeholder": "E.g.: Who is behind on rent?",
+    "submit": "Ask",
+    "working": "Looking…",
+    "suggestionsLabel": "Suggested questions",
+    "suggestions": {
+      "overdue": "Who is behind on rent?",
+      "expiring": "Which leases end in the next 60 days?",
+      "collected": "How much did I collect this month?",
+      "maintenance": "Which repairs are still open?"
+    },
+    "toolsUsed": "Data checked",
+    "tools": {
+      "list_overdue_leases": "Late payments",
+      "list_expiring_leases": "Expiring leases",
+      "rent_collected": "Monthly collections",
+      "open_maintenance_requests": "Open maintenance"
+    },
+    "disclaimer": "AI-generated answer. Check the data in each section before acting."
+  }
+}

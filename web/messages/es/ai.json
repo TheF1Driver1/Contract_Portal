@@ -1,0 +1,97 @@
+{
+  "badge": "IA",
+  "errors": {
+    "disabled": "La asistencia con IA no está disponible.",
+    "expired": "Tu sesión expiró. Inicia sesión de nuevo.",
+    "invalid": "Revisa los datos e inténtalo de nuevo.",
+    "not_found": "No encontramos el contrato.",
+    "not_signed": "Solo los contratos firmados admiten avisos.",
+    "missing_amount": "Este contrato no tiene cuenta de renta. Indica el balance pendiente.",
+    "rate_limited": "Demasiadas solicitudes seguidas. Espera un momento.",
+    "quota": "Llegaste al límite mensual de tu plan para esta función.",
+    "busy": "El servicio está ocupado. Inténtalo en un minuto.",
+    "refused": "No se pudo generar un borrador para este texto.",
+    "empty": "No obtuvimos respuesta. Inténtalo de nuevo.",
+    "too_many_steps": "La pregunta necesitó demasiados pasos. Hazla más específica.",
+    "failed": "No se pudo completar. Inténtalo de nuevo."
+  },
+  "translate": {
+    "toEn": "Traducir al inglés",
+    "toEs": "Traducir al español",
+    "toEnAria": "Traducir al inglés la cláusula {title}",
+    "toEsAria": "Traducir al español la cláusula {title}",
+    "working": "Traduciendo…",
+    "panelTitle": "Borrador de traducción",
+    "original": "Original",
+    "draft": "Traducción (puedes editarla)",
+    "titleLabel": "Título traducido",
+    "bodyLabel": "Texto traducido",
+    "notes": "Notas para revisar",
+    "glossaryPending": "Glosario pendiente de revisión legal",
+    "disclaimer": "Borrador generado con IA. Revísalo antes de usarlo en un contrato.",
+    "accept": "Usar traducción",
+    "discard": "Descartar",
+    "accepted": "Traducción lista para guardar. Revisa y guarda la cláusula."
+  },
+  "notice": {
+    "sectionHint": "Borradores de pago atrasado u oferta de renovación en el idioma del inquilino. No se envían automáticamente.",
+    "open": "Redactar aviso",
+    "title": "Redactar aviso",
+    "description": "Genera un borrador para {tenant}. Tú lo revisas, lo editas y lo envías por tu cuenta.",
+    "kindLabel": "Tipo de aviso",
+    "kinds": {
+      "late_payment": "Pago atrasado",
+      "renewal_offer": "Oferta de renovación"
+    },
+    "kindHints": {
+      "late_payment": "Usa el balance de la cuenta de renta.",
+      "renewal_offer": "Usa la fecha de vencimiento y la renta actual."
+    },
+    "ledgerBalance": "Balance atrasado según la cuenta de renta: {amount}",
+    "noLedger": "Este contrato no tiene cuenta de renta. Indica el balance pendiente.",
+    "amountLabel": "Balance pendiente (USD)",
+    "proposedRentLabel": "Renta propuesta (USD, opcional)",
+    "proposedRentHint": "Déjalo vacío para mantener la renta actual de {amount}.",
+    "termLabel": "Nuevo término en meses (opcional)",
+    "language": "Idioma del inquilino: {language}",
+    "languages": {
+      "es": "español",
+      "en": "inglés"
+    },
+    "generate": "Generar borrador",
+    "regenerate": "Generar de nuevo",
+    "working": "Redactando…",
+    "aiLabel": "Borrador generado con IA — revísalo antes de enviarlo",
+    "subjectLabel": "Asunto",
+    "bodyLabel": "Mensaje",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "copyFailed": "No se pudo copiar. Selecciona el texto y cópialo a mano.",
+    "download": "Descargar .txt",
+    "noSending": "ContractOS no envía este aviso. Para enviarlo, cópialo o descárgalo. No reemplaza una notificación legal; consulta a un abogado si el caso lo requiere.",
+    "close": "Cerrar"
+  },
+  "ask": {
+    "title": "Pregúntale a tus datos",
+    "description": "Respuestas con IA a partir de tus contratos, cobros y reparaciones. Solo lectura.",
+    "label": "Tu pregunta",
+    "placeholder": "Ej.: ¿Quién está atrasado en la renta?",
+    "submit": "Preguntar",
+    "working": "Buscando…",
+    "suggestionsLabel": "Preguntas sugeridas",
+    "suggestions": {
+      "overdue": "¿Quién está atrasado?",
+      "expiring": "¿Qué contratos vencen en los próximos 60 días?",
+      "collected": "¿Cuánto cobré este mes?",
+      "maintenance": "¿Qué reparaciones siguen abiertas?"
+    },
+    "toolsUsed": "Datos consultados",
+    "tools": {
+      "list_overdue_leases": "Atrasos",
+      "list_expiring_leases": "Contratos por vencer",
+      "rent_collected": "Cobros del mes",
+      "open_maintenance_requests": "Mantenimiento abierto"
+    },
+    "disclaimer": "Respuesta generada con IA. Verifica los datos en cada sección antes de actuar."
+  }
+}

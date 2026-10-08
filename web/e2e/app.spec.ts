@@ -313,3 +313,79 @@ test.describe("market data (Plan 40)", () => {
     });
   }
 });
+
+test.describe("AI assistance (Plan 39)", () => {
+  test.skip(!MOCK_URL, "MOCK_SUPABASE_URL not set");
+  // E2E_AI=1 when the app runs with ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL
+  // pointing at e2e/mock/anthropic.mjs; otherwise the AI UI must not exist.
+  const AI = process.env.E2E_AI === "1";
+  const C1 = "30000000-0000-4000-8000-000000000001";
+
+  test("AI panels are hidden without ANTHROPIC_API_KEY", async ({ page, context, baseURL }) => {
+    test.skip(AI, "app started with an AI key");
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/dashboard");
+    await expect(page.getByRole("heading", { level: 1, name: "Inicio" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Pregúntale a tus datos" })).toHaveCount(0);
+    await page.goto(`/contracts/${C1}`);
+    await expect(page.getByRole("heading", { name: "Renta y pagos" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Redactar aviso" })).toHaveCount(0);
+    await page.goto("/settings/sections");
+    await expect(page.getByText("Mascotas", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Traducir al inglés/ })).toHaveCount(0);
+  });
+
+  test.describe("with a (mock) key", () => {
+    test.skip(!AI, "E2E_AI not set");
+
+    for (const scheme of ["light", "dark"] as const) {
+      test(`dashboard Q&A answers from tools (${scheme})`, async ({ page, context, baseURL }) => {
+        await page.emulateMedia({ colorScheme: scheme });
+        await signInMock(context, baseURL!, MOCK_URL!);
+        await page.goto("/dashboard");
+        const panel = page.locator("section", { has: page.getByRole("heading", { name: "Pregúntale a tus datos" }) });
+        await panel.getByRole("button", { name: "¿Quién está atrasado?" }).click();
+        await expect(panel.getByText(/José Martínez .* debe \$1,200/)).toBeVisible();
+        await expect(panel.getByText("Atrasos")).toBeVisible();
+        const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).include("#ask-data-title").analyze();
+        const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+        expect(serious.map((v) => v.id)).toEqual([]);
+        await panel.screenshot({ path: `test-results/p39-${test.info().project.name}-ask-${scheme}.png` });
+      });
+
+      test(`notice draft sheet (${scheme})`, async ({ page, context, baseURL }) => {
+        await page.emulateMedia({ colorScheme: scheme });
+        await signInMock(context, baseURL!, MOCK_URL!);
+        await page.goto(`/contracts/${C1}`);
+        await page.getByRole("button", { name: "Redactar aviso" }).click();
+        const sheet = page.getByRole("dialog", { name: "Redactar aviso" });
+        await expect(sheet.getByText(/Balance atrasado según la cuenta de renta: \$1,200/)).toBeVisible();
+        await sheet.getByRole("button", { name: "Generar borrador" }).click();
+        await expect(sheet.getByText("Borrador generado con IA — revísalo antes de enviarlo")).toBeVisible();
+        await expect(sheet.getByLabel("Asunto")).toHaveValue("Balance pendiente de renta");
+        await expect(sheet.getByLabel("Mensaje")).toHaveValue(/balance vencido de \$1,200/);
+        await expect(sheet.getByRole("button", { name: /Enviar/ })).toHaveCount(0);
+        const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).include('[role="dialog"]').analyze();
+        const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+        expect(serious.map((v) => v.id)).toEqual([]);
+        await page.screenshot({ path: `test-results/p39-${test.info().project.name}-notice-${scheme}.png` });
+      });
+
+      test(`clause translation draft (${scheme})`, async ({ page, context, baseURL }) => {
+        await page.emulateMedia({ colorScheme: scheme });
+        await signInMock(context, baseURL!, MOCK_URL!);
+        await page.goto("/settings/sections");
+        await page.getByRole("button", { name: "Traducir al inglés la cláusula Mascotas" }).click();
+        await expect(page.getByText("Glosario pendiente de revisión legal")).toBeVisible();
+        await expect(page.getByLabel("Título traducido")).toHaveValue("Pets");
+        const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+        const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+        expect(serious.map((v) => v.id)).toEqual([]);
+        await page.screenshot({ path: `test-results/p39-${test.info().project.name}-translate-${scheme}.png`, fullPage: true });
+        await page.getByRole("button", { name: "Usar traducción" }).click();
+        // Accepting only fills the edit form; saving stays a manual step.
+        await expect(page.locator("#edit-title-e3900000-0000-4000-8000-000000000001")).toHaveValue("Pets");
+      });
+    }
+  });
+});

@@ -19,6 +19,8 @@ export interface BuilderData {
   landlordEmail: string;
   setLandlordEmail: (v: string) => void;
   goToStep: (step: number) => void;
+  /** Show AI clause translation (Plan 39). Off without ANTHROPIC_API_KEY. */
+  aiTranslate: boolean;
 }
 
 export const BuilderContext = createContext<BuilderData | null>(null);

@@ -52,6 +52,8 @@ export interface ContractBuilderProps {
   userId: string;
   landlordEmail: string;
   initialData?: Contract | null;
+  /** AI clause translation (Plan 39); the page passes aiEnabled(). */
+  aiTranslate?: boolean;
 }
 
 const AUTOSAVE_MS = 60_000;
@@ -64,6 +66,7 @@ export function ContractBuilder({
   templates,
   landlordEmail,
   initialData,
+  aiTranslate = false,
 }: ContractBuilderProps) {
   const t = useTranslations("builder");
   const router = useRouter();
@@ -355,6 +358,7 @@ export function ContractBuilder({
       landlordEmail: landlordEmailInput,
       setLandlordEmail: setLandlordEmailInput,
       goToStep,
+      aiTranslate,
     }),
     [
       properties,
@@ -369,6 +373,7 @@ export function ContractBuilder({
       setSections,
       landlordEmailInput,
       goToStep,
+      aiTranslate,
     ]
   );
 
