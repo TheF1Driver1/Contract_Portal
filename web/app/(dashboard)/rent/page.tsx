@@ -4,6 +4,7 @@ import type { Payment, RentCharge } from "@/lib/db";
 import { summarize } from "@/lib/rent/schedule";
 import { todayPR } from "@/lib/rent/service";
 import { RentOverview, type RentRow } from "@/components/rent/RentOverview";
+import { AthMovilCard, type AthStatus } from "@/components/rent/AthMovilCard";
 
 export default async function RentPage() {
   const supabase = await createClient();
@@ -14,6 +15,11 @@ export default async function RentPage() {
   const monthStart = `${today.slice(0, 7)}-01`;
   const { data: ledgers } = await supabase.from("rent_ledgers").select("contract_id").eq("owner_id", user.id);
   const ids = (ledgers ?? []).map((l) => l.contract_id);
+
+  // Safe status only (security definer RPC); tokens never reach the page.
+  const { data: athRows } = await supabase.rpc("ath_movil_status");
+  const athRow = Array.isArray(athRows) ? athRows[0] : null;
+  const ath: AthStatus = { connected: !!athRow?.connected, businessName: athRow?.business_name ?? null, connectedAt: athRow?.connected_at ?? null };
 
   const [{ data: contracts }, { data: charges }, { data: payments }] = ids.length
     ? await Promise.all([
@@ -51,5 +57,10 @@ export default async function RentPage() {
     leases: rows.length,
   };
 
-  return <RentOverview rows={rows} kpis={kpis} />;
+  return (
+    <>
+      <RentOverview rows={rows} kpis={kpis} />
+      <AthMovilCard status={ath} />
+    </>
+  );
 }

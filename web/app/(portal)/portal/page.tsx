@@ -14,9 +14,13 @@ import { todayPR } from "@/lib/rent/service";
 import { receiptNumber } from "@/lib/rent/receipt";
 import type { Inspection, MaintenanceRequest, MaintenanceUpdate } from "@/lib/db";
 import { PortalLeaseExtras, type PortalInspection, type PortalRequest } from "@/components/maintenance/PortalMaintenance";
+import { AthPay } from "@/components/portal/AthPay";
+import { ATH_TIMEOUT_SECONDS, normalizeAthPhone } from "@/lib/athmovil/client";
+import { athPendingSince } from "@/lib/athmovil/service";
 
 interface PortalContract {
   id: string;
+  owner_id: string;
   status: string;
   lease_start: string | null;
   lease_end: string | null;
@@ -24,7 +28,10 @@ interface PortalContract {
   unit_number: string | null;
   pdf_url: string | null;
   property: { name: string | null; address: string | null; city: string | null } | null;
+  tenant: { phone: string | null } | null;
 }
+
+type AthOffer = { business: string; phone: string; pending: { id: string; amount: number; expiresAt: string } | null };
 
 /** Statuses where the tenant still has to sign. */
 const CLOSED = new Set(["signed", "expired", "cancelled"]);
@@ -51,7 +58,7 @@ export default async function PortalPage() {
   if (ids.length > 0) {
     const { data } = await admin
       .from("contracts")
-      .select("id, status, lease_start, lease_end, rent_amount, unit_number, pdf_url, property:properties(name, address, city)")
+      .select("id, owner_id, status, lease_start, lease_end, rent_amount, unit_number, pdf_url, property:properties(name, address, city), tenant:tenants(phone)")
       .in("id", ids);
     const byId = new Map(((data ?? []) as unknown as PortalContract[]).map((c) => [c.id, c]));
     // Keep invite order (most recently redeemed first), pending signatures on top.
@@ -84,6 +91,36 @@ export default async function PortalPage() {
       });
     }
   }
+  // ATH Móvil (Plan 33): offered when the landlord connected ATH Business and
+  // the lease has a balance. Only the business name leaves the accounts table.
+  const athByLease = new Map<string, AthOffer>();
+  const owners = [...new Set(contracts.filter((c) => c.status === "signed" && ledgers.has(c.id)).map((c) => c.owner_id))];
+  if (owners.length > 0) {
+    const since = athPendingSince();
+    const [{ data: accounts }, { data: landlords }, { data: inflight }] = await Promise.all([
+      admin.from("ath_movil_accounts").select("owner_id, business_name").in("owner_id", owners),
+      admin.from("profiles").select("id, full_name, company_name").in("id", owners),
+      admin
+        .from("ath_movil_payments")
+        .select("id, contract_id, amount, created_at")
+        .eq("payer_user_id", user.id)
+        .in("status", ["open", "confirm"])
+        .gte("created_at", since)
+        .order("created_at", { ascending: false }),
+    ]);
+    for (const c of contracts) {
+      const acct = (accounts ?? []).find((a) => a.owner_id === c.owner_id);
+      if (!acct || c.status !== "signed" || !ledgers.has(c.id)) continue;
+      const owner = (landlords ?? []).find((o) => o.id === c.owner_id);
+      const p = (inflight ?? []).find((x) => x.contract_id === c.id);
+      athByLease.set(c.id, {
+        business: acct.business_name || owner?.company_name || owner?.full_name || t("ath.landlordFallback"),
+        phone: normalizeAthPhone(c.tenant?.phone) ?? "",
+        pending: p ? { id: p.id, amount: Number(p.amount), expiresAt: new Date(new Date(p.created_at).getTime() + ATH_TIMEOUT_SECONDS * 1000).toISOString() } : null,
+      });
+    }
+  }
+
   // Repair requests and completed inspections for these leases (Plan 36).
   const requestsByLease = new Map<string, PortalRequest[]>();
   const inspectionsByLease = new Map<string, PortalInspection[]>();
@@ -167,7 +204,7 @@ export default async function PortalPage() {
                     </div>
                   </dl>
 
-                  {ledgers.has(c.id) && <TenantLedger data={ledgers.get(c.id)!} money={money} day={day} t={t} />}
+                  {ledgers.has(c.id) && <TenantLedger contractId={c.id} data={ledgers.get(c.id)!} ath={athByLease.get(c.id) ?? null} money={money} day={day} t={t} />}
 
                   <PortalLeaseExtras
                     contractId={c.id}
@@ -219,12 +256,16 @@ export default async function PortalPage() {
 }
 
 function TenantLedger({
+  contractId,
   data,
+  ath,
   money,
   day,
   t,
 }: {
+  contractId: string;
   data: { summary: LedgerSummary; payments: Payment[] };
+  ath: AthOffer | null;
   money: (n: number) => string;
   day: (d: string | null) => string;
   t: Awaited<ReturnType<typeof getTranslations<"portal">>>;
@@ -246,6 +287,9 @@ function TenantLedger({
           <dd className="tabular text-foreground">{s.nextDue ? `${day(s.nextDue.date)} · ${money(s.nextDue.amount)}` : "—"}</dd>
         </div>
       </dl>
+      {ath && (s.balance >= 1 || ath.pending) && (
+        <AthPay contractId={contractId} balance={s.balance} defaultPhone={ath.phone} business={ath.business} pending={ath.pending} />
+      )}
       <div>
         <h4 className="mb-1 text-xs font-medium text-muted-foreground">{t("ledger.payments")}</h4>
         {data.payments.length === 0 ? (
@@ -254,7 +298,10 @@ function TenantLedger({
           <ul className="divide-y text-sm">
             {data.payments.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-3 py-1.5">
-                <span className="tabular">{day(p.received_on)} · {money(Number(p.amount))}</span>
+                <span className="tabular">
+                  {day(p.received_on)} · {money(Number(p.amount))}
+                  {p.source === "ath_movil" && <span className="text-muted-foreground"> · ATH Móvil</span>}
+                </span>
                 <a href={`/api/portal/payments/${p.id}/receipt`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline">
                   <Receipt className="size-3.5" aria-hidden /> {t("ledger.receipt", { number: receiptNumber(p.number) })}
                 </a>

@@ -24,6 +24,7 @@ type Entry = {
   amount: number;
   voided: boolean;
   receiptSent?: boolean;
+  viaAth?: boolean;
 };
 
 const firstOfMonth = (iso: string, add = 0) => {
@@ -63,6 +64,7 @@ export function LedgerPanel(props: LedgerProps) {
       amount: Number(p.amount),
       voided: !!p.voided_at,
       receiptSent: !!p.receipt_sent_at,
+      viaAth: p.source === "ath_movil",
     }));
     return [...charges, ...payments].sort((a, b) => b.date.localeCompare(a.date) || (a.kind === "payment" ? -1 : 1));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,7 +107,14 @@ export function LedgerPanel(props: LedgerProps) {
             {entries.map((e) => (
               <li key={`${e.kind}-${e.id}`} className={cn("flex items-center gap-3 px-3 py-2 text-sm", e.voided && "opacity-60")}>
                 <div className="min-w-0 flex-1">
-                  <p className={cn("break-words", e.voided && "line-through")}>{e.label}</p>
+                  <p className={cn("break-words", e.voided && "line-through")}>
+                    {e.label}
+                    {e.viaAth && (
+                      <span className="ml-2 inline-flex items-center rounded-full bg-info-soft px-1.5 py-0.5 align-middle text-xs font-medium text-info">
+                        {t("entries.athBadge")}
+                      </span>
+                    )}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {e.kind === "payment" ? date(e.date) : t("entries.due", { date: date(e.date) })}
                     {e.voided && ` · ${t("entries.voided")}`}

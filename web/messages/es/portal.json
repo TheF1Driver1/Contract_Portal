@@ -51,5 +51,25 @@
     "payments": "Pagos recientes",
     "receipt": "Recibo {number}",
     "noPayments": "Aún no hay pagos registrados."
+  },
+  "ath": {
+    "pay": "Pagar con ATH Móvil",
+    "title": "Pagar con ATH Móvil",
+    "intro": "El pago va directo a {business}. Recibirás una notificación en la app de ATH Móvil para confirmarlo.",
+    "amount": "Cantidad",
+    "amountHint": "Entre $1 y {max}.",
+    "amountRange": "La cantidad debe estar entre $1 y {max}.",
+    "phone": "Tu teléfono de ATH Móvil",
+    "phoneHint": "El número registrado en tu app de ATH Móvil (10 dígitos).",
+    "submit": "Enviar a ATH Móvil",
+    "close": "Cerrar",
+    "waiting": "Abre ATH Móvil en tu teléfono y confirma el pago de {amount} a {business}.",
+    "countdown": "Tiempo para confirmar:",
+    "cancel": "Cancelar pago",
+    "done": "¡Pago de {amount} recibido! Te enviamos el recibo por correo.",
+    "cancelled": "El pago se canceló o expiró. No se te cobró.",
+    "failedBody": "No pudimos completar el pago.",
+    "retry": "Intentar de nuevo",
+    "landlordFallback": "tu arrendador"
   }
 }

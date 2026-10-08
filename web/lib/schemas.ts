@@ -477,3 +477,25 @@ export const InspectionAckSchema = z.object({
   name: z.string().trim().min(2).max(120),
   confirm: z.literal(true),
 });
+
+// ── ATH Móvil (Plan 33, migration 031) ──────────────────────────────────────
+// Tokens from ATH Business → Configuración → Integración con API.
+const athToken = z.string().trim().min(10).max(200).regex(/^[A-Za-z0-9._-]+$/, "Token inválido");
+
+export const AthConnectSchema = z.object({
+  public_token: athToken,
+  private_token: athToken.optional().nullable().or(z.literal("")),
+  business_name: z.string().trim().max(80).optional().nullable(),
+});
+
+export const AthPaymentCreateSchema = z.object({
+  contract_id: uuid,
+  amount: z.number().min(1).max(1500).transform((n) => Math.round(n * 100) / 100),
+  phone: z
+    .string()
+    .trim()
+    .transform((s) => s.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, ""))
+    .pipe(z.string().regex(/^\d{10}$/, "Teléfono de ATH Móvil inválido")),
+});
+
+export const AthPaymentIdSchema = uuid;
