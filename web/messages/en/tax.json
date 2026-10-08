@@ -1,0 +1,262 @@
+{
+  "tabs": {
+    "label": "Report sections",
+    "overview": "Overview",
+    "annual": "Annual package",
+    "scheduleE": "Schedule E",
+    "crim": "CRIM"
+  },
+  "reviewNotice": {
+    "title": "Pending review by a CPA",
+    "body": "The Anejo N mapping is a descriptive guide: it groups your expenses by type, without confirmed line numbers. Ask your CPA to review it before you file."
+  },
+  "index": {
+    "title": "Reports",
+    "description": "Your numbers for the year, organized for Hacienda, the IRS and CRIM. Share them with your accountant.",
+    "recommended": "Recommended for you",
+    "open": "Open",
+    "annualTitle": "Annual package (Anejo N)",
+    "annualBody": "Rent collected, expenses by category, CRIM paid and depreciation per property. Export as PDF or CSV.",
+    "scheduleETitle": "Schedule E (IRS)",
+    "scheduleEBody": "Summary by Schedule E line for owners who report to the IRS (non-residents of Puerto Rico).",
+    "crimTitle": "CRIM",
+    "crimBody": "CRIM accounts, bills by fiscal year, payments and the estimated property tax for each property."
+  },
+  "residency": {
+    "title": "Your tax residency",
+    "description": "Sets which report you see first. It is not a legal determination; confirm it with your CPA.",
+    "label": "Tax residency",
+    "pr_resident": "PR resident",
+    "non_resident": "Non-resident",
+    "unset": "Not set",
+    "prHint": "Bona fide Puerto Rico residents report rental income to Hacienda on the individual return (Anejo N). You'll see the annual package first.",
+    "nonHint": "If you are not a Puerto Rico resident, you usually report rental income to the IRS on Schedule E. You'll see Schedule E first.",
+    "unsetHint": "Pick an option to see the report that applies to you first. Until then you'll see the annual package.",
+    "saved": "Tax residency saved",
+    "failed": "Could not save"
+  },
+  "annual": {
+    "title": "Annual package",
+    "description": "The year's income, expenses, CRIM and depreciation, ready for your accountant.",
+    "csv": "CSV",
+    "pdf": "PDF",
+    "exportLocked": "Export (Propietario plan)",
+    "year": "Year",
+    "property": "Property",
+    "allProperties": "All properties",
+    "view": "Format",
+    "viewAnejo": "Anejo N (Hacienda)",
+    "viewScheduleE": "Schedule E (IRS)",
+    "scheduleENonResident": "As a non-resident, also use the Schedule E summary and PDF for your federal return.",
+    "scheduleEHint": "This format groups by IRS Schedule E line. The official summary and its PDF are in the Schedule E section.",
+    "scheduleELink": "Open Schedule E",
+    "empty": {
+      "title": "You don't have any properties yet",
+      "description": "Add a property and record payments and expenses to build your annual package.",
+      "action": "Add property"
+    },
+    "totals": {
+      "income": "Income",
+      "expenses": "Expenses",
+      "net": "Net before depreciation",
+      "depreciation": "Depreciation (estimate)",
+      "netAfter": "Net after depreciation"
+    },
+    "estimatesHint": "Items marked “Estimate” don't come from recorded payments. Review them with your accountant.",
+    "disclaimer": {
+      "title": "A summary, not a tax return",
+      "body": "This package organizes the data you recorded in ContractOS. It is not tax advice and does not replace your Hacienda or IRS return. Your CPA decides how each item is reported."
+    },
+    "source": {
+      "ledger": "Income: payments received in {year} from the rent ledger.",
+      "estimate": "This property has no rent ledger: income is estimated from the signed lease's rent for the months of {year}.",
+      "mixed": "Income: payments received in {year} and, for leases without a rent ledger, a monthly estimate.",
+      "none": "No income recorded in {year}."
+    },
+    "table": {
+      "line": "Line",
+      "concept": "Item",
+      "group": "Item (Anejo N)",
+      "amount": "Amount",
+      "noLines": "No income or expenses recorded for this property in {year}.",
+      "totalExpenses": "Total expenses",
+      "net": "Net before depreciation",
+      "netAfter": "Net after depreciation (estimate)"
+    },
+    "estimated": "Estimate",
+    "crimPaidNote": "CRIM paid in {year}: {amount} (included in property tax).",
+    "depreciation": {
+      "title": "Depreciation inputs",
+      "purchase": "Purchase price",
+      "buildingPct": "Building %",
+      "placedInService": "In service since",
+      "basis": "Depreciable basis",
+      "hint": "Reference: 27.5-year straight line with the mid-month convention (IRS, residential property). In Puerto Rico your CPA decides the method and useful life. Estimate, non-binding.",
+      "missing": "Add the purchase price, the building share and the placed-in-service date to estimate depreciation.",
+      "edit": "Edit CRIM and depreciation data"
+    }
+  },
+  "scheduleE": {
+    "3": "Rents received",
+    "5": "Advertising",
+    "6": "Auto and travel",
+    "7": "Cleaning and maintenance",
+    "8": "Commissions",
+    "9": "Insurance",
+    "10": "Legal and other professional fees",
+    "11": "Management fees",
+    "12": "Mortgage interest paid to banks, etc.",
+    "13": "Other interest",
+    "14": "Repairs",
+    "15": "Supplies",
+    "16": "Taxes",
+    "17": "Utilities",
+    "18": "Depreciation expense or depletion",
+    "19": "Other"
+  },
+  "anejoN": {
+    "grossRent": "Gross rental income",
+    "repairsMaintenance": "Repairs and maintenance",
+    "utilities": "Utilities (water and power)",
+    "insurance": "Insurance",
+    "propertyTax": "Property tax (CRIM)",
+    "hoa": "Maintenance fees (condo or association)",
+    "management": "Management expenses",
+    "advertising": "Advertising",
+    "mortgageInterest": "Mortgage interest",
+    "depreciation": "Depreciation",
+    "other": "Other ordinary and necessary expenses"
+  },
+  "category": {
+    "advertising": "Advertising",
+    "maintenance": "Maintenance",
+    "insurance": "Insurance",
+    "management": "Management",
+    "mortgage": "Mortgage",
+    "repairs": "Repairs",
+    "taxes": "Taxes",
+    "utilities": "Utilities",
+    "hoa": "HOA fee",
+    "other": "Other"
+  },
+  "csv": {
+    "year": "Year",
+    "property": "Property",
+    "kind": "Type",
+    "category": "Category",
+    "scheduleELine": "Schedule E line",
+    "scheduleEName": "Official name (Schedule E)",
+    "anejoN": "Anejo N item",
+    "anejoNReview": "Anejo N review",
+    "amount": "Amount",
+    "estimated": "Estimate",
+    "yes": "Yes",
+    "no": "No",
+    "lineKind": {
+      "income_ledger": "Income collected",
+      "income_estimate": "Estimated income",
+      "expense": "Expense",
+      "crim_unlinked": "CRIM paid without expense",
+      "depreciation": "Depreciation"
+    }
+  },
+  "pdf": {
+    "title": "Annual tax package {year}",
+    "generated": "Generated on {date}",
+    "filename": "annual-package"
+  },
+  "crim": {
+    "open": "CRIM and tax data for {name}",
+    "sheetTitle": "CRIM · {name}",
+    "sheetDescription": "CRIM account, bills and data for your annual package.",
+    "estimate": {
+      "title": "Yearly property tax",
+      "badge": "Estimate",
+      "formula": "{taxable} taxable × {rate}% ({municipality}, fiscal year {fy})",
+      "missingRate": "We couldn't find the rate for “{municipality}”. Check the municipality's spelling.",
+      "missingValue": "Add the municipality and assessed value to see the estimate.",
+      "note": "Estimated with the municipal real-property rate. The real amount is the one on your CRIM notice."
+    },
+    "account": {
+      "title": "CRIM account",
+      "municipality": "Municipality",
+      "catastro": "Cadastre number",
+      "accountNumber": "Account number",
+      "assessedValue": "Assessed value",
+      "principalResidence": "Principal residence",
+      "principalResidenceHint": "Turn on if the property has the principal-residence exemption.",
+      "exoneration": "Exemption (assessed value)",
+      "exonerationHint": "The principal-residence exemption is usually up to $15,000 of assessed value. Use the figure on your CRIM notice.",
+      "notes": "Notes",
+      "save": "Save",
+      "saved": "CRIM data saved"
+    },
+    "depreciation": {
+      "title": "Depreciation inputs (optional)",
+      "hint": "Used only for the annual package estimate. Non-binding.",
+      "purchasePrice": "Purchase price",
+      "buildingPct": "Building %",
+      "placedInService": "Placed in service"
+    },
+    "bills": {
+      "title": "CRIM bills",
+      "add": "Add bill",
+      "empty": "You haven't recorded CRIM bills for this property.",
+      "label": "Fiscal year {fy} · installment {n}",
+      "paidOnDate": "Paid on {date}",
+      "dueOn": "Due {date}",
+      "status": {
+        "paid": "Paid",
+        "due": "Pending",
+        "overdue": "Overdue",
+        "voided": "Voided"
+      },
+      "markPaid": "Mark paid",
+      "void": "Void",
+      "voidAria": "Void bill for fiscal year {fy}, installment {n}",
+      "fiscalYear": "Fiscal year",
+      "installment": "Installment",
+      "installmentN": "Installment {n}",
+      "amount": "Amount",
+      "dueDate": "Due date",
+      "cancel": "Cancel",
+      "save": "Add",
+      "added": "Bill added",
+      "markPaidTitle": "Mark bill as paid",
+      "paidOn": "Payment date",
+      "reference": "Reference (optional)",
+      "createExpense": "Record as an expense (Taxes)",
+      "createExpenseHint": "Creates a property expense so it counts in your reports.",
+      "confirmPaid": "Mark paid",
+      "paid": "Bill marked as paid",
+      "voidTitle": "Void bill",
+      "voidBody": "The bill stays in the history as voided. Enter the reason.",
+      "voidReason": "Reason",
+      "voidConfirm": "Void bill",
+      "voided": "Bill voided"
+    }
+  },
+  "crimPage": {
+    "title": "CRIM",
+    "description": "Property tax by property. Fiscal year {fy}.",
+    "col": {
+      "property": "Property",
+      "municipality": "Municipality",
+      "assessed": "Assessed value",
+      "estimate": "Yearly estimate",
+      "billed": "Billed",
+      "paid": "Paid",
+      "nextDue": "Next due"
+    },
+    "overdue": "Overdue",
+    "search": "Search property",
+    "emptyTitle": "You don't have any properties yet",
+    "emptyBody": "Add a property to track its CRIM account.",
+    "emptyAction": "Add property",
+    "note": "Estimates use the fiscal year's municipal real-property rate. Tap a property to record its account, bills and payments."
+  },
+  "alerts": {
+    "crimDue": "CRIM due {days, plural, =0 {today} one {in # day} other {in # days}}",
+    "pay": "Pay"
+  }
+}

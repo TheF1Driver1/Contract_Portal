@@ -141,6 +141,41 @@ type MessagingConsent = {
   updated_at: string;
 };
 
+// ── Plan 35: PR tax pack (migration 025) ──────────────────────────────────────
+type TaxResidency = "pr_resident" | "non_resident";
+type PropertyCrim = {
+  id: string;
+  property_id: string;
+  owner_id: string;
+  catastro_number: string | null;
+  account_number: string | null;
+  municipality: string | null;
+  assessed_value: number | null;
+  exemption_principal_residence: boolean;
+  exoneration_amount: number | null;
+  notes: string | null;
+  purchase_price: number | null;
+  building_pct: number | null;
+  placed_in_service: string | null;
+  created_at: string;
+  updated_at: string;
+};
+type CrimBill = {
+  id: string;
+  property_id: string;
+  owner_id: string;
+  fiscal_year: string;
+  installment: number;
+  amount: number;
+  due_date: string;
+  paid_on: string | null;
+  payment_reference: string | null;
+  expense_id: string | null;
+  voided_at: string | null;
+  void_reason: string | null;
+  created_at: string;
+};
+
 type PendingTables = {
   message_log: Table<
     MessageLog,
@@ -150,6 +185,11 @@ type PendingTables = {
     MessagingConsent,
     Partial<Omit<MessagingConsent, "id">> &
       Pick<MessagingConsent, "owner_id" | "subject_kind" | "subject_id" | "channel" | "address" | "status" | "source">
+  >;
+  property_crim: Table<PropertyCrim, Partial<Omit<PropertyCrim, "id">> & Pick<PropertyCrim, "property_id" | "owner_id">>;
+  crim_bills: Table<
+    CrimBill,
+    Partial<Omit<CrimBill, "id">> & Pick<CrimBill, "property_id" | "owner_id" | "fiscal_year" | "installment" | "amount" | "due_date">
   >;
   rent_ledgers: Table<RentLedger, Partial<RentLedger> & Pick<RentLedger, "contract_id" | "owner_id" | "started_on">>;
   rent_charges: Table<RentCharge, Partial<RentCharge> & Pick<RentCharge, "contract_id" | "owner_id" | "kind" | "due_date" | "amount">>;
@@ -195,11 +235,12 @@ type PendingTables = {
 
 type GenTables = Generated["public"]["Tables"];
 
+// lifecycle_emails (021); tax_residency (025, Plan 35).
 type ProfilesPatched = {
-  // digest_emails: migration 023 (Plan 34)
-  Row: GenTables["profiles"]["Row"] & { lifecycle_emails: boolean; digest_emails: boolean };
-  Insert: GenTables["profiles"]["Insert"] & { lifecycle_emails?: boolean; digest_emails?: boolean };
-  Update: GenTables["profiles"]["Update"] & { lifecycle_emails?: boolean; digest_emails?: boolean };
+  // digest_emails: migration 023 (Plan 34); tax_residency: migration 025 (Plan 35)
+  Row: GenTables["profiles"]["Row"] & { lifecycle_emails: boolean; digest_emails: boolean; tax_residency: TaxResidency | null };
+  Insert: GenTables["profiles"]["Insert"] & { lifecycle_emails?: boolean; digest_emails?: boolean; tax_residency?: TaxResidency | null };
+  Update: GenTables["profiles"]["Update"] & { lifecycle_emails?: boolean; digest_emails?: boolean; tax_residency?: TaxResidency | null };
   Relationships: GenTables["profiles"]["Relationships"];
 };
 
@@ -239,5 +280,6 @@ export type Database = Omit<Generated, "public"> & {
 
 export type { ContractSigner, SignatureEvent, RentLedger, RentCharge, Payment, PaymentMethod };
 export type { MessageLog, MessageChannel, MessageStatus, MessagingConsent, ConsentSource };
+export type { TaxResidency, PropertyCrim, CrimBill };
 
 export type Row<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];

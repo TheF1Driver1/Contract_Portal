@@ -1,0 +1,262 @@
+{
+  "tabs": {
+    "label": "Secciones de reportes",
+    "overview": "Resumen",
+    "annual": "Paquete anual",
+    "scheduleE": "Schedule E",
+    "crim": "CRIM"
+  },
+  "reviewNotice": {
+    "title": "Pendiente de revisión por un CPA",
+    "body": "La correspondencia con el Anejo N es una guía descriptiva: agrupa tus gastos por tipo, sin números de línea confirmados. Pídele a tu CPA que la revise antes de radicar la planilla."
+  },
+  "index": {
+    "title": "Reportes",
+    "description": "Tus números del año organizados para Hacienda, el IRS y el CRIM. Compártelos con tu contador/a.",
+    "recommended": "Recomendado para ti",
+    "open": "Abrir",
+    "annualTitle": "Paquete anual (Anejo N)",
+    "annualBody": "Ingresos cobrados, gastos por categoría, CRIM pagado y depreciación por propiedad. Exporta en PDF o CSV.",
+    "scheduleETitle": "Schedule E (IRS)",
+    "scheduleEBody": "Resumen por las líneas del Schedule E para dueños que informan al IRS (no residentes de Puerto Rico).",
+    "crimTitle": "CRIM",
+    "crimBody": "Cuentas del CRIM, facturas por año fiscal, pagos y el estimado de contribución de cada propiedad."
+  },
+  "residency": {
+    "title": "Tu residencia contributiva",
+    "description": "Define qué reporte ves primero. No es una determinación legal; confírmala con tu CPA.",
+    "label": "Residencia contributiva",
+    "pr_resident": "Residente de PR",
+    "non_resident": "No residente",
+    "unset": "Sin definir",
+    "prHint": "Los residentes bona fide de Puerto Rico informan el alquiler a Hacienda en la planilla de individuos (Anejo N). Verás primero el paquete anual.",
+    "nonHint": "Si no eres residente de Puerto Rico, por lo general informas el alquiler al IRS en el Schedule E. Verás primero el Schedule E.",
+    "unsetHint": "Elige una opción para ver primero el reporte que te aplica. Mientras tanto, verás el paquete anual.",
+    "saved": "Residencia contributiva guardada",
+    "failed": "No se pudo guardar"
+  },
+  "annual": {
+    "title": "Paquete anual",
+    "description": "Ingresos, gastos, CRIM y depreciación del año, listos para tu contador/a.",
+    "csv": "CSV",
+    "pdf": "PDF",
+    "exportLocked": "Exportar (plan Propietario)",
+    "year": "Año",
+    "property": "Propiedad",
+    "allProperties": "Todas las propiedades",
+    "view": "Formato",
+    "viewAnejo": "Anejo N (Hacienda)",
+    "viewScheduleE": "Schedule E (IRS)",
+    "scheduleENonResident": "Como no residente, usa también el resumen y PDF del Schedule E para tu planilla federal.",
+    "scheduleEHint": "Este formato agrupa por las líneas del Schedule E del IRS. El resumen oficial y su PDF están en la sección Schedule E.",
+    "scheduleELink": "Abrir Schedule E",
+    "empty": {
+      "title": "Todavía no tienes propiedades",
+      "description": "Añade una propiedad y registra pagos y gastos para armar tu paquete anual.",
+      "action": "Añadir propiedad"
+    },
+    "totals": {
+      "income": "Ingresos",
+      "expenses": "Gastos",
+      "net": "Neto antes de depreciación",
+      "depreciation": "Depreciación (estimado)",
+      "netAfter": "Neto después de depreciación"
+    },
+    "estimatesHint": "Las partidas marcadas «Estimado» no vienen de pagos registrados. Revísalas con tu contador/a.",
+    "disclaimer": {
+      "title": "Es un resumen, no una planilla",
+      "body": "Este paquete organiza los datos que registraste en ContractOS. No es asesoría contributiva ni sustituye la planilla de Hacienda ni la del IRS. Tu CPA decide cómo se informa cada partida."
+    },
+    "source": {
+      "ledger": "Ingresos: pagos recibidos en {year} según la cuenta de renta.",
+      "estimate": "Esta propiedad no tiene cuenta de renta: el ingreso se estima con la renta del contrato firmado por los meses de {year}.",
+      "mixed": "Ingresos: pagos recibidos en {year} y, para contratos sin cuenta de renta, un estimado por meses.",
+      "none": "Sin ingresos registrados en {year}."
+    },
+    "table": {
+      "line": "Línea",
+      "concept": "Concepto",
+      "group": "Partida (Anejo N)",
+      "amount": "Monto",
+      "noLines": "No hay ingresos ni gastos registrados para esta propiedad en {year}.",
+      "totalExpenses": "Total de gastos",
+      "net": "Neto antes de depreciación",
+      "netAfter": "Neto después de depreciación (estimado)"
+    },
+    "estimated": "Estimado",
+    "crimPaidNote": "CRIM pagado en {year}: {amount} (incluido en Contribución sobre la propiedad).",
+    "depreciation": {
+      "title": "Datos de depreciación",
+      "purchase": "Precio de compra",
+      "buildingPct": "% edificio",
+      "placedInService": "En servicio desde",
+      "basis": "Base depreciable",
+      "hint": "Referencia: línea recta de 27.5 años con convención de mitad de mes (IRS, propiedad residencial). En Puerto Rico tu CPA determina el método y la vida útil. Estimado, no vinculante.",
+      "missing": "Añade el precio de compra, el % que corresponde al edificio y la fecha en servicio para estimar la depreciación.",
+      "edit": "Editar datos de CRIM y depreciación"
+    }
+  },
+  "scheduleE": {
+    "3": "Rentas recibidas",
+    "5": "Publicidad",
+    "6": "Auto y viajes",
+    "7": "Limpieza y mantenimiento",
+    "8": "Comisiones",
+    "9": "Seguros",
+    "10": "Honorarios legales y profesionales",
+    "11": "Cargos de administración",
+    "12": "Intereses hipotecarios pagados a bancos",
+    "13": "Otros intereses",
+    "14": "Reparaciones",
+    "15": "Materiales",
+    "16": "Contribuciones",
+    "17": "Utilidades",
+    "18": "Depreciación",
+    "19": "Otros"
+  },
+  "anejoN": {
+    "grossRent": "Ingreso bruto de alquiler",
+    "repairsMaintenance": "Gastos de reparación y mantenimiento",
+    "utilities": "Utilidades (agua y luz)",
+    "insurance": "Seguros",
+    "propertyTax": "Contribución sobre la propiedad (CRIM)",
+    "hoa": "Cuotas de mantenimiento (condominio o asociación)",
+    "management": "Gastos de administración",
+    "advertising": "Anuncios",
+    "mortgageInterest": "Intereses hipotecarios",
+    "depreciation": "Depreciación",
+    "other": "Otros gastos ordinarios y necesarios"
+  },
+  "category": {
+    "advertising": "Publicidad",
+    "maintenance": "Mantenimiento",
+    "insurance": "Seguro",
+    "management": "Administración",
+    "mortgage": "Hipoteca",
+    "repairs": "Reparaciones",
+    "taxes": "Contribuciones",
+    "utilities": "Utilidades",
+    "hoa": "Cuota de mantenimiento",
+    "other": "Otro"
+  },
+  "csv": {
+    "year": "Año",
+    "property": "Propiedad",
+    "kind": "Tipo",
+    "category": "Categoría",
+    "scheduleELine": "Línea Schedule E",
+    "scheduleEName": "Nombre oficial (Schedule E)",
+    "anejoN": "Partida Anejo N",
+    "anejoNReview": "Revisión Anejo N",
+    "amount": "Monto",
+    "estimated": "Estimado",
+    "yes": "Sí",
+    "no": "No",
+    "lineKind": {
+      "income_ledger": "Ingreso cobrado",
+      "income_estimate": "Ingreso estimado",
+      "expense": "Gasto",
+      "crim_unlinked": "CRIM pagado sin gasto",
+      "depreciation": "Depreciación"
+    }
+  },
+  "pdf": {
+    "title": "Paquete contributivo anual {year}",
+    "generated": "Generado el {date}",
+    "filename": "paquete-anual"
+  },
+  "crim": {
+    "open": "CRIM y datos fiscales de {name}",
+    "sheetTitle": "CRIM · {name}",
+    "sheetDescription": "Cuenta del CRIM, facturas y datos para tu paquete anual.",
+    "estimate": {
+      "title": "Contribución anual",
+      "badge": "Estimado",
+      "formula": "{taxable} tributable × {rate}% ({municipality}, año fiscal {fy})",
+      "missingRate": "No encontramos la tasa de «{municipality}». Revisa cómo escribiste el municipio.",
+      "missingValue": "Añade el municipio y el valor tasado para ver el estimado.",
+      "note": "Estimado con la tasa municipal de inmuebles. El monto real es el de tu notificación del CRIM."
+    },
+    "account": {
+      "title": "Cuenta del CRIM",
+      "municipality": "Municipio",
+      "catastro": "Número de catastro",
+      "accountNumber": "Número de cuenta",
+      "assessedValue": "Valor tasado",
+      "principalResidence": "Residencia principal",
+      "principalResidenceHint": "Activa si la propiedad tiene la exoneración de residencia principal.",
+      "exoneration": "Exoneración (valor tasado)",
+      "exonerationHint": "La exoneración de residencia principal suele ser de hasta $15,000 del valor tasado. Usa la cifra de tu notificación del CRIM.",
+      "notes": "Notas",
+      "save": "Guardar",
+      "saved": "Datos del CRIM guardados"
+    },
+    "depreciation": {
+      "title": "Datos para depreciación (opcional)",
+      "hint": "Se usan solo para el estimado del paquete anual. No son vinculantes.",
+      "purchasePrice": "Precio de compra",
+      "buildingPct": "% del edificio",
+      "placedInService": "Fecha en servicio"
+    },
+    "bills": {
+      "title": "Facturas del CRIM",
+      "add": "Añadir factura",
+      "empty": "No has registrado facturas del CRIM para esta propiedad.",
+      "label": "Año fiscal {fy} · plazo {n}",
+      "paidOnDate": "Pagada el {date}",
+      "dueOn": "Vence el {date}",
+      "status": {
+        "paid": "Pagada",
+        "due": "Pendiente",
+        "overdue": "Vencida",
+        "voided": "Anulada"
+      },
+      "markPaid": "Marcar pagada",
+      "void": "Anular",
+      "voidAria": "Anular factura del año fiscal {fy}, plazo {n}",
+      "fiscalYear": "Año fiscal",
+      "installment": "Plazo",
+      "installmentN": "Plazo {n}",
+      "amount": "Monto",
+      "dueDate": "Fecha de vencimiento",
+      "cancel": "Cancelar",
+      "save": "Añadir",
+      "added": "Factura añadida",
+      "markPaidTitle": "Marcar factura como pagada",
+      "paidOn": "Fecha de pago",
+      "reference": "Referencia (opcional)",
+      "createExpense": "Registrar como gasto (Contribuciones)",
+      "createExpenseHint": "Crea un gasto de la propiedad para que cuente en tus reportes.",
+      "confirmPaid": "Marcar pagada",
+      "paid": "Factura marcada como pagada",
+      "voidTitle": "Anular factura",
+      "voidBody": "La factura queda en el historial como anulada. Escribe el motivo.",
+      "voidReason": "Motivo",
+      "voidConfirm": "Anular factura",
+      "voided": "Factura anulada"
+    }
+  },
+  "crimPage": {
+    "title": "CRIM",
+    "description": "Contribución sobre la propiedad por propiedad. Año fiscal {fy}.",
+    "col": {
+      "property": "Propiedad",
+      "municipality": "Municipio",
+      "assessed": "Valor tasado",
+      "estimate": "Estimado anual",
+      "billed": "Facturado",
+      "paid": "Pagado",
+      "nextDue": "Próximo vencimiento"
+    },
+    "overdue": "Vencida",
+    "search": "Buscar propiedad",
+    "emptyTitle": "Todavía no tienes propiedades",
+    "emptyBody": "Añade una propiedad para llevar su cuenta del CRIM.",
+    "emptyAction": "Añadir propiedad",
+    "note": "Los estimados usan la tasa municipal de inmuebles del año fiscal. Toca una propiedad para registrar su cuenta, facturas y pagos."
+  },
+  "alerts": {
+    "crimDue": "El CRIM vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+    "pay": "Pagar"
+  }
+}

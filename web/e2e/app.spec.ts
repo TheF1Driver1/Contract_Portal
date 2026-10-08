@@ -120,3 +120,66 @@ test.describe("messaging", () => {
     });
   }
 });
+
+test.describe("tax pack (Plan 35)", () => {
+  test.skip(!MOCK_URL, "MOCK_SUPABASE_URL not set");
+
+  const TAX_PAGES = [
+    { path: "/reports", heading: "Reportes" },
+    { path: "/reports/annual", heading: "Paquete anual" },
+    { path: "/reports/crim", heading: "CRIM" },
+    { path: "/properties?crim=10000000-0000-4000-8000-000000000001", heading: "CRIM · Edificio Las Palmas 2B" },
+  ];
+
+  for (const scheme of ["light", "dark"] as const) {
+    test.describe(scheme, () => {
+      test.use({ colorScheme: scheme });
+      for (const { path, heading } of TAX_PAGES) {
+        test(`${path} renders and has no serious a11y violations`, async ({ page, context, baseURL }) => {
+          await signInMock(context, baseURL!, MOCK_URL!);
+          await page.goto(path);
+          // The CRIM sheet is modal (full screen on phones), so check it instead of the page title.
+          if (path.includes("crim=")) await expect(page.getByRole("dialog", { name: heading })).toBeVisible();
+          else await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+          const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).exclude(".leaflet-container").analyze();
+          const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+          expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(", ")}`)).toEqual([]);
+        });
+      }
+    });
+  }
+
+  test("CRIM sheet shows the estimate and marks a bill paid", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/properties");
+    await page.getByRole("button", { name: "CRIM y datos fiscales de Edificio Las Palmas 2B" }).click();
+    const sheet = page.getByRole("dialog", { name: "CRIM · Edificio Las Palmas 2B" });
+    // $42,000 assessed × 10.83% (San Juan).
+    await expect(sheet.getByText("$4,548.60")).toBeVisible();
+    await expect(sheet.getByText("Estimado", { exact: true })).toBeVisible();
+    await expect(sheet.getByText("Pendiente", { exact: true })).toBeVisible();
+    await sheet.getByRole("button", { name: "Marcar pagada" }).click();
+    const pay = page.getByRole("dialog", { name: "Marcar factura como pagada" });
+    await expect(pay.getByLabel("Registrar como gasto (Contribuciones)")).toBeChecked();
+    await pay.getByRole("button", { name: "Marcar pagada" }).click();
+    await expect(page.getByText("Factura marcada como pagada")).toBeVisible();
+  });
+
+  test("annual package follows the residency and switches to Schedule E", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/reports/annual");
+    await expect(page.getByText("Pendiente de revisión por un CPA")).toBeVisible();
+    await expect(page.getByRole("radio", { name: "Anejo N (Hacienda)" })).toHaveAttribute("aria-checked", "true");
+    await page.getByRole("radio", { name: "Schedule E (IRS)" }).click();
+    await expect(page).toHaveURL(/view=schedule_e/);
+    await expect(page.getByRole("link", { name: "Abrir Schedule E" })).toBeVisible();
+  });
+
+  test("an upcoming CRIM bill shows in Hoy", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/dashboard");
+    const today = page.locator("section", { has: page.getByRole("heading", { name: "Hoy" }) });
+    await expect(today.getByText("El CRIM vence en 12 días")).toBeVisible();
+    await expect(today.getByRole("link", { name: /^Pagar: CRIM · Edificio Las Palmas 2B/ })).toHaveAttribute("href", "/properties?crim=10000000-0000-4000-8000-000000000001");
+  });
+});

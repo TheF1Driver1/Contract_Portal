@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Building2, List, Map as MapIcon, Pencil, FileUp, Plus, Users, X } from "lucide-react";
+import { Building2, Landmark, List, Map as MapIcon, Pencil, FileUp, Plus, Users, X } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { CsvImportSheet } from "@/components/app/CsvImportSheet";
 import { DataTable } from "@/components/app/DataTable";
@@ -16,6 +16,7 @@ import PropertyMap from "@/components/PropertyMap";
 import AddPropertyModal from "@/app/(dashboard)/properties/AddPropertyModal";
 import EditPropertyModal from "@/app/(dashboard)/properties/EditPropertyModal";
 import CoOwnersModal from "@/app/(dashboard)/properties/CoOwnersModal";
+import { CrimSheet, type CrimSheetData } from "@/components/tax/CrimSheet";
 import type { Jurisdiction, Property } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ export function PropertiesView({
   initialQuery,
   openNew,
   openImport,
+  crim,
 }: {
   rows: PropertyRow[];
   /** `?q=` deep link from the command palette. */
@@ -48,9 +50,12 @@ export function PropertiesView({
   openNew?: boolean;
   /** `?import=1` deep link from the getting-started checklist. */
   openImport?: boolean;
+  /** `?crim=<id>`: CRIM account, bills and estimate for one property (Plan 35). */
+  crim?: CrimSheetData | null;
 }) {
   const t = useTranslations("properties");
   const tc = useTranslations("common");
+  const tTax = useTranslations("tax.crim");
   const f = useFormatter();
   const router = useRouter();
   const pathname = usePathname();
@@ -89,6 +94,15 @@ export function PropertiesView({
 
   const rowActions = (p: PropertyRow) => (
     <div className="flex items-center justify-end gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-10 md:size-8"
+        aria-label={tTax("open", { name: p.name })}
+        onClick={() => router.push(`${pathname}?crim=${p.id}`, { scroll: false })}
+      >
+        <Landmark />
+      </Button>
       <Button
         variant="ghost"
         size="icon"
@@ -340,6 +354,14 @@ export function PropertiesView({
           property={editing}
           open={!!editing}
           onOpenChange={(open) => !open && setEditing(null)}
+        />
+      )}
+      {crim && (
+        <CrimSheet
+          key={crim.property.id}
+          data={crim}
+          open
+          onOpenChange={(open) => !open && router.replace(pathname, { scroll: false })}
         />
       )}
       {coOwnersOf && (

@@ -122,7 +122,12 @@ export default async function DashboardPage() {
   const expiringSoon: QueueItem[] = [];
   const expiringLater: QueueItem[] = [];
   const unsigned: QueueItem[] = [];
+  const crimDue: QueueItem[] = [];
   for (const a of alerts) {
+    if (a.kind === "crim") {
+      crimDue.push(a);
+      continue;
+    }
     if (a.kind === "failed") {
       const key = `${a.contractId}:${a.channel}`;
       if (seenFailed.has(key)) continue;
@@ -139,6 +144,7 @@ export default async function DashboardPage() {
   const queue: QueueItem[] = [
     ...failed,
     ...expiringSoon,
+    ...crimDue,
     ...unsigned,
     ...drafts.map((c): QueueItem => ({ kind: "draft", contractId: c.id, title: titleOf(c) })),
     ...expiringLater,

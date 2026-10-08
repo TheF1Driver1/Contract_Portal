@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { canExportScheduleE } from "@/lib/subscription";
 import type { SubscriptionPlan } from "@/lib/types";
 import type { PropertyReport } from "@/lib/pdf-schedule-e";
+import { ledgerIncomeByProperty } from "@/lib/tax/load";
 import React from "react";
 
 // Line numbers are shared with the on-screen summary so the two can't drift.
@@ -67,16 +68,19 @@ export async function GET(req: NextRequest) {
 
   const { data: contracts } = await admin
     .from("contracts")
-    .select("property_id, rent_amount, lease_start, lease_end")
+    .select("id, property_id, rent_amount, lease_start, lease_end")
     .eq("owner_id", user.id)
     .eq("status", "signed");
+
+  // Plan 35: leases with a rent ledger report cash received; the rest keep the estimate.
+  const ledger = await ledgerIncomeByProperty(admin, user.id, year);
 
   const propertyReports: PropertyReport[] = properties.map((prop) => {
     const propExpenses = (expenses ?? []).filter((e) => e.property_id === prop.id);
 
-    let totalIncome = 0;
+    let totalIncome = ledger.income.get(prop.id) ?? 0;
     (contracts ?? [])
-      .filter((c) => c.property_id === prop.id)
+      .filter((c) => c.property_id === prop.id && !ledger.ledgerContracts.has(c.id))
       .forEach((c) => {
         const start = new Date(Math.max(new Date(c.lease_start).getTime(), new Date(`${year}-01-01`).getTime()));
         const end   = new Date(Math.min(new Date(c.lease_end).getTime(),   new Date(`${year}-12-31`).getTime()));
