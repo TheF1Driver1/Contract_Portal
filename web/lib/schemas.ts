@@ -477,3 +477,24 @@ export const InspectionAckSchema = z.object({
   name: z.string().trim().min(2).max(120),
   confirm: z.literal(true),
 });
+
+// ── Plan 39: AI drafting (clause translation, notices, Q&A) ────────────────
+export const AiTranslateSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  body: z.string().max(8000).default(""),
+  target: z.enum(["en", "es"]),
+});
+
+export const AiNoticeSchema = z.object({
+  contract_id: uuid,
+  kind: z.enum(["late_payment", "renewal_offer"]),
+  // Used only when the lease has no rent ledger.
+  amount_overdue: z.number().positive().max(1_000_000).nullable().optional(),
+  proposed_rent: z.number().positive().max(1_000_000).nullable().optional(),
+  proposed_term_months: z.number().int().min(1).max(60).nullable().optional(),
+});
+
+export const AiAskDataSchema = z.object({
+  question: z.string().trim().min(3).max(300),
+});
+// ── end Plan 39 ─────────────────────────────────────────────────────────────
