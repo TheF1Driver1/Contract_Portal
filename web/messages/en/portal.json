@@ -42,5 +42,14 @@
     "yourSignature": "Your signature",
     "back": "Back to my contracts",
     "howItWorks": "To sign, you'll agree to use electronic signatures, confirm your identity with a code we send you, and review the full lease before signing."
+  },
+  "ledger": {
+    "balance": "Balance",
+    "overdue": "Overdue",
+    "nextDue": "Next payment",
+    "paidUp": "Paid up",
+    "payments": "Recent payments",
+    "receipt": "Receipt {number}",
+    "noPayments": "No payments recorded yet."
   }
 }

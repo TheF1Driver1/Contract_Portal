@@ -54,6 +54,13 @@ export default async function DashboardPage() {
   const windowStart = `${months[0].key}-01`;
   const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)).toISOString().slice(0, 10);
 
+  const [{ data: monthCharges }, { data: monthPayments }] = await Promise.all([
+    supabase.from("rent_charges").select("amount").eq("owner_id", user!.id).is("voided_at", null).gte("due_date", `${currentMonth}-01`).lt("due_date", nextMonth),
+    supabase.from("payments").select("amount").eq("owner_id", user!.id).is("voided_at", null).gte("received_on", `${currentMonth}-01`).lt("received_on", nextMonth),
+  ]);
+  const ledgerExpected = (monthCharges ?? []).reduce((s, c) => s + Number(c.amount), 0);
+  const ledgerCollected = (monthPayments ?? []).reduce((s, p) => s + Number(p.amount), 0);
+
   const [contractsResult, propertiesResult, expensesResult, alerts, tenantsCount] = await Promise.all([
     supabase
       .from("contracts")
@@ -155,11 +162,19 @@ export default async function DashboardPage() {
   const hasChartData = totalRent > 0 || totalExpenses > 0;
 
   const kpis = [
-    {
-      label: t("kpi.expectedRent"),
-      value: f.number(expectedRent, "money"),
-      sub: t("kpi.expectedRentSub", { count: thisMonthLeases.length }),
-    },
+    // With rent tracking on, show money actually received rather than lease totals.
+    ledgerExpected > 0
+      ? {
+          label: t("kpi.collected"),
+          value: f.number(ledgerCollected, "money"),
+          sub: t("kpi.collectedSub", { expected: f.number(ledgerExpected, "money") }),
+          href: "/rent",
+        }
+      : {
+          label: t("kpi.expectedRent"),
+          value: f.number(expectedRent, "money"),
+          sub: t("kpi.expectedRentSub", { count: thisMonthLeases.length }),
+        },
     {
       label: t("kpi.occupancy"),
       value: occupancy === null ? "—" : f.number(occupancy, { style: "percent", maximumFractionDigits: 0 }),

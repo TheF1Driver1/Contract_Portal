@@ -3,11 +3,15 @@ export const dynamic = 'force-dynamic';
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Download, Eye, FileSignature, FileText, MapPin, PenLine } from "lucide-react";
+import { Download, Eye, FileSignature, FileText, MapPin, PenLine, Receipt } from "lucide-react";
 import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/app/StatusBadge";
 import { EmptyState } from "@/components/app/EmptyState";
+import type { Payment, RentCharge } from "@/lib/db";
+import { summarize, type LedgerSummary } from "@/lib/rent/schedule";
+import { todayPR } from "@/lib/rent/service";
+import { receiptNumber } from "@/lib/rent/receipt";
 
 interface PortalContract {
   id: string;
@@ -54,6 +58,31 @@ export default async function PortalPage() {
       .filter((c): c is PortalContract => Boolean(c))
       .sort((a, b) => Number(CLOSED.has(a.status)) - Number(CLOSED.has(b.status)));
   }
+
+  // Rent ledgers the landlord keeps for these leases (read with the service
+  // role, scoped to the contracts this tenant redeemed an invite for).
+  const ledgers = new Map<string, { summary: LedgerSummary; payments: Payment[] }>();
+  if (ids.length > 0) {
+    const today = todayPR();
+    const [{ data: ls }, { data: charges }, { data: payments }] = await Promise.all([
+      admin.from("rent_ledgers").select("contract_id").in("contract_id", ids),
+      admin.from("rent_charges").select("*").in("contract_id", ids),
+      admin.from("payments").select("*").in("contract_id", ids).is("voided_at", null).order("received_on", { ascending: false }),
+    ]);
+    for (const l of ls ?? []) {
+      const ch = ((charges ?? []) as RentCharge[]).filter((c) => c.contract_id === l.contract_id);
+      const pay = ((payments ?? []) as Payment[]).filter((p) => p.contract_id === l.contract_id);
+      ledgers.set(l.contract_id, {
+        summary: summarize(
+          ch.map((c) => ({ kind: c.kind, period: c.period, due_date: c.due_date, amount: Number(c.amount), voided: !!c.voided_at })),
+          pay.map((p) => ({ amount: Number(p.amount), received_on: p.received_on })),
+          today
+        ),
+        payments: pay.slice(0, 5),
+      });
+    }
+  }
+  const money = (n: number) => f.number(n, { style: "currency", currency: "USD", maximumFractionDigits: Number.isInteger(n) ? 0 : 2 });
 
   const day = (d: string | null) => (d ? f.dateTime(new Date(`${d.slice(0, 10)}T12:00:00`), { dateStyle: "medium" }) : "—");
 
@@ -112,6 +141,8 @@ export default async function PortalPage() {
                     </div>
                   </dl>
 
+                  {ledgers.has(c.id) && <TenantLedger data={ledgers.get(c.id)!} money={money} day={day} t={t} />}
+
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
                     {pending ? (
                       <Button asChild size="lg" className="w-full sm:w-auto">
@@ -151,5 +182,54 @@ export default async function PortalPage() {
         </section>
       )}
     </main>
+  );
+}
+
+function TenantLedger({
+  data,
+  money,
+  day,
+  t,
+}: {
+  data: { summary: LedgerSummary; payments: Payment[] };
+  money: (n: number) => string;
+  day: (d: string | null) => string;
+  t: Awaited<ReturnType<typeof getTranslations<"portal">>>;
+}) {
+  const s = data.summary;
+  return (
+    <div className="mt-4 space-y-3 border-t pt-4">
+      <dl className="grid grid-cols-3 gap-3 text-sm">
+        <div>
+          <dt className="text-xs text-muted-foreground">{t("ledger.balance")}</dt>
+          <dd className="tabular font-semibold text-foreground">{s.balance > 0 ? money(s.balance) : t("ledger.paidUp")}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">{t("ledger.overdue")}</dt>
+          <dd className={s.overdue > 0 ? "tabular font-semibold text-danger" : "tabular text-foreground"}>{s.overdue > 0 ? money(s.overdue) : "—"}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">{t("ledger.nextDue")}</dt>
+          <dd className="tabular text-foreground">{s.nextDue ? `${day(s.nextDue.date)} · ${money(s.nextDue.amount)}` : "—"}</dd>
+        </div>
+      </dl>
+      <div>
+        <h4 className="mb-1 text-xs font-medium text-muted-foreground">{t("ledger.payments")}</h4>
+        {data.payments.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("ledger.noPayments")}</p>
+        ) : (
+          <ul className="divide-y text-sm">
+            {data.payments.map((p) => (
+              <li key={p.id} className="flex items-center justify-between gap-3 py-1.5">
+                <span className="tabular">{day(p.received_on)} · {money(Number(p.amount))}</span>
+                <a href={`/api/portal/payments/${p.id}/receipt`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline">
+                  <Receipt className="size-3.5" aria-hidden /> {t("ledger.receipt", { number: receiptNumber(p.number) })}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
   );
 }

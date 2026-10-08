@@ -39,7 +39,9 @@
     "expiring": "Leases ending soon",
     "expiringSub": "In the next 60 days",
     "drafts": "Drafts",
-    "draftsSub": "Ready to send"
+    "draftsSub": "Ready to send",
+    "collected": "Collected this month",
+    "collectedSub": "of {expected} expected"
   },
   "chart": {
     "title": "Expected rent and expenses",

@@ -39,7 +39,9 @@
     "expiring": "Contratos por vencer",
     "expiringSub": "En los próximos 60 días",
     "drafts": "Borradores",
-    "draftsSub": "Listos para enviar"
+    "draftsSub": "Listos para enviar",
+    "collected": "Cobrado este mes",
+    "collectedSub": "de {expected} esperado"
   },
   "chart": {
     "title": "Renta esperada y gastos",

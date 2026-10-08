@@ -1,6 +1,6 @@
 # Release runbook: `feature/roadmap-execution` → `dev` → `main`
 
-This branch carries Plans 24–32. The code expects database migrations 012–021,
+This branch carries Plans 24–32. The code expects database migrations 012–022,
 which are **not** in production yet (011 was applied on 2026-10-07). Deploy in
 the order below. Steps 1–3 can run before the code ships, because every migration
 is additive and backward compatible with the current `main`. The exception is
@@ -30,6 +30,7 @@ a copy of the production schema, together with role-based behavior checks.
 | 019 | `019_tenant_locale.sql` | `tenants.preferred_locale` | |
 | 020 | `020_esign.sql` | E-sign tables, evidence log, signed-contract immutability, signing guard, `signed-documents` bucket, realtime | ⚠️ See below |
 | 021 | `021_lifecycle_emails.sql` | `profiles.lifecycle_emails`, `lifecycle_email_log` | |
+| 022 | `022_rent_ledger.sql` | `rent_ledgers`, `rent_charges`, `payments`, `contract_ledger` view | Rent tracking is opt-in per lease |
 
 **About 020.** After 020, only the server (service role) can mark a contract
 `signed`, write `tenant_signature` or set sealing fields. This affects two things:
@@ -70,8 +71,10 @@ New or changed on this branch. `web/.env.example` has the full list.
 | `FROM_EMAIL` | All email | Must be on a domain verified in Resend (SPF, DKIM, DMARC) |
 
 Cron jobs (`web/vercel.json`) are created automatically on deploy:
-`/api/cron/notify` runs daily at 10:00 UTC, and `/api/cron/lifecycle` runs daily
-at 14:00 UTC (10:00 AST).
+`/api/cron/rent` runs daily at 09:00 UTC (posts rent and late fees),
+`/api/cron/notify` at 10:00 UTC, and `/api/cron/lifecycle` at 14:00 UTC
+(10:00 AST). Each runs once a day, which fits Vercel's Hobby limits. Check
+the cron count allowed on the current plan in Vercel → Settings → Cron Jobs.
 
 ## 4. Deploy
 
@@ -84,6 +87,7 @@ at 14:00 UTC (10:00 AST).
 - [ ] `/`, `/pricing`, `/en`, `/terminos` and `/privacidad` load. `/sitemap.xml` and `/robots.txt` respond.
 - [ ] Sign up a new landlord with the consent box checked. The welcome email arrives the next day at 10:00 AST; you can also trigger it right away with `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://…/api/cron/lifecycle`.
 - [ ] Use the getting-started checklist: import one property and one tenant from CSV, then create a contract.
+- [ ] On a signed lease, turn on **Renta y pagos**, record an ATH Móvil payment, and confirm that the tenant gets the receipt in their language. The tenant portal should show the balance.
 - [ ] **Request a signature.** Open the link on a phone, give consent, enter the code (SMS or email), sign, then sign as the landlord. The contract becomes `signed`, the sealed PDF downloads, and the certificate shows the SHA-256 hashes.
 - [ ] Try to edit the signed contract. It is blocked; use **Void and reissue**.
 - [ ] Stripe test-mode checkout, then the customer portal. The webhook is recorded once in `stripe_events`.

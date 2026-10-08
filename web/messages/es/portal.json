@@ -42,5 +42,14 @@
     "yourSignature": "Tu firma",
     "back": "Volver a mis contratos",
     "howItWorks": "Para firmar, aceptarás el uso de firma electrónica, confirmarás tu identidad con un código que te enviamos y revisarás el contrato completo antes de firmar."
+  },
+  "ledger": {
+    "balance": "Balance",
+    "overdue": "Vencido",
+    "nextDue": "Próximo pago",
+    "paidUp": "Al día",
+    "payments": "Pagos recientes",
+    "receipt": "Recibo {number}",
+    "noPayments": "Aún no hay pagos registrados."
   }
 }
