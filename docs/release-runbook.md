@@ -1,6 +1,6 @@
 # Release runbook: `feature/roadmap-execution` → `dev` → `main`
 
-This branch carries Plans 24–40. The code expects database migrations 012–032,
+This branch carries Plans 24–40. The code expects database migrations 012–033,
 which are **not** in production yet (011 was applied on 2026-10-07). Deploy in
 the order below. Steps 1–3 can run before the code ships, because every migration
 is additive and backward compatible with the current `main`. The exception is
@@ -41,6 +41,7 @@ a copy of the production schema, together with role-based behavior checks.
 | 030 | `030_referrals.sql` | `referral_codes`, `referrals` | Server-only writes; self-referrals rejected |
 | 031 | `031_ath_movil.sql` | `ath_movil_accounts` (encrypted tokens only), `ath_movil_payments`, `ath_movil_status()` | Needs `FIELD_ENCRYPTION_KEY` set before landlords connect |
 | 032 | `032_security_hardening.sql` | Locks `tenant_invites` to server writes, adds WITH CHECK on contract children and photo/attachment paths, server-only tenant evidence | **Apply to production now, ahead of the release** (see note below) |
+| 033 | `033_dashboard_summary.sql` | `dashboard_summary()` RPC with the dashboard KPIs (security invoker) | Used by the iOS app; the web keeps its own query for now |
 
 **About 032 (urgent).** The tenant-invite and contract-children policies it
 fixes are already live in production: today any signed-in user can insert a

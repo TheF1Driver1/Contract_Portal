@@ -417,8 +417,22 @@ type OccupantsPatched = {
   Relationships: GenTables["contract_occupants"]["Relationships"];
 };
 
+export type DashboardSummary = {
+  month: string;
+  expected_rent: number;
+  leases_this_month: number;
+  total_units: number;
+  occupied_units: number;
+  expiring_60: number;
+  drafts: number;
+  ledger_expected: number;
+  ledger_collected: number;
+};
+
 type PendingFunctions = {
   market_data_updated_at: { Args: Record<PropertyKey, never>; Returns: string | null };
+  // Plan 38 (migration 033): shared dashboard KPIs for web and iOS.
+  dashboard_summary: { Args: { p_today?: string }; Returns: DashboardSummary };
   // Plan 33 (migration 031)
   ath_movil_status: { Args: Record<PropertyKey, never>; Returns: { connected: boolean; business_name: string | null; connected_at: string | null }[] };
 };
