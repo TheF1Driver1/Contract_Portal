@@ -37,7 +37,7 @@ export async function proxy(request: NextRequest) {
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/forgot-password") || pathname.startsWith("/reset-password");
   const isApiRoute = pathname.startsWith("/api");
   const isLandingPage = pathname === "/";
-  const isInvitePage = pathname.startsWith("/invite");
+  const isInvitePage = pathname.startsWith("/invite") || pathname.startsWith("/sign/");
   const isPortalPage = pathname.startsWith("/portal");
   const isPricingPage = pathname === "/pricing" || pathname === "/en/pricing" || pathname === "/en";
   const isSeoFile = ["/sitemap.xml", "/robots.txt", "/opengraph-image"].includes(pathname);

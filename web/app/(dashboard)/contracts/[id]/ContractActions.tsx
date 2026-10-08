@@ -16,12 +16,17 @@ import {
   Pencil,
   RefreshCw,
   Trash2,
+  Ban,
+  Send,
 } from "lucide-react";
 import type { Contract, Tenant } from "@/lib/types";
 import RenewalModal from "@/components/RenewalModal";
 import SendEmailModal from "@/components/SendEmailModal";
 import { ConfirmDialog } from "@/components/contracts/ConfirmDialog";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +47,7 @@ export default function ContractActions({
   landlordEmail?: string;
 }) {
   const t = useTranslations("contracts.actions");
+  const te = useTranslations("contracts.esign");
   const router = useRouter();
   const [generating, setGenerating] = useState<Format | null>(null);
   const [showEmail, setShowEmail] = useState(false);
@@ -49,6 +55,9 @@ export default function ContractActions({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [sendingInvite, setSendingInvite] = useState(false);
   const [sendingSms, setSendingSms] = useState(false);
+  const [voidOpen, setVoidOpen] = useState(false);
+  const [voidReason, setVoidReason] = useState("");
+  const [voiding, setVoiding] = useState(false);
 
   const status = contract.status as string;
   const showRenew = status === "signed" || status === "expired";
@@ -116,6 +125,40 @@ export default function ContractActions({
     }
   }
 
+  // Sends the lease into the verified signing flow (Plan 31).
+  async function handleRequestSignature() {
+    setSendingInvite(true);
+    try {
+      const res = await fetch(`/api/contracts/${contract.id}/signers`, { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(typeof json.error === "string" ? json.error : "");
+      toast.success(te("sent"));
+      router.refresh();
+    } catch (e) {
+      toast.error(te("sendFailed"), { description: (e as Error).message || undefined });
+    } finally {
+      setSendingInvite(false);
+    }
+  }
+
+  async function handleVoid() {
+    setVoiding(true);
+    try {
+      const res = await fetch(`/api/contracts/${contract.id}/void`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: voidReason }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || typeof json.newContractId !== "string") throw new Error(typeof json.error === "string" ? json.error : "");
+      toast.success(te("voided"));
+      router.push(`/contracts/new?edit=${json.newContractId}`);
+    } catch (e) {
+      toast.error(te("voidFailed"), { description: (e as Error).message || undefined });
+      setVoiding(false);
+    }
+  }
+
   async function handleQuickSms() {
     if (!tenantHasPhone) {
       toast.error(t("needPhone"));
@@ -140,15 +183,10 @@ export default function ContractActions({
 
   const spin = <Loader2 className="animate-spin" />;
 
-  const inviteButton = (label: string, variant: "default" | "outline") => (
-    <Button
-      variant={variant}
-      onClick={handleSendInvite}
-      disabled={sendingInvite || !tenantHasEmail}
-      title={!tenantHasEmail ? t("needEmail") : undefined}
-    >
-      {sendingInvite ? spin : <Link2 />}
-      {label}
+  const requestButton = (
+    <Button onClick={handleRequestSignature} disabled={sendingInvite || (!tenantHasEmail && !tenantHasPhone)}>
+      {sendingInvite ? spin : <Send />}
+      {te("send")}
     </Button>
   );
 
@@ -177,7 +215,7 @@ export default function ContractActions({
             {t("edit")}
           </Link>
         </Button>
-        {inviteButton(t("send"), "default")}
+        {requestButton}
       </>
     );
   } else if (status === "sent") {
@@ -187,14 +225,23 @@ export default function ContractActions({
           {sendingSms ? spin : <MessageSquare />}
           {t("remindSms")}
         </Button>
-        {inviteButton(t("resend"), "default")}
+        {pdfButton("default")}
       </>
     );
   } else if (status === "signed") {
     primary = (
       <>
         {renewButton("outline")}
-        {pdfButton("default")}
+        {contract.sealed_pdf_path ? (
+          <Button asChild>
+            <a href={`/api/contracts/${contract.id}/sealed`}>
+              <Download />
+              {te("download")}
+            </a>
+          </Button>
+        ) : (
+          pdfButton("default")
+        )}
       </>
     );
   } else if (status === "expired") {
@@ -230,7 +277,7 @@ export default function ContractActions({
             {canSendInvite && (
               <DropdownMenuItem onSelect={handleSendInvite} disabled={sendingInvite || !tenantHasEmail}>
                 <Link2 />
-                {tenantHasEmail ? t("signingLink") : t("needEmail")}
+                {tenantHasEmail ? t("portalInvite") : t("needEmail")}
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
@@ -257,10 +304,18 @@ export default function ContractActions({
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
-              <Trash2 />
-              {t("delete")}
-            </DropdownMenuItem>
+            {(status === "sent" || status === "signed") && (
+              <DropdownMenuItem variant="destructive" onSelect={() => setVoidOpen(true)}>
+                <Ban />
+                {te("void")}
+              </DropdownMenuItem>
+            )}
+            {status !== "signed" && status !== "cancelled" && (
+              <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
+                <Trash2 />
+                {t("delete")}
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -279,6 +334,27 @@ export default function ContractActions({
           onOpenChange={setShowRenewal}
         />
       )}
+      <Dialog open={voidOpen} onOpenChange={setVoidOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{te("voidTitle")}</DialogTitle>
+            <DialogDescription>{te("voidDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="void-reason">{te("voidReason")}</Label>
+            <Textarea id="void-reason" value={voidReason} onChange={(e) => setVoidReason(e.target.value)} maxLength={1000} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVoidOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button variant="destructive" onClick={handleVoid} disabled={voiding || voidReason.trim().length < 3}>
+              {voiding ? spin : <Ban />}
+              {te("voidConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}

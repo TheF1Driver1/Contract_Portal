@@ -15,6 +15,7 @@ alter policy profiles_update_own on public.profiles
 
 -- Subscriptions: owners read; only the Stripe webhook (service role) writes.
 revoke insert, update, delete, truncate on public.subscriptions from anon, authenticated;
+drop policy if exists subscriptions_select_own on public.subscriptions;
 create policy subscriptions_select_own on public.subscriptions
   for select to authenticated using ((select auth.uid()) = owner_id);
 -- The old FOR ALL policy can no longer write (grants revoked); neutralized here and

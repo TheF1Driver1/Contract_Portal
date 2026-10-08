@@ -31,8 +31,6 @@ export function StepReview({ saving, generating, sending, onSaveDraft, onDownloa
     tenants,
     templates,
     coTenantIds,
-    coTenantSignatures,
-    setCoTenantSignatures,
     sections,
     landlordEmail,
     setLandlordEmail,
@@ -64,7 +62,7 @@ export function StepReview({ saving, generating, sending, onSaveDraft, onDownloa
       .map((s) => s.trim())
       .filter(Boolean),
   ];
-  const hasSignatures = !!v.landlord_signature || !!v.tenant_signature || coTenantSignatures.some(Boolean);
+  const hasSignatures = !!v.landlord_signature;
   const [signOpen, setSignOpen] = useState(hasSignatures);
 
   return (
@@ -176,40 +174,8 @@ export function StepReview({ saving, generating, sending, onSaveDraft, onDownloa
                 <SignaturePad label={t("signatures.landlord")} value={field.value} onChange={field.onChange} />
               )}
             />
-            <Controller
-              control={control}
-              name="tenant_signature"
-              render={({ field }) => (
-                <SignaturePad
-                  label={
-                    tenant ? t("signatures.tenantNamed", { name: tenant.full_name }) : t("signatures.tenant")
-                  }
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-            {coTenantIds.map((tid, i) => {
-              if (!tid) return null;
-              const ct = tenants.find((tn) => tn.id === tid);
-              return (
-                <SignaturePad
-                  key={tid}
-                  label={
-                    ct
-                      ? t("signatures.coTenantNamed", { name: ct.full_name })
-                      : t("signatures.coTenant", { n: i + 2 })
-                  }
-                  value={coTenantSignatures[i] ?? ""}
-                  onChange={(val) => {
-                    const next = [...coTenantSignatures];
-                    next[i] = val;
-                    setCoTenantSignatures(next);
-                  }}
-                />
-              );
-            })}
-            <p className="text-xs text-muted-foreground">{t("signatures.allSignedNote")}</p>
+            <p className="text-sm text-muted-foreground">{t("signatures.tenantRemote")}</p>
+
           </div>
         )}
       </section>

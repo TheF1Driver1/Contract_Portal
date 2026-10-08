@@ -22,7 +22,8 @@ export async function sendTwilioSms(to: string, body: string): Promise<void> {
 export async function sendResendEmail(
   to: string,
   subject: string,
-  html: string
+  html: string,
+  attachments?: { filename: string; content: Buffer }[]
 ): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) throw new Error("RESEND_API_KEY not configured");
@@ -31,9 +32,9 @@ export async function sendResendEmail(
   const resend = new Resend(apiKey);
   const from   = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
 
-  const { error } = await resend.emails.send({ from, to, subject, html });
+  const { error } = await resend.emails.send({ from, to, subject, html, attachments });
   if (error) {
-    console.error("[resend] Send error:", error);
+    console.error(JSON.stringify({ level: "error", msg: "resend send failed", err: error.message }));
     throw new Error(error.message);
   }
 }

@@ -19,5 +19,28 @@
     "cta": "Ver contrato",
     "footer": "Recibes este aviso por tus recordatorios de vencimiento. Puedes cambiarlos en Ajustes › Recordatorios.",
     "sms": "ContractOS: el contrato de {property}{tenant, select, none {} other { ({tenant})}} vence en {days, plural, one {# día} other {# días}}. {url}"
+  },
+  "signRequest": {
+    "subject": "Firma tu contrato de arrendamiento: {property}",
+    "heading": "Tienes un contrato para firmar",
+    "greeting": "Hola {name}:",
+    "body": "{landlord} te envió el contrato de arrendamiento de {property}. Puedes revisarlo y firmarlo desde tu celular; no necesitas crear una cuenta.",
+    "cta": "Revisar y firmar",
+    "expires": "El enlace vence el {date}.",
+    "sms": "ContractOS: {landlord} te envió el contrato de {property} para firmar: {url}"
+  },
+  "otp": {
+    "subject": "Tu código para firmar: {code}",
+    "heading": "Tu código de verificación",
+    "body": "Usa este código para confirmar tu identidad y firmar el contrato de {property}: {code}. Vence en 10 minutos.",
+    "ignore": "Si no estás firmando un contrato, ignora este mensaje.",
+    "sms": "ContractOS: tu código para firmar es {code}. Vence en 10 minutos. No lo compartas."
+  },
+  "sealed": {
+    "subject": "Contrato firmado: {property}",
+    "heading": "El contrato está firmado",
+    "body": "Todas las partes firmaron el contrato de arrendamiento de {property}. Descarga tu copia firmada con el certificado de firma.",
+    "cta": "Descargar contrato firmado",
+    "note": "Guarda el PDF. Su huella digital (SHA-256) es {hash}."
   }
 }

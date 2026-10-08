@@ -1,14 +1,15 @@
 import type { TablesUpdate } from "@/lib/database.types";
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
+import { createAdminClient, createClient } from "@/lib/supabase-server";
+import { appUrl } from "@/lib/app-url";
+import { logEvent, maybeSeal, requestMeta } from "@/lib/esign/service";
 import { rateLimitWrite } from "@/lib/rate-limit";
 import { ContractSignatureSchema, ContractSignatureDeleteSchema } from "@/lib/schemas";
 
 export const dynamic = "force-dynamic";
 
-// Landlord-side signature capture. The landlord signs for themselves, or hands
-// their device to the tenant to sign in person. A tenant signature marks the
-// contract signed, mirroring app/api/portal/contracts/[id]/sign/route.ts.
+// The landlord's own signature. Tenants sign through the verified e-sign flow
+// (/sign/[token]), including in person on the landlord's device (Plan 31).
 export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = await createClient();
@@ -25,23 +26,41 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   }
 
   const { role, signature } = parsed.data;
-  const update =
-    role === "landlord"
-      ? { landlord_signature: signature }
-      : { tenant_signature: signature, signed_at: new Date().toISOString(), status: "signed" as const };
+  if (role !== "landlord") {
+    return NextResponse.json(
+      { error: "El inquilino firma con un código de verificación. Usa «Firmar en persona» en la sección de firmas." },
+      { status: 410 }
+    );
+  }
 
   const { data, error } = await supabase
     .from("contracts")
-    .update(update)
+    .update({ landlord_signature: signature })
     .eq("id", params.id)
     .eq("owner_id", user.id)
     .select("id")
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: "Failed to save signature" }, { status: 500 });
+  if (error) {
+    const signed = error.message.includes("signed_contract_immutable");
+    return NextResponse.json(
+      { error: signed ? "Un contrato firmado no se puede modificar." : "No se pudo guardar la firma." },
+      { status: signed ? 409 : 500 }
+    );
+  }
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  return NextResponse.json({ success: true });
+  // Landlord signing may be the last step: seal if every tenant already signed.
+  const admin = createAdminClient();
+  await logEvent(admin, { contractId: params.id, event: "landlord_signed", actor: user.email ?? null, meta: requestMeta(req) }).catch((e) =>
+    console.error(JSON.stringify({ level: "error", msg: "landlord_signed event failed", contract: params.id, err: String(e) }))
+  );
+  const sealed = await maybeSeal(admin, params.id, appUrl(req)).catch((e) => {
+    console.error(JSON.stringify({ level: "error", msg: "seal after landlord signature failed", contract: params.id, err: String(e) }));
+    return false;
+  });
+
+  return NextResponse.json({ success: true, sealed });
 }
 
 export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
@@ -67,16 +86,15 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
     .maybeSingle();
 
   if (!contract) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (contract.status === "signed") {
+    return NextResponse.json(
+      { error: "Un contrato firmado no se puede modificar. Usa «Anular y reemitir»." },
+      { status: 409 }
+    );
+  }
 
-  // Removing the tenant signature un-signs the contract so it can be re-signed.
   const update: TablesUpdate<"contracts"> =
-    parsed.data.role === "landlord"
-      ? { landlord_signature: null }
-      : {
-          tenant_signature: null,
-          signed_at: null,
-          ...(contract.status === "signed" ? { status: "sent" as const } : {}),
-        };
+    parsed.data.role === "landlord" ? { landlord_signature: null } : { tenant_signature: null, signed_at: null };
 
   const { error } = await supabase
     .from("contracts")

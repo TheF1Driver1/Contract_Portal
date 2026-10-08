@@ -47,6 +47,9 @@ export const ContractUpdateSchema = ContractCreateSchema.partial().extend({
   suppress_notifications: z.boolean().optional(),
 });
 
+/** The only fields PATCH /api/contracts/[id] accepts. */
+export const ContractPatchSchema = z.object({ suppress_notifications: z.boolean() }).strict();
+
 // ── Send contract ────────────────────────────────────────────────────────────
 
 export const SendContractSchema = z.object({

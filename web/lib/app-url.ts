@@ -1,0 +1,5 @@
+/** Absolute base URL for links in emails and SMS. */
+export function appUrl(req: Request): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  return new URL(req.url).origin;
+}

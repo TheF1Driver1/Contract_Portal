@@ -1,3 +1,9 @@
+import { createHash } from "node:crypto";
+
+// Signing link used by e2e and screenshots: /sign/<DEMO_SIGN_TOKEN>
+export const DEMO_SIGN_TOKEN = "demoSigningToken_000000000000000000000000000000";
+const tokenHash = (t) => createHash("sha256").update(`signing-token:${t}`).digest("hex");
+
 // Deterministic demo data for screenshots and accessibility checks.
 // Dates are relative to "today" so alerts and KPIs always have content.
 const day = 86_400_000;
@@ -84,5 +90,14 @@ export const TABLES = {
     { id: "60000000-0000-4000-8000-000000000001", owner_id: USER.id, days_before: 60, send_email: true, send_sms: false, is_active: true, label: "60 días", created_at: ts(-100) },
     { id: "60000000-0000-4000-8000-000000000002", owner_id: USER.id, days_before: 30, send_email: true, send_sms: true, is_active: true, label: "30 días", created_at: ts(-100) },
   ],
+  contract_signers: [
+    { id: "80000000-0000-4000-8000-000000000001", contract_id: "30000000-0000-4000-8000-000000000002", owner_id: USER.id, role: "tenant", name: "Ana Colón", email: "ana.colon@example.com", phone: "+17875550102", locale: "es", sign_order: 1, status: "viewed", token_hash: tokenHash(DEMO_SIGN_TOKEN), token_expires_at: ts(5), otp_hash: null, otp_expires_at: null, otp_attempts: 0, otp_channel: null, verified_at: null, consented_at: null, signed_at: null, signature_path: null, declined_reason: null, in_person: false, created_at: ts(-6) },
+  ],
+  signature_events: [
+    { id: 1, contract_id: "30000000-0000-4000-8000-000000000002", signer_id: null, event: "requested", actor: "María Rivera", ip: null, created_at: ts(-6), detail: {} },
+    { id: 2, contract_id: "30000000-0000-4000-8000-000000000002", signer_id: "80000000-0000-4000-8000-000000000001", event: "sent", actor: "Ana Colón", ip: null, created_at: ts(-6), detail: {} },
+    { id: 3, contract_id: "30000000-0000-4000-8000-000000000002", signer_id: "80000000-0000-4000-8000-000000000001", event: "viewed", actor: "Ana Colón", ip: null, created_at: ts(-2), detail: {} },
+  ],
+  contract_custom_sections: [],
   subscriptions: [{ id: "70000000-0000-4000-8000-000000000001", owner_id: USER.id, plan: "propietario", status: "active", stripe_customer_id: "cus_demo", stripe_subscription_id: "sub_demo", current_period_end: ts(20), created_at: ts(-60), updated_at: ts(-1) }],
 };

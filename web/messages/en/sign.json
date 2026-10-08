@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "title": "Sign your lease"
+  },
+  "header": {
+    "from": "Sent by {landlord}",
+    "language": "Español"
+  },
+  "steps": {
+    "consent": "Consent",
+    "verify": "Identity",
+    "review": "Review",
+    "sign": "Sign",
+    "progress": "Step {n} of 4"
+  },
+  "summary": {
+    "title": "Lease agreement",
+    "property": "Property",
+    "term": "Term",
+    "rent": "Monthly rent",
+    "deposit": "Deposit",
+    "landlord": "Landlord",
+    "you": "Signing as",
+    "role": {
+      "tenant": "Tenant",
+      "co_tenant": "Co-tenant",
+      "guarantor": "Guarantor"
+    }
+  },
+  "consent": {
+    "title": "Electronic signature",
+    "text": "I agree to use electronic records and signatures for this lease and related notices. I understand my electronic signature has the same legal effect as a handwritten one (Puerto Rico Electronic Transactions Act, Law 148-2006, and the federal ESIGN Act), that I can ask the landlord for a paper copy, and that I can withdraw this consent before signing.",
+    "agree": "I agree to use an electronic signature",
+    "continue": "Continue"
+  },
+  "verify": {
+    "title": "Confirm your identity",
+    "description": "We'll send you a 6-digit code.",
+    "bySms": "Text it to {to}",
+    "byEmail": "Email it to {to}",
+    "sentTo": "We sent a code to {to}.",
+    "code": "Verification code",
+    "verify": "Verify",
+    "resend": "Send another code",
+    "inPerson": "Signing in person: the signer must receive the code on their own phone or email."
+  },
+  "review": {
+    "title": "Review the full lease",
+    "description": "Read every page before signing.",
+    "open": "Open the lease (PDF)",
+    "frameTitle": "Lease agreement",
+    "read": "I read the full lease",
+    "continue": "Continue to sign"
+  },
+  "sign": {
+    "title": "Sign",
+    "draw": "Draw",
+    "type": "Type",
+    "typedLabel": "Type your full name",
+    "typedHint": "Your signature will look like this:",
+    "intent": "I am signing this lease electronically and agree to its terms.",
+    "submit": "Sign lease",
+    "signatureLabel": "Your signature"
+  },
+  "done": {
+    "title": "Done! You signed the lease",
+    "waiting": "We'll email you the signed copy once every party signs.",
+    "sealed": "Everyone signed. We emailed you the signed copy.",
+    "download": "Download lease",
+    "portal": "Create a free account to see your leases and receipts anytime.",
+    "portalCta": "Create account"
+  },
+  "decline": {
+    "link": "I don't want to sign",
+    "title": "Decline the lease?",
+    "description": "We'll let the landlord know. You can tell them why (optional).",
+    "reason": "Reason",
+    "confirm": "Decline",
+    "declined": "You declined to sign this lease. We let the landlord know."
+  },
+  "error": {
+    "title": "We can't open this link",
+    "help": "If you think this is a mistake, contact your landlord."
+  },
+  "generic": "Something went wrong. Try again."
+}

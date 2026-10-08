@@ -12,6 +12,7 @@ import ContractDocumentsPanel from "@/components/ContractDocumentsPanel";
 import ContractActions from "./ContractActions";
 import NotificationPanel from "./NotificationPanel";
 import ContractSignatures from "./ContractSignatures";
+import { SignersPanel } from "@/components/contracts/SignersPanel";
 
 const AMENITY_KEYS = [
   "ac",
@@ -221,6 +222,13 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
         <div className="space-y-6">
           {/* Signatures */}
           <Section icon={<PenLine />} title={t("sections.signatures")}>
+            <SignersPanel
+              contractId={c.id}
+              status={c.status}
+              sealed={!!c.sealed_pdf_path}
+              sealedSha256={c.sealed_pdf_sha256 ?? null}
+            />
+            <div className="mt-4 border-t pt-4">
             <ContractSignatures
               contractId={c.id}
               tenantName={c.tenant?.full_name}
@@ -234,6 +242,7 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
                 }))
                 .filter((ct): ct is { id: string; label: string; signature: string } => !!ct.signature)}
             />
+            </div>
           </Section>
 
           {/* Notifications */}

@@ -38,3 +38,27 @@ test.describe("signed-in app", () => {
     });
   }
 });
+
+test.describe("signing ceremony (no account)", () => {
+  test.skip(!MOCK_URL, "MOCK_SUPABASE_URL not set");
+  const TOKEN = "demoSigningToken_000000000000000000000000000000";
+
+  for (const scheme of ["light", "dark"] as const) {
+    test(`consent step renders accessibly (${scheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.goto(`/sign/${TOKEN}`);
+      await expect(page.getByRole("heading", { level: 1, name: "Firma electrónica" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Continuar" })).toBeDisabled();
+      await page.getByRole("checkbox").check();
+      await expect(page.getByRole("button", { name: "Continuar" })).toBeEnabled();
+      const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+      const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      expect(serious.map((v) => v.id)).toEqual([]);
+    });
+  }
+
+  test("an unknown link explains itself", async ({ page }) => {
+    await page.goto("/sign/not-a-real-token");
+    await expect(page.getByRole("heading", { name: "No podemos abrir este enlace" })).toBeVisible();
+  });
+});

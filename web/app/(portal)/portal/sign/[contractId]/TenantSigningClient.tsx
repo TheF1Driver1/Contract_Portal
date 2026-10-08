@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
-import SignaturePad from "@/components/SignaturePad";
 import { Loader2, CheckCircle2, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/auth/FormError";
@@ -22,10 +20,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export default function TenantSigningClient({ contract }: { contract: Contract }) {
   const t = useTranslations("portal");
   const f = useFormatter();
-  const router = useRouter();
-  const [signature, setSignature] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
   const [error, setError] = useState("");
 
   const property = contract.property;
@@ -34,41 +29,20 @@ export default function TenantSigningClient({ contract }: { contract: Contract }
   const day = (d: string | null | undefined) =>
     d ? f.dateTime(new Date(`${d.slice(0, 10)}T12:00:00`), { dateStyle: "long" }) : "—";
 
+  // Signing happens in the verified ceremony (consent, code, review, sign).
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!signature) return;
     setSubmitting(true);
     setError("");
     try {
-      const res = await fetch(`/api/portal/contracts/${contract.id}/sign`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tenant_signature: signature }),
-      });
+      const res = await fetch(`/api/portal/contracts/${contract.id}/sign`, { method: "POST" });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(typeof json.error === "string" ? json.error : "");
-      setDone(true);
-      router.refresh();
-    } catch {
-      setError(t("signing.submitFailed"));
-    } finally {
+      if (!res.ok || typeof json.url !== "string") throw new Error(typeof json.error === "string" ? json.error : "");
+      window.location.assign(json.url);
+    } catch (err) {
+      setError((err as Error).message || t("signing.submitFailed"));
       setSubmitting(false);
     }
-  }
-
-  if (done) {
-    return (
-      <div className="mb-10 rounded-xl border border-border bg-surface p-5 text-center md:p-8" role="status">
-        <span className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-success-soft text-success">
-          <CheckCircle2 className="size-6" aria-hidden />
-        </span>
-        <h1 className="text-xl font-semibold text-foreground">{t("signing.doneTitle")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("signing.doneDescription")}</p>
-        <Button asChild size="lg" className="mt-6 w-full sm:w-auto">
-          <Link href="/portal">{t("signing.back")}</Link>
-        </Button>
-      </div>
-    );
   }
 
   const address = property ? [property.address, property.city, property.state].filter(Boolean).join(", ") : "";
@@ -108,25 +82,18 @@ export default function TenantSigningClient({ contract }: { contract: Contract }
         </dl>
       </section>
 
-      {/* Signature */}
       <section aria-labelledby="signature-title" className="rounded-xl border border-border bg-surface p-4 md:p-5">
-        <h2 id="signature-title" className="mb-3 text-base font-semibold text-foreground">
+        <h2 id="signature-title" className="mb-2 text-base font-semibold text-foreground">
           {t("signing.signatureTitle")}
         </h2>
-        <div className="w-full">
-          <SignaturePad label={t("signing.signatureLabel")} value={signature} onChange={setSignature} />
-        </div>
-        <p className="mt-3 text-sm text-muted-foreground">{t("signing.consent")}</p>
+        <p className="text-sm text-muted-foreground">{t("signing.howItWorks")}</p>
       </section>
 
       <FormError>{error}</FormError>
 
       {/* Sticky submit bar, thumb-reachable on phones */}
       <div className="sticky bottom-0 z-10 -mx-4 border-t border-border bg-background px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:static md:mx-0 md:border-0 md:px-0 md:pb-10">
-        {!signature && (
-          <p className="mb-2 text-center text-xs text-muted-foreground md:text-left">{t("signing.signHint")}</p>
-        )}
-        <Button type="submit" size="lg" className="h-12 w-full text-base md:h-10 md:text-sm" disabled={!signature || submitting}>
+        <Button type="submit" size="lg" className="h-12 w-full text-base md:h-10 md:text-sm" disabled={submitting}>
           {submitting ? <Loader2 className="animate-spin" aria-hidden /> : <PenLine aria-hidden />}
           {t("signing.submit")}
         </Button>

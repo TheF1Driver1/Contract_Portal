@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
@@ -115,12 +114,8 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
 
   // ── Step 3: Signatures ──────────────────────────────────
   const [landlordSig, setLandlordSig] = useState("");
-  const [tenantSig, setTenantSig] = useState("");
-  const [coTenantSigs, setCoTenantSigs] = useState<string[]>([]);
 
   // ── Step 4: Send ────────────────────────────────────────
-  const [sendEmail, setSendEmail] = useState(contract.tenant?.email ?? "");
-  const [sendPhone, setSendPhone] = useState(contract.tenant?.phone ?? "");
   const [newContractId, setNewContractId] = useState<string | null>(null);
 
   // ── Shared ──────────────────────────────────────────────
@@ -165,12 +160,6 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
       return;
     }
     setError("");
-    const coCount = included.slice(1).length;
-    setCoTenantSigs((prev) => {
-      const next = Array(coCount).fill("");
-      for (let i = 0; i < Math.min(prev.length, coCount); i++) next[i] = prev[i];
-      return next;
-    });
     setStep(1);
   }
 
@@ -179,14 +168,8 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
     const primaryOccupant = includedOccupants[0];
     const coTenants = includedOccupants.slice(1);
 
-    const missing: string[] = [];
-    if (!landlordSig) missing.push(t("landlord"));
-    if (!tenantSig) missing.push(primaryOccupant.full_name);
-    coTenants.forEach((o, i) => { if (!coTenantSigs[i]) missing.push(o.full_name); });
-    if (missing.length > 0) {
-      setError(t("errMissingSigs", { names: missing.join(", ") }));
-      return;
-    }
+    // Tenants sign the renewal through the verified e-sign flow (Plan 31);
+    // only the landlord's own signature is captured here.
 
     setSaving(true);
     setError("");
@@ -201,7 +184,7 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
         property_id: contract.property_id,
         tenant_id: primaryOccupant.tenant_id ?? contract.tenant_id,
         contract_type: contract.contract_type,
-        status: "signed",
+        status: "draft",
         unit_number: unitNumber || contract.unit_number,
         lease_start: leaseStart,
         lease_end: leaseEnd,
@@ -237,9 +220,7 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
         },
         parent_contract_id: contract.id,
         is_renewal: true,
-        landlord_signature: landlordSig,
-        tenant_signature: tenantSig,
-        signed_at: new Date().toISOString(),
+        landlord_signature: landlordSig || null,
         tenant_snapshot: {
           full_name: primaryOccupant.full_name,
           email: primaryOccupant.email,
@@ -275,8 +256,8 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
           license_number: o.license_number,
           current_address: o.current_address,
           date_of_birth: o.date_of_birth,
-          signature: coTenantSigs[i] || null,
-          signed_at: coTenantSigs[i] ? new Date().toISOString() : null,
+          signature: null,
+          signed_at: null,
           snapshot: {
             full_name: o.full_name,
             email: o.email,
@@ -298,17 +279,12 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
 
   async function handleSend() {
     setSaving(true);
-    const res = await fetch("/api/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contractId: newContractId,
-        ...(sendEmail ? { landlordEmail: sendEmail } : {}),
-        ...(sendPhone ? { phone: sendPhone } : {}),
-      }),
-    }).catch(() => null);
+    const res = await fetch(`/api/contracts/${newContractId}/signers`, { method: "POST" }).catch(() => null);
     if (res?.ok) toast.success(t("sendDone"));
-    else toast.error(t("sendFailed"));
+    else {
+      const json = await res?.json().catch(() => ({}));
+      toast.error(t("sendFailed"), { description: typeof json?.error === "string" ? json.error : undefined });
+    }
     setSaving(false);
     onOpenChange(false);
     router.push(`/contracts/${newContractId}`);
@@ -316,7 +292,6 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
 
   const unusedTenants = availableTenants.filter((x) => !occupants.find((o) => o.tenant_id === x.id));
   const includedOccupants = occupants.filter((o) => o.include);
-  const includedCoTenants = includedOccupants.slice(1);
 
   // The sheet can't be dismissed once the renewal is saved (step 3); use Skip or Send.
   function handleOpenChange(next: boolean) {
@@ -420,7 +395,7 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
         >
           {t("skip")}
         </Button>
-        <Button onClick={handleSend} disabled={saving || !sendEmail}>
+        <Button onClick={handleSend} disabled={saving}>
           {saving ? <Loader2 className="animate-spin" /> : <Send />}
           {t("sendContract")}
         </Button>
@@ -672,32 +647,6 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
           <div className="space-y-5">
             <p className="text-sm text-muted-foreground">{t("signHint")}</p>
             <SignaturePad label={t("landlordSignature")} value={landlordSig} onChange={setLandlordSig} />
-            {includedOccupants[0] && (
-              <>
-                <Separator />
-                <SignaturePad
-                  label={t("tenantSignature", { name: includedOccupants[0].full_name })}
-                  value={tenantSig}
-                  onChange={setTenantSig}
-                />
-              </>
-            )}
-            {includedCoTenants.map((o, i) => (
-              <div key={o.id} className="space-y-5">
-                <Separator />
-                <SignaturePad
-                  label={t("coTenantSignature", { name: o.full_name })}
-                  value={coTenantSigs[i] ?? ""}
-                  onChange={(v) =>
-                    setCoTenantSigs((prev) => {
-                      const next = [...prev];
-                      next[i] = v;
-                      return next;
-                    })
-                  }
-                />
-              </div>
-            ))}
             {errorBox}
           </div>
         )}
@@ -709,14 +658,6 @@ export default function RenewalModal({ contract, availableTenants, open, onOpenC
               {t("createdBanner")}
             </p>
             <p className="text-sm text-muted-foreground">{t("sendHint")}</p>
-            <div className="space-y-1.5">
-              <Label htmlFor="renew-send-email">{t("tenantEmail")}</Label>
-              <Input id="renew-send-email" type="email" value={sendEmail} onChange={(e) => setSendEmail(e.target.value)} placeholder="inquilino@email.com" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="renew-send-phone">{t("phone")}</Label>
-              <Input id="renew-send-phone" type="tel" value={sendPhone} onChange={(e) => setSendPhone(e.target.value)} placeholder="+1 (787) 000-0000" />
-            </div>
             {errorBox}
           </div>
         )}

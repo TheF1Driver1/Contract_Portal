@@ -222,14 +222,15 @@
     "actionsTitle": "Actions"
   },
   "signatures": {
-    "title": "In-person signature (optional)",
-    "description": "Use it only if the parties are with you right now.",
+    "title": "Your signature (optional)",
+    "description": "Sign now as the landlord. The lease is sealed once every party signs.",
     "landlord": "Landlord signature",
     "tenant": "Tenant signature",
     "tenantNamed": "Tenant signature: {name}",
     "coTenant": "Co-tenant {n} signature",
     "coTenantNamed": "Co-tenant signature: {name}",
-    "allSignedNote": "If every party signs here, the contract is marked signed when saved and can no longer be edited."
+    "allSignedNote": "If every party signs here, the contract is marked signed when saved and can no longer be edited.",
+    "tenantRemote": "The tenant and co-tenants sign on their phone with a verification code. If they're with you, use \"Sign in person\" on the contract page after sending it."
   },
   "signaturePad": {
     "clear": "Clear",

@@ -26,6 +26,7 @@ function builder() {
 }
 
 vi.mock("@/lib/supabase-server", () => ({
+  createAdminClient: () => ({}),
   createClient: () => ({
     auth: { getUser: async () => ({ data: { user: state.user } }) },
     from: () => builder(),
@@ -33,6 +34,18 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 
 vi.mock("@/lib/rate-limit", () => ({ rateLimitWrite: async () => null }));
+
+const esign = { logged: [] as string[], sealChecks: 0 };
+vi.mock("@/lib/esign/service", () => ({
+  requestMeta: () => ({ ip: null, userAgent: null }),
+  logEvent: async (_a: unknown, e: { event: string }) => {
+    esign.logged.push(e.event);
+  },
+  maybeSeal: async () => {
+    esign.sealChecks++;
+    return false;
+  },
+}));
 
 import { POST, DELETE } from "@/app/api/contracts/[id]/signature/route";
 
@@ -55,6 +68,8 @@ beforeEach(() => {
   state.contract = { id: "c1", status: "signed" };
   state.updates = [];
   state.filters = [];
+  esign.logged = [];
+  esign.sealChecks = 0;
 });
 
 describe("POST /api/contracts/[id]/signature", () => {
@@ -69,17 +84,20 @@ describe("POST /api/contracts/[id]/signature", () => {
     expect(state.updates).toHaveLength(0);
   });
 
-  it("saves only the landlord signature for role=landlord", async () => {
+  it("saves the landlord signature, logs evidence and checks for sealing", async () => {
+    state.contract = { id: "c1", status: "sent" };
     const res = await post({ role: "landlord", signature: SIG });
     expect(res.status).toBe(200);
     expect(state.updates).toEqual([{ landlord_signature: SIG }]);
     expect(state.filters).toContainEqual(["owner_id", "u1"]);
+    expect(esign.logged).toEqual(["landlord_signed"]);
+    expect(esign.sealChecks).toBe(1);
   });
 
-  it("marks the contract signed for an in-person tenant signature", async () => {
-    await post({ role: "tenant", signature: SIG });
-    expect(state.updates[0]).toMatchObject({ tenant_signature: SIG, status: "signed" });
-    expect(typeof state.updates[0].signed_at).toBe("string");
+  it("refuses tenant signatures: tenants sign in the verified flow", async () => {
+    const res = await post({ role: "tenant", signature: SIG });
+    expect(res.status).toBe(410);
+    expect(state.updates).toHaveLength(0);
   });
 
   it("returns 404 when the contract is not owned by the user", async () => {
@@ -89,14 +107,16 @@ describe("POST /api/contracts/[id]/signature", () => {
 });
 
 describe("DELETE /api/contracts/[id]/signature", () => {
-  it("clears the landlord signature only", async () => {
+  it("clears the landlord signature on an unsigned contract", async () => {
+    state.contract = { id: "c1", status: "sent" };
     expect((await del("landlord")).status).toBe(204);
     expect(state.updates).toEqual([{ landlord_signature: null }]);
   });
 
-  it("un-signs a signed contract when the tenant signature is removed", async () => {
-    await del("tenant");
-    expect(state.updates).toEqual([{ tenant_signature: null, signed_at: null, status: "sent" }]);
+  it("never un-signs a signed contract", async () => {
+    expect((await del("tenant")).status).toBe(409);
+    expect((await del("landlord")).status).toBe(409);
+    expect(state.updates).toHaveLength(0);
   });
 
   it("leaves status alone when the contract was not signed", async () => {

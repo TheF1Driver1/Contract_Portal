@@ -222,14 +222,15 @@
     "actionsTitle": "Acciones"
   },
   "signatures": {
-    "title": "Firma en persona (opcional)",
-    "description": "Úsala solo si las partes están contigo ahora mismo.",
+    "title": "Tu firma (opcional)",
+    "description": "Firma ahora como arrendador. El contrato se sella cuando todas las partes firmen.",
     "landlord": "Firma del arrendador",
     "tenant": "Firma del inquilino",
     "tenantNamed": "Firma del inquilino: {name}",
     "coTenant": "Firma del co-inquilino {n}",
     "coTenantNamed": "Firma del co-inquilino: {name}",
-    "allSignedNote": "Si todas las partes firman aquí, el contrato queda firmado al guardarlo y ya no se podrá editar."
+    "allSignedNote": "Si todas las partes firman aquí, el contrato queda firmado al guardarlo y ya no se podrá editar.",
+    "tenantRemote": "El inquilino y los co-inquilinos firman desde su celular con un código de verificación. Si están contigo, usa «Firmar en persona» en la página del contrato después de enviarlo."
   },
   "signaturePad": {
     "clear": "Borrar",

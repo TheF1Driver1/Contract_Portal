@@ -77,7 +77,7 @@ describe("saveContract", () => {
     expect(state.writes.filter((w) => w.table === "contracts")).toHaveLength(0);
   });
 
-  it("sets owner, status and snapshots on the server", async () => {
+  it("sets owner and snapshots on the server and never marks it signed", async () => {
     const r = await saveContract({
       contract: { ...contract, landlord_signature: "x", tenant_signature: "y" },
       coTenants: [],
@@ -86,7 +86,10 @@ describe("saveContract", () => {
     expect(r).toEqual({ ok: true, id: "new-id" });
     const insert = state.writes.find((w) => w.table === "contracts" && w.op === "insert")!.payload as Record<string, unknown>;
     expect(insert.owner_id).toBe("u1");
-    expect(insert.status).toBe("signed");
+    // Signing only happens through the verified e-sign flow (Plan 31).
+    expect(insert.status).toBe("draft");
+    expect(insert.tenant_signature).toBeNull();
+    expect(insert.landlord_signature).toBe("x");
     expect((insert.tenant_snapshot as Record<string, unknown>).full_name).toBe("Ana");
     expect((insert.property_snapshot as Record<string, unknown>).name).toBe("Casa");
   });

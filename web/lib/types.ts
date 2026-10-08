@@ -1,4 +1,4 @@
-export type ContractStatus = "draft" | "sent" | "signed" | "expired";
+export type ContractStatus = "draft" | "sent" | "signed" | "expired" | "cancelled";
 export type ContractType = "lease" | "rental" | "addendum";
 export type Jurisdiction = 'pr' | 'us_mainland' | 'other';
 export type GoverningLaw = 'codigo_civil_pr_2020' | 'us_state' | 'other';
@@ -85,6 +85,13 @@ export interface Tenant {
 }
 
 export interface Contract {
+  // e-sign 2.0 (migration 020)
+  document_sha256?: string | null;
+  sealed_pdf_path?: string | null;
+  sealed_pdf_sha256?: string | null;
+  sealed_at?: string | null;
+  voided_at?: string | null;
+  void_reason?: string | null;
   id: string;
   owner_id: string;
   property_id: string;

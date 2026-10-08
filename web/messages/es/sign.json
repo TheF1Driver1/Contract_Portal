@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "title": "Firma tu contrato"
+  },
+  "header": {
+    "from": "Enviado por {landlord}",
+    "language": "English"
+  },
+  "steps": {
+    "consent": "Consentimiento",
+    "verify": "Identidad",
+    "review": "Revisar",
+    "sign": "Firmar",
+    "progress": "Paso {n} de 4"
+  },
+  "summary": {
+    "title": "Contrato de arrendamiento",
+    "property": "Propiedad",
+    "term": "Término",
+    "rent": "Renta mensual",
+    "deposit": "Depósito",
+    "landlord": "Arrendador(a)",
+    "you": "Firmas como",
+    "role": {
+      "tenant": "Inquilino(a)",
+      "co_tenant": "Co-inquilino(a)",
+      "guarantor": "Fiador(a)"
+    }
+  },
+  "consent": {
+    "title": "Firma electrónica",
+    "text": "Acepto usar documentos y firmas electrónicas para este contrato de arrendamiento y para los avisos relacionados. Entiendo que mi firma electrónica tiene el mismo efecto legal que una firma a mano (Ley 148-2006 de Transacciones Electrónicas de Puerto Rico y ley federal ESIGN), que puedo pedir una copia en papel al arrendador y que puedo retirar este consentimiento antes de firmar.",
+    "agree": "Acepto usar firma electrónica",
+    "continue": "Continuar"
+  },
+  "verify": {
+    "title": "Confirma tu identidad",
+    "description": "Te enviaremos un código de 6 dígitos.",
+    "bySms": "Enviar por SMS a {to}",
+    "byEmail": "Enviar por correo a {to}",
+    "sentTo": "Enviamos un código a {to}.",
+    "code": "Código de verificación",
+    "verify": "Verificar",
+    "resend": "Enviar otro código",
+    "inPerson": "Firma en persona: la persona que firma debe recibir el código en su propio teléfono o correo."
+  },
+  "review": {
+    "title": "Revisa el contrato completo",
+    "description": "Lee todas las páginas antes de firmar.",
+    "open": "Abrir el contrato (PDF)",
+    "frameTitle": "Contrato de arrendamiento",
+    "read": "Leí el contrato completo",
+    "continue": "Continuar a firmar"
+  },
+  "sign": {
+    "title": "Firma",
+    "draw": "Dibujar",
+    "type": "Escribir",
+    "typedLabel": "Escribe tu nombre completo",
+    "typedHint": "Así se verá tu firma:",
+    "intent": "Firmo electrónicamente este contrato de arrendamiento y acepto sus términos.",
+    "submit": "Firmar contrato",
+    "signatureLabel": "Tu firma"
+  },
+  "done": {
+    "title": "¡Listo! Firmaste el contrato",
+    "waiting": "Te enviaremos la copia firmada por correo cuando todas las partes firmen.",
+    "sealed": "Todas las partes firmaron. Te enviamos la copia firmada por correo.",
+    "download": "Descargar contrato",
+    "portal": "Crea una cuenta gratis para ver tus contratos y recibos cuando quieras.",
+    "portalCta": "Crear cuenta"
+  },
+  "decline": {
+    "link": "No quiero firmar",
+    "title": "¿Rechazar el contrato?",
+    "description": "Le avisaremos al arrendador. Puedes decirle por qué (opcional).",
+    "reason": "Motivo",
+    "confirm": "Rechazar",
+    "declined": "Rechazaste firmar este contrato. Le avisamos al arrendador."
+  },
+  "error": {
+    "title": "No podemos abrir este enlace",
+    "help": "Si crees que es un error, comunícate con tu arrendador."
+  },
+  "generic": "Algo salió mal. Inténtalo de nuevo."
+}

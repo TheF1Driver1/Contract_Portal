@@ -1,3 +1,4 @@
+import { lockedAgreementResponse } from "@/lib/esign/editable";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitWrite } from "@/lib/rate-limit";
@@ -14,6 +15,9 @@ export async function PATCH(
 
   const limited = await rateLimitWrite(user.id);
   if (limited) return limited;
+
+  const locked = await lockedAgreementResponse(supabase, params.id);
+  if (locked) return locked;
 
   const body = await req.json();
   const parsed = ContractCustomSectionUpdateSchema.safeParse(body);
@@ -46,6 +50,9 @@ export async function DELETE(
 
   const limited = await rateLimitWrite(user.id);
   if (limited) return limited;
+
+  const locked = await lockedAgreementResponse(supabase, params.id);
+  if (locked) return locked;
 
   const { error } = await supabase
     .from("contract_custom_sections")

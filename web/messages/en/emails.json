@@ -19,5 +19,28 @@
     "cta": "View lease",
     "footer": "You get this alert from your expiry reminders. Change them in Settings › Reminders.",
     "sms": "ContractOS: the lease for {property}{tenant, select, none {} other { ({tenant})}} ends in {days, plural, one {# day} other {# days}}. {url}"
+  },
+  "signRequest": {
+    "subject": "Sign your lease: {property}",
+    "heading": "You have a lease to sign",
+    "greeting": "Hi {name},",
+    "body": "{landlord} sent you the lease for {property}. You can review and sign it on your phone; no account needed.",
+    "cta": "Review and sign",
+    "expires": "The link expires on {date}.",
+    "sms": "ContractOS: {landlord} sent you the lease for {property} to sign: {url}"
+  },
+  "otp": {
+    "subject": "Your signing code: {code}",
+    "heading": "Your verification code",
+    "body": "Use this code to confirm your identity and sign the lease for {property}: {code}. It expires in 10 minutes.",
+    "ignore": "If you're not signing a lease, ignore this message.",
+    "sms": "ContractOS: your signing code is {code}. It expires in 10 minutes. Don't share it."
+  },
+  "sealed": {
+    "subject": "Lease signed: {property}",
+    "heading": "The lease is signed",
+    "body": "Everyone signed the lease for {property}. Download your signed copy with its signature certificate.",
+    "cta": "Download signed lease",
+    "note": "Keep the PDF. Its fingerprint (SHA-256) is {hash}."
   }
 }

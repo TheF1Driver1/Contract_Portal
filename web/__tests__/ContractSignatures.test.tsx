@@ -26,17 +26,21 @@ beforeEach(() => {
 });
 
 describe("ContractSignatures", () => {
-  it("offers landlord and in-person tenant signing when nothing is signed", () => {
+  it("offers only landlord signing; tenants sign in the verified flow", () => {
     renderWithIntl(<ContractSignatures contractId="c1" tenantName="Ana" />);
-    expect(screen.getByRole("button", { name: /sign as tenant \(in person\)/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sign as landlord/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /sign as tenant/i })).not.toBeInTheDocument();
   });
 
-  it("opens the signing dialog with save disabled until something is drawn", () => {
+  it("opens the landlord signing dialog with save disabled until something is drawn", () => {
     renderWithIntl(<ContractSignatures contractId="c1" />);
-    fireEvent.click(screen.getByRole("button", { name: /sign as tenant \(in person\)/i }));
-    expect(screen.getByText(/marks the contract as signed/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /sign as landlord/i }));
     expect(screen.getByRole("button", { name: /save signature/i })).toBeDisabled();
+  });
+
+  it("shows a legacy tenant signature read-only", () => {
+    renderWithIntl(<ContractSignatures contractId="c1" tenantName="Ana" tenantSignature={SIG} />);
+    expect(screen.getByRole("img", { name: /ana/i })).toBeInTheDocument();
   });
 
   it("removes a saved signature via the API after confirmation", async () => {

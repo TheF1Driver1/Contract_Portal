@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
-import { ContractUpdateSchema } from "@/lib/schemas";
+import { ContractPatchSchema } from "@/lib/schemas";
 
 export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -40,7 +40,9 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
   if (limited) return limited;
 
   const body = await req.json();
-  const parsed = ContractUpdateSchema.safeParse(body);
+  // Terms change through the saveContract server action; signing through the
+  // e-sign flow. This endpoint only toggles reminders.
+  const parsed = ContractPatchSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
@@ -69,6 +71,12 @@ export async function DELETE(_req: Request, props: { params: Promise<{ id: strin
 
   const limited = await rateLimitWrite(user.id);
   if (limited) return limited;
+
+  // Signed and voided contracts are records: keep them (void instead).
+  const { data: existing } = await supabase.from("contracts").select("status").eq("id", params.id).maybeSingle();
+  if (existing && (existing.status === "signed" || existing.status === "cancelled")) {
+    return NextResponse.json({ error: "Los contratos firmados o anulados se conservan. Usa «Anular y reemitir»." }, { status: 409 });
+  }
 
   const { error } = await supabase
     .from("contracts")

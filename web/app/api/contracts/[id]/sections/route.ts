@@ -1,3 +1,4 @@
+import { lockedAgreementResponse } from "@/lib/esign/editable";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
@@ -40,6 +41,9 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
 
   const limited = await rateLimitWrite(user.id);
   if (limited) return limited;
+
+  const locked = await lockedAgreementResponse(supabase, params.id);
+  if (locked) return locked;
 
   const { data: contract } = await supabase
     .from("contracts")

@@ -20,7 +20,7 @@
   },
   "signing": {
     "title": "Revisa y firma tu contrato",
-    "description": "Revisa los detalles y dibuja tu firma para completar tu contrato de arrendamiento.",
+    "description": "Revisa los detalles. Luego confirmarás tu identidad y firmarás.",
     "details": "Detalles del contrato",
     "property": "Propiedad",
     "unit": "Unidad",
@@ -33,13 +33,14 @@
     "signatureLabel": "Firma del inquilino",
     "consent": "Al firmar, aceptas los términos de este contrato de arrendamiento.",
     "signHint": "Dibuja tu firma arriba para poder enviarla.",
-    "submit": "Enviar firma",
+    "submit": "Continuar para firmar",
     "submitFailed": "No pudimos enviar tu firma. Intenta de nuevo.",
     "doneTitle": "¡Contrato firmado!",
     "doneDescription": "Recibimos tu firma. Tu arrendador verá el contrato como firmado.",
     "signedTitle": "Contrato firmado",
     "signedDescription": "Ya firmaste este contrato de arrendamiento.",
     "yourSignature": "Tu firma",
-    "back": "Volver a mis contratos"
+    "back": "Volver a mis contratos",
+    "howItWorks": "Para firmar, aceptarás el uso de firma electrónica, confirmarás tu identidad con un código que te enviamos y revisarás el contrato completo antes de firmar."
   }
 }

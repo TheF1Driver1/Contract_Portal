@@ -61,14 +61,16 @@ export default function ContractSignatures({
   return (
     <>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-        <SignatureSlot
-          label={tenantName ? t("tenantNamed", { name: tenantName }) : t("tenant")}
-          signature={tenantSignature}
-          signLabel={t("signTenant")}
-          removing={removingRole === "tenant"}
-          onSign={() => setSigningRole("tenant")}
-          onRemove={() => setConfirmRole("tenant")}
-        />
+        {/* Tenants sign in the verified e-sign flow (SignersPanel). Signatures
+            captured before it existed are shown read-only. */}
+        {tenantSignature && (
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium text-muted-foreground">
+              {tenantName ? t("tenantNamed", { name: tenantName }) : t("tenant")}
+            </p>
+            <SignatureImage src={tenantSignature} alt={t("signatureOf", { who: tenantName ?? t("tenant") })} />
+          </div>
+        )}
         {coTenantSignatures.map((ct) => (
           <div key={ct.id} className="space-y-1.5">
             <p className="text-sm font-medium text-muted-foreground">{ct.label}</p>

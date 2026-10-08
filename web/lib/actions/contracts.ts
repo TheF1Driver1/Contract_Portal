@@ -78,15 +78,19 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
   if (id) {
     const { data: existing } = await supabase.from("contracts").select("status").eq("id", id).maybeSingle();
     if (!existing) return { ok: false, error: "Contrato no encontrado." };
-    if (existing.status === "signed") {
-      return { ok: false, error: "Un contrato firmado no se puede modificar." };
+    if (existing.status === "signed" || existing.status === "cancelled") {
+      return { ok: false, error: "Un contrato firmado o anulado no se puede modificar. Usa «Anular y reemitir»." };
+    }
+    // Terms are frozen while a signature request is open (Plan 31).
+    const { count } = await supabase
+      .from("contract_signers")
+      .select("id", { count: "exact", head: true })
+      .eq("contract_id", id)
+      .in("status", ["pending", "viewed", "signed"]);
+    if (count) {
+      return { ok: false, error: "Este contrato tiene una solicitud de firma abierta. Cancélala para editarlo." };
     }
   }
-
-  const fullySigned =
-    !!contract.landlord_signature &&
-    !!contract.tenant_signature &&
-    coTenants.every((c) => !!c.signature);
 
   if (contract.lease_end <= contract.lease_start) {
     return { ok: false, error: "La fecha de terminación debe ser posterior a la de inicio." };
@@ -104,8 +108,11 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
   const row = {
     ...contract,
     owner_id: user.id,
-    status: fullySigned ? ("signed" as const) : ("draft" as const),
-    signed_at: fullySigned ? new Date().toISOString() : null,
+    // Only the verified signing flow marks a contract signed; tenants never
+    // sign through this form (in-person signing also requires their code).
+    status: "draft" as const,
+    signed_at: null,
+    tenant_signature: null,
     property_snapshot: {
       ...pick(property, ["name", "address", "unit", "city", "state", "zip", "country", "unit_count", "parking_count"]),
       bathroom_count: property.bathroom_count ?? amenities.bathroom_count ?? null,
@@ -124,7 +131,7 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
       return { ok: false, error: (error && planLimitMessage(error)) ?? "No se pudo guardar el contrato." };
     }
     contractId = created.id as string;
-    await trackEvent("contract_created", { signedInPerson: fullySigned });
+    await trackEvent("contract_created");
   }
 
   // Co-tenants: replace, snapshotting each tenant row server-side.
@@ -151,8 +158,8 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
           license_number: t.license_number,
           current_address: t.current_address,
           date_of_birth: t.date_of_birth,
-          signature: c.signature,
-          signed_at: c.signature ? new Date().toISOString() : null,
+          signature: null,
+          signed_at: null,
           snapshot: pick(t, TENANT_SNAPSHOT_FIELDS),
         };
       });
