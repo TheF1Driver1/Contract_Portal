@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { sendResendEmail, buildExpiryNotification } from "@/lib/notify";
+import { sendMessage } from "@/lib/messaging";
 import { addDays, daysBetween, pickReminder, type ReminderTrigger } from "@/lib/reminders";
 
 export const dynamic = "force-dynamic";
@@ -107,25 +107,29 @@ async function run(req: Request) {
         }
         if (!send) continue;
 
-        const { subject, emailHtml } = buildExpiryNotification({
-          tenantName: c.tenant?.full_name ?? "",
-          propertyName: c.property?.name ?? "",
-          daysLeft,
-          contractUrl: `${appUrl}/contracts/${c.id}`,
-          locale: c.owner?.locale,
-        });
-
         let err: string | null = null;
         const landlordEmail = c.owner?.email ?? null;
         if (!landlordEmail) {
           err = "no email";
         } else {
-          try {
-            await sendResendEmail(landlordEmail, subject, emailHtml);
-            sentEmail++;
-          } catch (e) {
-            err = (e as Error).message;
+          // Logged in message_log; the key keeps a re-run from sending it twice.
+          const r = await sendMessage({
+            db: supabase,
+            channel: "email",
+            to: landlordEmail,
+            template: "lease_ending",
+            locale: c.owner?.locale,
+            vars: { tenant: c.tenant?.full_name ?? "", property: c.property?.name ?? "", days: daysLeft, url: `${appUrl}/contracts/${c.id}` },
+            contractId: c.id,
+            ownerId: c.owner_id,
+            recipient: { kind: "landlord", id: c.owner_id },
+            idempotencyKey: `expiry:${c.id}:${send.id}`,
+          });
+          if (r.status === "failed" || (r.status === "skipped" && r.skipped !== "duplicate")) {
+            err = r.error ?? r.skipped ?? "failed";
             errors.push(`email ${c.id}: ${err}`);
+          } else {
+            sentEmail++;
           }
         }
         newLogs.push({

@@ -1,8 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Payment } from "@/lib/db";
-import { emailLayout } from "@/lib/emails/layout";
 import { emailT } from "@/lib/emails/translator";
-import { sendResendEmail } from "@/lib/notify";
+import { sendMessage } from "@/lib/messaging";
 import { receiptFormatters, receiptNumber, renderReceipt, type ReceiptData } from "@/lib/rent/receipt";
 
 type Client = SupabaseClient<Database>;
@@ -11,14 +10,14 @@ type Client = SupabaseClient<Database>;
 export async function receiptFor(
   supabase: Client,
   paymentId: string
-): Promise<{ data: ReceiptData; tenantEmail: string | null; payment: Payment } | null> {
+): Promise<{ data: ReceiptData; tenantEmail: string | null; tenantId: string | null; payment: Payment } | null> {
   const { data: payment } = await supabase.from("payments").select("*").eq("id", paymentId).maybeSingle();
   if (!payment) return null;
   const p = payment as Payment;
   const [{ data: contract }, { data: charges }, { data: payments }] = await Promise.all([
     supabase
       .from("contracts")
-      .select("id, lease_start, lease_end, unit_number, owner_id, tenant:tenants(full_name, email, preferred_locale), property:properties(name, address, city)")
+      .select("id, lease_start, lease_end, unit_number, owner_id, tenant:tenants(id, full_name, email, preferred_locale), property:properties(name, address, city)")
       .eq("id", p.contract_id)
       .maybeSingle(),
     supabase.from("rent_charges").select("amount, due_date, voided_at").eq("contract_id", p.contract_id),
@@ -27,7 +26,7 @@ export async function receiptFor(
   if (!contract) return null;
   const { data: owner } = await supabase.from("profiles").select("full_name, company_name, email").eq("id", contract.owner_id).maybeSingle();
 
-  const tenant = contract.tenant as { full_name?: string; email?: string | null; preferred_locale?: string } | null;
+  const tenant = contract.tenant as { id?: string; full_name?: string; email?: string | null; preferred_locale?: string } | null;
   const property = contract.property as { name?: string; address?: string; city?: string } | null;
   // Balance as of the payment date: charges due by then, payments up to this one.
   const charged = (charges ?? []).filter((c) => !c.voided_at && c.due_date <= p.received_on).reduce((s, c) => s + Number(c.amount), 0);
@@ -38,6 +37,7 @@ export async function receiptFor(
   return {
     payment: p,
     tenantEmail: tenant?.email ?? null,
+    tenantId: tenant?.id ?? null,
     data: {
       number: p.number,
       amount: Number(p.amount),
@@ -55,30 +55,42 @@ export async function receiptFor(
   };
 }
 
-/** Emails the receipt PDF to the tenant in their language. */
-export async function emailReceipt(r: { data: ReceiptData; tenantEmail: string | null }): Promise<void> {
+/**
+ * Emails the receipt PDF to the tenant in their language (logged in
+ * message_log). `resend` sends again on purpose; otherwise a payment's
+ * receipt goes out once. Throws when it could not be sent.
+ */
+export async function emailReceipt(
+  r: { data: ReceiptData; tenantEmail: string | null; tenantId?: string | null; payment: Payment },
+  opts: { resend?: boolean } = {}
+): Promise<void> {
   if (!r.tenantEmail) throw new Error("El inquilino no tiene correo electrónico.");
-  const { lang, t } = emailT(r.data.locale);
+  const { lang } = emailT(r.data.locale);
   const f = receiptFormatters(lang);
-  const vars = {
-    name: r.data.tenantName.split(" ")[0],
-    landlord: r.data.landlordName,
-    amount: f.money(r.data.amount),
-    date: f.date(r.data.receivedOn),
-    property: r.data.property,
-    number: receiptNumber(r.data.number),
-    balance: f.money(Math.max(r.data.balanceAfter, 0)),
-  };
   const pdf = await renderReceipt(r.data);
-  await sendResendEmail(
-    r.tenantEmail,
-    t("receipt.subject", vars),
-    emailLayout({
-      lang,
-      heading: t("receipt.heading"),
-      paragraphs: [t("receipt.body", vars), ...(r.data.balanceAfter > 0 ? [t("receipt.balance", vars)] : [])],
-      footer: t("receipt.footer"),
-    }),
-    [{ filename: `${receiptNumber(r.data.number)}.pdf`, content: pdf }]
-  );
+  const res = await sendMessage({
+    channel: "email",
+    to: r.tenantEmail,
+    template: "receipt",
+    locale: lang,
+    vars: {
+      name: r.data.tenantName.split(" ")[0],
+      landlord: r.data.landlordName,
+      amount: f.money(r.data.amount),
+      date: f.date(r.data.receivedOn),
+      property: r.data.property,
+      number: receiptNumber(r.data.number),
+      balance: f.money(Math.max(r.data.balanceAfter, 0)),
+      showBalance: r.data.balanceAfter > 0,
+    },
+    contractId: r.payment.contract_id,
+    ownerId: r.payment.owner_id,
+    recipient: { kind: "tenant", id: r.tenantId ?? null },
+    idempotencyKey: opts.resend ? `receipt:${r.payment.id}:${Date.now()}` : `receipt:${r.payment.id}`,
+    attachments: [{ filename: `${receiptNumber(r.data.number)}.pdf`, content: pdf }],
+  });
+  if (res.status === "failed") throw new Error(res.error ?? "No se pudo enviar el recibo.");
+  if (res.status === "skipped" && res.skipped !== "duplicate") {
+    throw new Error("No se pudo enviar el recibo.");
+  }
 }

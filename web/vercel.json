@@ -12,6 +12,9 @@
     },
     "app/api/cron/rent/route.ts": {
       "maxDuration": 60
+    },
+    "app/api/cron/messages/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
@@ -26,6 +29,10 @@
     {
       "path": "/api/cron/lifecycle",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/messages",
+      "schedule": "0 13 * * *"
     }
   ]
 }
