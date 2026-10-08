@@ -238,6 +238,13 @@ TABLES.tenant_invites = [
   { id: "f0000000-0000-4000-8000-000000000001", contract_id: C1, owner_id: USER.id, tenant_email: T1.email, token: "demo-invite-token", used: true, used_by: USER.id, used_at: ts(-280), created_at: ts(-290), expires_at: ts(-270) },
 ];
 
+// ── Plan 39: AI drafting ────────────────────────────────────────────────────
+// A clause in the settings library to translate; AI usage starts empty.
+TABLES.user_section_templates = [
+  { id: "e3900000-0000-4000-8000-000000000001", owner_id: USER.id, title: "Mascotas", body: "No se permiten mascotas en la propiedad sin la autorización escrita del arrendador.", created_at: ts(-30) },
+];
+TABLES.ai_usage_events = [];
+
 // RPC results (POST /rest/v1/rpc/<name>).
 export const RPCS = {
   market_data_updated_at: ts(-3),

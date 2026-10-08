@@ -1,5 +1,6 @@
 import { createAdminClient, createClient } from "@/lib/supabase-server";
 import ContractBuilder from "@/components/ContractBuilder";
+import { aiEnabled } from "@/lib/ai/client";
 import { redirect } from "next/navigation";
 import type { Property, Tenant, ContractTemplate, Contract } from "@/lib/types";
 import Link from "next/link";
@@ -92,6 +93,7 @@ export default async function NewContractPage(
         userId={user.id}
         landlordEmail={landlordEmail}
         initialData={draftContract}
+        aiTranslate={aiEnabled()}
       />
     </div>
   );

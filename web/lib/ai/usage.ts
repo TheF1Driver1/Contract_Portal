@@ -1,14 +1,14 @@
 import type { SubscriptionPlan } from "@/lib/types";
 import type { createAdminClient } from "@/lib/supabase-server";
 
-export type AiFeature = "receipt" | "clause_explain" | "translate" | "notice";
+export type AiFeature = "receipt" | "clause_explain" | "translate" | "notice" | "qa";
 
 /** Monthly calls per plan and feature. Keeps cost bounded per account. */
 export const AI_MONTHLY_LIMITS: Record<SubscriptionPlan, Record<AiFeature, number>> = {
-  free: { receipt: 5, clause_explain: 20, translate: 5, notice: 5 },
-  propietario: { receipt: 60, clause_explain: 200, translate: 50, notice: 50 },
-  inversionista: { receipt: 300, clause_explain: 1000, translate: 200, notice: 200 },
-  enterprise: { receipt: 2000, clause_explain: 5000, translate: 1000, notice: 1000 },
+  free: { receipt: 5, clause_explain: 20, translate: 5, notice: 5, qa: 10 },
+  propietario: { receipt: 60, clause_explain: 200, translate: 50, notice: 50, qa: 100 },
+  inversionista: { receipt: 300, clause_explain: 1000, translate: 200, notice: 200, qa: 400 },
+  enterprise: { receipt: 2000, clause_explain: 5000, translate: 1000, notice: 1000, qa: 2000 },
 };
 
 type Admin = ReturnType<typeof createAdminClient>;

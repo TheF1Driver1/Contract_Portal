@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { ContractFormValues } from "@/lib/types";
+import { ClauseTranslate } from "@/components/ai/ClauseTranslate";
 import { useBuilder } from "./context";
 import { Field, StepSection } from "./Field";
 import { AMENITY_FLAGS, COUNT_FIELDS } from "./form-utils";
@@ -122,7 +123,7 @@ export function StepClauses() {
 
 function CustomClauses() {
   const t = useTranslations("builder");
-  const { sections, setSections, userTemplates } = useBuilder();
+  const { sections, setSections, userTemplates, aiTranslate } = useBuilder();
   const [newTitle, setNewTitle] = useState("");
   const [newBody, setNewBody] = useState("");
   const [editIdx, setEditIdx] = useState<number | null>(null);
@@ -227,6 +228,18 @@ function CustomClauses() {
                     </div>
                   </div>
                   {sec.body && <p className="whitespace-pre-wrap text-sm text-muted-foreground">{sec.body}</p>}
+                  {aiTranslate && (
+                    <ClauseTranslate
+                      title={sec.title}
+                      body={sec.body}
+                      onAccept={(next) => {
+                        // Lands in the edit form; the landlord saves it there.
+                        setEditIdx(i);
+                        setEditTitle(next.title);
+                        setEditBody(next.body);
+                      }}
+                    />
+                  )}
                 </div>
               )}
             </li>

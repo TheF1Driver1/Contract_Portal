@@ -11,6 +11,8 @@ import { RentExpenseChart } from "@/components/LazyCharts";
 import { TodayQueue, type QueueItem } from "@/components/dashboard/TodayQueue";
 import { GettingStarted } from "@/components/dashboard/GettingStarted";
 import type { RentExpensePoint } from "@/components/dashboard/RentExpenseChart";
+import { AskDataPanel } from "@/components/ai/AskDataPanel";
+import { aiEnabled } from "@/lib/ai/client";
 
 type ContractRow = {
   id: string;
@@ -248,6 +250,9 @@ export default async function DashboardPage() {
           );
         })}
       </section>
+
+      {/* Plan 39: read-only AI Q&A, hidden without ANTHROPIC_API_KEY */}
+      {aiEnabled() && <AskDataPanel />}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* 12-month chart */}

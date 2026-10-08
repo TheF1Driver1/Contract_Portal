@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { ArrowLeft, Bell, Building2, Calendar, ClipboardCheck, FileText, MessageSquare, PenLine, Users, Wallet } from "lucide-react";
+import { ArrowLeft, Bell, Building2, Calendar, ClipboardCheck, FilePenLine, FileText, MessageSquare, PenLine, Users, Wallet } from "lucide-react";
 import { createAdminClient, createClient } from "@/lib/supabase-server";
 import { daysUntil } from "@/lib/utils";
 import type { Contract, ContractNotificationLog, ContractOccupant } from "@/lib/types";
@@ -20,6 +20,8 @@ import { InspectionsSection } from "@/components/inspections/InspectionsSection"
 import type { InspectionSummary } from "@/components/inspections/types";
 import { revealPii } from "@/lib/crypto/fields";
 import { loadSignature } from "@/lib/esign/signature-store";
+import { aiEnabled } from "@/lib/ai/client";
+import { NoticeDraftSheet } from "@/components/ai/NoticeDraftSheet";
 
 // Uses the admin client (signature images in private storage).
 export const dynamic = "force-dynamic";
@@ -50,6 +52,7 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
   const tRent = await getTranslations("rent");
   const tMsg = await getTranslations("messaging");
   const tInsp = await getTranslations("inspections");
+  const tAi = await getTranslations("ai.notice");
   const f = await getFormatter();
   const supabase = await createClient();
   const {
@@ -314,6 +317,20 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
               initialLogs={logs}
             />
           </Section>
+
+          {/* AI notice drafts (Plan 39): signed leases only, never sent automatically */}
+          {aiEnabled() && c.status === "signed" && (
+            <Section icon={<FilePenLine />} title={tAi("title")}>
+              <p className="-mt-2 mb-3 text-sm text-muted-foreground">{tAi("sectionHint")}</p>
+              <NoticeDraftSheet
+                contractId={c.id}
+                tenantName={c.tenant?.full_name ?? ""}
+                tenantLocale={c.tenant?.preferred_locale === "en" ? "en" : "es"}
+                rentAmount={Number(c.rent_amount) || 0}
+                ledgerOverdue={ledger.ledger ? ledger.summary.overdue : null}
+              />
+            </Section>
+          )}
 
           {/* Messages (email, SMS, WhatsApp) */}
           <Section icon={<MessageSquare />} title={tMsg("panel.title")}>
