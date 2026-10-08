@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/app/EmptyState";
 import { Button } from "@/components/ui/button";
 import { RentExpenseChart } from "@/components/LazyCharts";
 import { TodayQueue, type QueueItem } from "@/components/dashboard/TodayQueue";
+import { GettingStarted } from "@/components/dashboard/GettingStarted";
 import type { RentExpensePoint } from "@/components/dashboard/RentExpenseChart";
 
 type ContractRow = {
@@ -53,7 +54,7 @@ export default async function DashboardPage() {
   const windowStart = `${months[0].key}-01`;
   const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)).toISOString().slice(0, 10);
 
-  const [contractsResult, propertiesResult, expensesResult, alerts] = await Promise.all([
+  const [contractsResult, propertiesResult, expensesResult, alerts, tenantsCount] = await Promise.all([
     supabase
       .from("contracts")
       .select(
@@ -69,6 +70,7 @@ export default async function DashboardPage() {
       .gte("expense_date", windowStart)
       .lt("expense_date", nextMonth),
     getAlerts(supabase, now),
+    supabase.from("tenants").select("id", { count: "exact", head: true }),
   ]);
 
   const contracts = (contractsResult.data ?? []) as unknown as ContractRow[];
@@ -181,6 +183,16 @@ export default async function DashboardPage() {
             </Link>
           </Button>
         }
+      />
+
+      <GettingStarted
+        progress={{
+          property: properties.length > 0,
+          tenant: (tenantsCount.count ?? 0) > 0,
+          contract: contracts.length > 0,
+          sent: contracts.some((c) => c.status !== "draft"),
+          signed: contracts.some((c) => c.status === "signed"),
+        }}
       />
 
       <TodayQueue items={queue} />

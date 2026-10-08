@@ -56,5 +56,25 @@
     "emptyDescription": "Crea tu primer contrato de arrendamiento para empezar.",
     "unknownTenant": "Inquilino sin nombre",
     "noProperty": "Sin propiedad"
+  },
+  "start": {
+    "title": "Primeros pasos",
+    "progress": "{done} de {total}",
+    "done": "completado",
+    "importCsv": "o importa un CSV",
+    "steps": {
+      "property": "Añade tu primera propiedad",
+      "tenant": "Añade a tu inquilino",
+      "contract": "Prepara el contrato",
+      "sent": "Envíalo para firma",
+      "signed": "Recibe la firma"
+    },
+    "cta": {
+      "property": "Añadir",
+      "tenant": "Añadir",
+      "contract": "Crear",
+      "sent": "Enviar",
+      "signed": "Ver estado"
+    }
   }
 }

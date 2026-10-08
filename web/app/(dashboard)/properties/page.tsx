@@ -4,7 +4,7 @@ import type { Property } from "@/lib/types";
 import { PropertiesView, type PropertyRow } from "@/components/properties/PropertiesView";
 
 export default async function PropertiesPage(props: {
-  searchParams: Promise<{ q?: string; new?: string }>;
+  searchParams: Promise<{ q?: string; new?: string; import?: string }>;
 }) {
   const searchParams = await props.searchParams;
   const supabase = await createClient();
@@ -52,6 +52,7 @@ export default async function PropertiesPage(props: {
       rows={rows}
       initialQuery={searchParams.q}
       openNew={searchParams.new === "1"}
+      openImport={searchParams.import === "1"}
     />
   );
 }

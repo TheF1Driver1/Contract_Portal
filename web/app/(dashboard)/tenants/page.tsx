@@ -4,7 +4,7 @@ import type { Tenant } from "@/lib/types";
 import { TenantsView } from "@/components/tenants/TenantsView";
 
 export default async function TenantsPage(props: {
-  searchParams: Promise<{ q?: string; new?: string }>;
+  searchParams: Promise<{ q?: string; new?: string; import?: string }>;
 }) {
   const searchParams = await props.searchParams;
   const supabase = await createClient();
@@ -25,6 +25,7 @@ export default async function TenantsPage(props: {
       tenants={(tenants ?? []) as Tenant[]}
       initialQuery={searchParams.q}
       openNew={searchParams.new === "1"}
+      openImport={searchParams.import === "1"}
     />
   );
 }

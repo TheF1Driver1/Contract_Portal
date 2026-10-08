@@ -53,5 +53,41 @@
   "deleted": "Deleted",
   "perMonth": "/mo",
   "today": "Today",
-  "more": "More"
+  "more": "More",
+  "csvImport": {
+    "title": {
+      "properties": "Import properties",
+      "tenants": "Import tenants"
+    },
+    "description": "Upload a CSV exported from Excel, Google Sheets or another tool. Review the preview before importing.",
+    "file": "CSV file",
+    "template": "Download template",
+    "hint": {
+      "properties": "Columns: name, address, city (required); state, zip, units, bathrooms.",
+      "tenants": "Columns: name (required); email, phone, license, address, language."
+    },
+    "empty": "We couldn't find any rows in the file.",
+    "headers": "Missing required columns: {fields}.",
+    "summary": "{valid} of {total} rows ready to import.",
+    "previewLabel": "Preview",
+    "more": "and {count} more rows",
+    "import": "{count, plural, =0 {Import} one {Import # row} other {Import # rows}}",
+    "progress": "Importing {done} of {total}…",
+    "done": "{count, plural, one {# record created} other {# records created}}",
+    "close": "Close",
+    "rowN": "Row {n}",
+    "missing": "Missing: {fields}",
+    "failed": "Couldn't save.",
+    "tooMany": "Only the first {max} rows are imported.",
+    "col": {
+      "name": "Name",
+      "address": "Address",
+      "city": "City",
+      "zip": "Zip",
+      "full_name": "Name",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "button": "Import CSV"
+  }
 }

@@ -56,5 +56,25 @@
     "emptyDescription": "Create your first lease to get started.",
     "unknownTenant": "Unnamed tenant",
     "noProperty": "No property"
+  },
+  "start": {
+    "title": "Getting started",
+    "progress": "{done} of {total}",
+    "done": "done",
+    "importCsv": "or import a CSV",
+    "steps": {
+      "property": "Add your first property",
+      "tenant": "Add your tenant",
+      "contract": "Prepare the lease",
+      "sent": "Send it for signature",
+      "signed": "Get it signed"
+    },
+    "cta": {
+      "property": "Add",
+      "tenant": "Add",
+      "contract": "Create",
+      "sent": "Send",
+      "signed": "View status"
+    }
   }
 }

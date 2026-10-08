@@ -5,8 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus, Users, X } from "lucide-react";
+import { Pencil, FileUp, Plus, Users, X } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
+import { CsvImportSheet } from "@/components/app/CsvImportSheet";
 import { DataTable } from "@/components/app/DataTable";
 import { EmptyState } from "@/components/app/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -28,12 +29,15 @@ export function TenantsView({
   tenants,
   initialQuery,
   openNew,
+  openImport,
 }: {
   tenants: Tenant[];
   /** `?q=` deep link from the command palette. */
   initialQuery?: string;
   /** `?new=1` deep link from the command palette. */
   openNew?: boolean;
+  /** `?import=1` deep link from the getting-started checklist. */
+  openImport?: boolean;
 }) {
   const t = useTranslations("tenants");
   const tc = useTranslations("common");
@@ -41,6 +45,8 @@ export function TenantsView({
   const pathname = usePathname();
 
   const [createOpen, setCreateOpen] = useState(!!openNew);
+  const [importOpen, setImportOpen] = useState(!!openImport);
+  const tImport = useTranslations("common.csvImport");
   const [editing, setEditing] = useState<Tenant | null>(null);
 
   // Reopen when the command palette navigates here again with `?new=1`.
@@ -166,11 +172,25 @@ export function TenantsView({
         title={t("title")}
         description={t("description")}
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus />
-            {t("add")}
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <FileUp />
+              {tImport("button")}
+            </Button>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus />
+              {t("add")}
+            </Button>
+          </>
         }
+      />
+      <CsvImportSheet
+        kind="tenants"
+        open={importOpen}
+        onOpenChange={(o) => {
+          setImportOpen(o);
+          if (!o && openImport) router.replace(pathname, { scroll: false });
+        }}
       />
 
       {tenants.length === 0 ? (

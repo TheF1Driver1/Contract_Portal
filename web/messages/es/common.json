@@ -53,5 +53,41 @@
   "deleted": "Eliminado",
   "perMonth": "/mes",
   "today": "Hoy",
-  "more": "Más"
+  "more": "Más",
+  "csvImport": {
+    "title": {
+      "properties": "Importar propiedades",
+      "tenants": "Importar inquilinos"
+    },
+    "description": "Sube un archivo CSV exportado de Excel, Google Sheets u otro programa. Revisa la vista previa antes de importar.",
+    "file": "Archivo CSV",
+    "template": "Descargar plantilla",
+    "hint": {
+      "properties": "Columnas: nombre, dirección, pueblo (obligatorias); estado, zip, unidades, baños.",
+      "tenants": "Columnas: nombre (obligatoria); correo, teléfono, licencia, dirección, idioma."
+    },
+    "empty": "No encontramos filas en el archivo.",
+    "headers": "Faltan columnas obligatorias: {fields}.",
+    "summary": "{valid} de {total} filas listas para importar.",
+    "previewLabel": "Vista previa",
+    "more": "y {count} filas más",
+    "import": "{count, plural, =0 {Importar} one {Importar # fila} other {Importar # filas}}",
+    "progress": "Importando {done} de {total}…",
+    "done": "{count, plural, one {# registro creado} other {# registros creados}}",
+    "close": "Cerrar",
+    "rowN": "Fila {n}",
+    "missing": "Falta: {fields}",
+    "failed": "No se pudo guardar.",
+    "tooMany": "Solo se importan las primeras {max} filas.",
+    "col": {
+      "name": "Nombre",
+      "address": "Dirección",
+      "city": "Pueblo",
+      "zip": "Zip",
+      "full_name": "Nombre",
+      "email": "Correo",
+      "phone": "Teléfono"
+    },
+    "button": "Importar CSV"
+  }
 }
