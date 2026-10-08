@@ -183,3 +183,62 @@ test.describe("tax pack (Plan 35)", () => {
     await expect(today.getByRole("link", { name: /^Pagar: CRIM · Edificio Las Palmas 2B/ })).toHaveAttribute("href", "/properties?crim=10000000-0000-4000-8000-000000000001");
   });
 });
+
+test.describe("maintenance and inspections (Plan 36)", () => {
+  test.skip(!MOCK_URL, "MOCK_SUPABASE_URL not set");
+  const C1 = "30000000-0000-4000-8000-000000000001";
+  const REQUEST = "c0000000-0000-4000-8000-000000000001";
+  const MOVE_OUT = "d0000000-0000-4000-8000-000000000002";
+  const SCREENS = [
+    { path: "/maintenance", heading: "Mantenimiento" },
+    { path: `/maintenance/${REQUEST}`, heading: "Gotera debajo del fregadero" },
+    { path: `/contracts/${C1}/inspections/${MOVE_OUT}`, heading: "Inspección de salida" },
+    { path: `/contracts/${C1}/inspections/d0000000-0000-4000-8000-000000000001`, heading: "Inspección de entrada" },
+  ];
+
+  for (const scheme of ["light", "dark"] as const) {
+    for (const { path, heading } of SCREENS) {
+      test(`${path} (${scheme}) renders and has no serious a11y violations`, async ({ page, context, baseURL }) => {
+        await page.emulateMedia({ colorScheme: scheme });
+        await signInMock(context, baseURL!, MOCK_URL!);
+        await page.goto(path);
+        await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+        const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+        const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+        expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(", ")}`)).toEqual([]);
+        await page.screenshot({ path: `test-results/p36-${test.info().project.name}-${path.replace(/[^a-z0-9]+/gi, "_").slice(-40)}-${scheme}.png`, fullPage: true });
+      });
+    }
+  }
+
+  test("lists requests with facets and opens the new-request form", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/maintenance");
+    await expect(page.getByText("Gotera debajo del fregadero").filter({ visible: true }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Nueva solicitud" }).click();
+    const sheet = page.getByRole("dialog", { name: "Nueva solicitud de mantenimiento" });
+    await expect(sheet.getByLabel("¿Qué pasa?")).toBeVisible();
+    await expect(sheet.getByRole("button", { name: "Tomar foto" })).toBeVisible();
+    await expect(sheet.getByRole("button", { name: "Crear solicitud" })).toBeDisabled();
+  });
+
+  test("move-out editor compares with move-in and records a condition", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto(`/contracts/${C1}/inspections/${MOVE_OUT}`);
+    await expect(page.getByRole("heading", { level: 2, name: "Sala" })).toBeVisible();
+    await expect(page.getByText("Entrada: Buena · peor que a la entrada")).toBeVisible();
+    const doors = page.getByRole("radiogroup", { name: "Puertas" });
+    await doors.getByText("Regular").click();
+    await expect(doors.getByRole("radio", { name: "Regular" })).toBeChecked();
+    await page.getByRole("button", { name: "Siguiente habitación" }).first().click();
+    await expect(page.getByRole("heading", { level: 2, name: "Cocina" })).toBeVisible();
+  });
+
+  test("contract page lists inspections", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto(`/contracts/${C1}`);
+    const section = page.locator("section", { has: page.getByRole("heading", { name: "Inspecciones" }) });
+    await expect(section.getByText("Inspección de entrada")).toBeVisible();
+    await expect(section.getByText(/El inquilino la confirmó/)).toBeVisible();
+  });
+});

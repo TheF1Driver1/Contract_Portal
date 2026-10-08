@@ -1,5 +1,7 @@
 import type { createClient } from "@/lib/supabase-server";
 import { daysBetween } from "@/lib/reminders";
+import type { MaintenanceUrgency } from "@/lib/db";
+import { renewalCandidates, RENEWAL_WINDOW } from "@/lib/maintenance/logic";
 
 type Client = Awaited<ReturnType<typeof createClient>>;
 
@@ -8,10 +10,16 @@ export type Alert =
   | { kind: "unsigned"; contractId: string; title: string; days: number }
   | { kind: "failed"; contractId: string; title: string; channel: string }
   // Plan 35: unpaid CRIM installment due within 30 days.
-  | { kind: "crim"; propertyId: string; title: string; days: number };
+  | { kind: "crim"; propertyId: string; title: string; days: number }
+  // Plan 36: open urgent/emergency repairs and leases to renew (60–90 days, no renewal draft yet).
+  | { kind: "maintenance"; requestId: string; contractId: string | null; title: string; property: string; urgency: MaintenanceUrgency; days: number }
+  | { kind: "renewal"; contractId: string; title: string; days: number };
 
-/** Where an alert leads. */
-export const alertHref = (a: Alert) => (a.kind === "crim" ? `/properties?crim=${a.propertyId}` : `/contracts/${a.contractId}`);
+/** Where an alert links to. */
+export function alertHref(a: Alert): string {
+  if (a.kind === "crim") return `/properties?crim=${a.propertyId}`;
+  return a.kind === "maintenance" ? `/maintenance/${a.requestId}` : `/contracts/${a.contractId}`;
+}
 
 const CRIM_WINDOW_DAYS = 30;
 
@@ -32,6 +40,7 @@ export async function getAlerts(supabase: Client, today = new Date()): Promise<A
   const messagesSince = new Date(today.getTime() - 7 * 86_400_000).toISOString();
   const crimHorizon = new Date(today.getTime() + CRIM_WINDOW_DAYS * 86_400_000).toISOString().slice(0, 10);
 
+  const lifecycleAlerts = getLifecycleAlerts(supabase, today, iso).catch(() => ({ maintenance: [] as Alert[], renewal: [] as Alert[] }));
   const [expiring, unsigned, failed, failedMessages, crim] = await Promise.all([
     supabase
       .from("contracts")
@@ -94,5 +103,67 @@ export async function getAlerts(supabase: Client, today = new Date()): Promise<A
     const name = (b.property as { name?: string } | null)?.name ?? "";
     alerts.push({ kind: "crim", propertyId: b.property_id, title: name ? `CRIM · ${name}` : "CRIM", days: daysBetween(iso, b.due_date) });
   }
+
+  // Plan 36: urgent repairs go first, renewals after the contract alerts.
+  const lifecycle = await lifecycleAlerts;
+  alerts.unshift(...lifecycle.maintenance);
+  const shown = new Set<string | null>(alerts.flatMap((a) => (a.kind === "expiring" ? [a.contractId] : [])));
+  alerts.push(...lifecycle.renewal.filter((a) => !(a.kind === "renewal" && shown.has(a.contractId))));
   return alerts;
+}
+
+/** Plan 36: open urgent/emergency repairs, and signed leases ending in 60–90 days with no renewal yet. */
+async function getLifecycleAlerts(supabase: Client, today: Date, iso: string): Promise<{ maintenance: Alert[]; renewal: Alert[] }> {
+  const renewalFrom = new Date(today.getTime() + RENEWAL_WINDOW.from * 86_400_000).toISOString().slice(0, 10);
+  const renewalTo = new Date(today.getTime() + RENEWAL_WINDOW.to * 86_400_000).toISOString().slice(0, 10);
+  const [urgent, ending] = await Promise.all([
+    supabase
+      .from("maintenance_requests")
+      .select("id, contract_id, property_id, title, urgency, status, created_at")
+      .in("status", ["open", "scheduled", "in_progress"])
+      .in("urgency", ["urgent", "emergency"])
+      .order("created_at")
+      .limit(10),
+    supabase
+      .from("contracts")
+      .select("id, status, lease_end, parent_contract_id, property:properties(name), tenant:tenants(full_name)")
+      .eq("status", "signed")
+      .gte("lease_end", renewalFrom)
+      .lte("lease_end", renewalTo)
+      .limit(20),
+  ]);
+
+  const maintenance: Alert[] = [];
+  const reqs = urgent.data ?? [];
+  if (reqs.length) {
+    const { data: props } = await supabase.from("properties").select("id, name").in("id", [...new Set(reqs.map((r) => r.property_id))]);
+    const names = new Map((props ?? []).map((p) => [p.id, p.name as string]));
+    // Emergencies first, then the oldest.
+    for (const r of [...reqs].sort((a, b) => Number(b.urgency === "emergency") - Number(a.urgency === "emergency"))) {
+      maintenance.push({
+        kind: "maintenance",
+        requestId: r.id,
+        contractId: r.contract_id,
+        title: r.title,
+        property: names.get(r.property_id) ?? "",
+        urgency: r.urgency,
+        days: Math.max(0, daysBetween(r.created_at.slice(0, 10), iso)),
+      });
+    }
+  }
+
+  const renewal: Alert[] = [];
+  const endingRows = ending.data ?? [];
+  if (endingRows.length) {
+    const { data: children } = await supabase
+      .from("contracts")
+      .select("id, status, lease_end, parent_contract_id")
+      .in("parent_contract_id", endingRows.map((c) => c.id));
+    const byId = new Map(endingRows.map((c) => [c.id, c]));
+    for (const c of renewalCandidates([...endingRows, ...(children ?? [])], iso)) {
+      const row = byId.get(c.id);
+      if (row) renewal.push({ kind: "renewal", contractId: c.id, title: label(row), days: c.days });
+    }
+  }
+  return { maintenance, renewal };
 }

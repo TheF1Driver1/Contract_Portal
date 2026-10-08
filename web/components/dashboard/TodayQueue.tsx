@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { AlertTriangle, CalendarClock, CheckCircle2, FileEdit, Landmark, Send, type LucideIcon } from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckCircle2, FileEdit, Landmark, RefreshCw, Send, Wrench, type LucideIcon } from "lucide-react";
+import type { MaintenanceUrgency } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -9,10 +10,14 @@ export type QueueItem =
   | { kind: "unsigned"; contractId: string; title: string; days: number }
   | { kind: "expiring"; contractId: string; title: string; days: number }
   | { kind: "failed"; contractId: string; title: string; channel: string }
-  | { kind: "crim"; propertyId: string; title: string; days: number };
+  | { kind: "crim"; propertyId: string; title: string; days: number }
+  | { kind: "maintenance"; requestId: string; title: string; property: string; urgency: MaintenanceUrgency; days: number }
+  | { kind: "renewal"; contractId: string; title: string; days: number };
 
-const KIND: Record<QueueItem["kind"], { icon: LucideIcon; tone: string; action: "send" | "remind" | "renew" | "review" | "pay" }> = {
+const KIND: Record<QueueItem["kind"], { icon: LucideIcon; tone: string; action: "send" | "remind" | "renew" | "review" | "pay" | "attend" }> = {
   crim: { icon: Landmark, tone: "bg-warning-soft text-warning", action: "pay" },
+  maintenance: { icon: Wrench, tone: "bg-danger-soft text-danger", action: "attend" },
+  renewal: { icon: RefreshCw, tone: "bg-info-soft text-info", action: "renew" },
   failed: { icon: AlertTriangle, tone: "bg-danger-soft text-danger", action: "review" },
   expiring: { icon: CalendarClock, tone: "bg-warning-soft text-warning", action: "renew" },
   unsigned: { icon: Send, tone: "bg-info-soft text-info", action: "remind" },
@@ -25,6 +30,7 @@ const MAX_ITEMS = 8;
 export async function TodayQueue({ items }: { items: QueueItem[] }) {
   const t = await getTranslations("dashboard.today");
   const tTax = await getTranslations("tax.alerts");
+  const tm = await getTranslations("maintenance.alerts");
   const shown = items.slice(0, MAX_ITEMS);
   const hidden = items.length - shown.length;
 
@@ -40,6 +46,10 @@ export async function TodayQueue({ items }: { items: QueueItem[] }) {
         return t("failed", { channel: item.channel === "sms" ? "SMS" : item.channel });
       case "crim":
         return tTax("crimDue", { days: item.days });
+      case "maintenance":
+        return tm(item.urgency === "emergency" ? "emergency" : "urgent", { days: item.days, property: item.property });
+      case "renewal":
+        return tm("renewal", { days: item.days });
     }
   }
 
@@ -64,11 +74,11 @@ export async function TodayQueue({ items }: { items: QueueItem[] }) {
         <ul className="divide-y divide-border">
           {shown.map((item) => {
             const { icon: Icon, tone, action } = KIND[item.kind];
-            const verb = action === "pay" ? tTax("pay") : t(`action.${action}`);
-            const id = item.kind === "crim" ? item.propertyId : item.contractId;
-            const href = item.kind === "crim" ? `/properties?crim=${item.propertyId}` : `/contracts/${item.contractId}`;
+            const verb = action === "pay" ? tTax("pay") : action === "attend" ? tm("action") : t(`action.${action}`);
+            const href =
+              item.kind === "crim" ? `/properties?crim=${item.propertyId}` : item.kind === "maintenance" ? `/maintenance/${item.requestId}` : `/contracts/${item.contractId}`;
             return (
-              <li key={`${item.kind}-${id}-${"channel" in item ? item.channel : ""}`} className="flex items-center gap-3 py-2.5">
+              <li key={`${item.kind}-${href}-${"channel" in item ? item.channel : ""}`} className="flex items-center gap-3 py-2.5">
                 <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", tone)}>
                   <Icon className="size-4" aria-hidden />
                 </span>

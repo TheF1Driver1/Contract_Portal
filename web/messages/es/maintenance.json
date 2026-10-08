@@ -1,0 +1,160 @@
+{
+  "title": "Mantenimiento",
+  "description": "Solicitudes de reparación de tus inquilinos y las que crees tú.",
+  "new": "Nueva solicitud",
+  "search": "Buscar solicitudes",
+  "fromTenant": "Del inquilino",
+  "fromLandlord": "Creada por ti",
+  "kpi": {
+    "open": "Abiertas",
+    "urgent": "Urgentes",
+    "scheduled": "Programadas",
+    "costYear": "Costo este año"
+  },
+  "col": {
+    "title": "Solicitud",
+    "property": "Propiedad",
+    "tenant": "Inquilino",
+    "category": "Categoría",
+    "urgency": "Urgencia",
+    "status": "Estado",
+    "created": "Recibida",
+    "scheduled": "Visita",
+    "cost": "Costo"
+  },
+  "empty": {
+    "title": "Sin solicitudes de mantenimiento",
+    "body": "Cuando un inquilino pida una reparación desde su portal, aparecerá aquí. También puedes crear una tú."
+  },
+  "category": {
+    "plumbing": "Plomería",
+    "electrical": "Electricidad",
+    "appliance": "Enseres",
+    "ac": "Aire acondicionado",
+    "pest": "Plagas",
+    "structural": "Estructura (techo, paredes, puertas)",
+    "other": "Otro"
+  },
+  "urgency": {
+    "low": "Baja",
+    "normal": "Normal",
+    "urgent": "Urgente",
+    "emergency": "Emergencia"
+  },
+  "urgencyHint": {
+    "low": "Puede esperar.",
+    "normal": "Para los próximos días.",
+    "urgent": "Afecta el uso de la vivienda.",
+    "emergency": "Agua, electricidad o peligro: llama también a tu arrendador."
+  },
+  "status": {
+    "open": "Abierta",
+    "scheduled": "Programada",
+    "in_progress": "En proceso",
+    "resolved": "Resuelta",
+    "cancelled": "Cancelada"
+  },
+  "photos": {
+    "take": "Tomar foto",
+    "choose": "Elegir fotos",
+    "open": "Abrir foto {n}",
+    "heic": "Foto HEIC: toca para abrir",
+    "unavailable": "No disponible"
+  },
+  "form": {
+    "title": "Nueva solicitud de mantenimiento",
+    "tenantTitle": "Solicitar reparación",
+    "description": "Anota el problema para darle seguimiento.",
+    "tenantDescription": "Cuéntale a tu arrendador qué pasa. Las fotos ayudan mucho.",
+    "lease": "Contrato",
+    "leasePlaceholder": "Elige un contrato",
+    "noLeases": "Necesitas un contrato firmado para crear solicitudes.",
+    "summary": "¿Qué pasa?",
+    "summaryPlaceholder": "Ej.: Gotera debajo del fregadero",
+    "category": "Categoría",
+    "urgency": "Urgencia",
+    "details": "Detalles",
+    "detailsPlaceholder": "Desde cuándo pasa, dónde está y cualquier dato útil.",
+    "photos": "Fotos",
+    "photosHint": "JPG, PNG, WebP o HEIC, hasta 8 MB cada una. Máximo {max}.",
+    "removePhoto": "Quitar {name}",
+    "submit": "Enviar solicitud",
+    "create": "Crear solicitud",
+    "created": "Solicitud creada",
+    "sent": "Solicitud enviada a tu arrendador",
+    "photoFailed": "No se pudo subir {name}: {error}",
+    "uploading": "Subiendo fotos…",
+    "failed": "No se pudo enviar la solicitud."
+  },
+  "detail": {
+    "back": "Mantenimiento",
+    "filed": "recibida el {date} ({by})",
+    "details": "Detalles",
+    "noDescription": "Sin detalles.",
+    "address": "Dirección",
+    "tenantPhone": "Teléfono del inquilino",
+    "tenantEmail": "Correo del inquilino",
+    "lease": "Contrato",
+    "viewLease": "Ver contrato",
+    "photos": "Fotos",
+    "noPhotos": "Sin fotos todavía.",
+    "photoAlt": "Foto",
+    "timeline": "Historial",
+    "manage": "Gestión",
+    "tenantNotified": "Le enviaremos un correo al inquilino con este cambio.",
+    "vendor": "Técnico o compañía",
+    "vendorPhone": "Teléfono del técnico",
+    "call": "Llamar a {vendor}",
+    "scheduledFor": "Fecha de la visita",
+    "cost": "Costo",
+    "statusNote": "Nota para el historial (opcional)",
+    "save": "Guardar cambios",
+    "saved": "Cambios guardados",
+    "note": "Añadir una nota",
+    "notePlaceholder": "Escribe una actualización…",
+    "addNote": "Añadir nota",
+    "noteAdded": "Nota añadida",
+    "expense": {
+      "title": "Costo y gasto",
+      "linked": "Registrado como gasto de {amount} el {date}.",
+      "view": "Ver gastos",
+      "ready": "Costo anotado: {amount}. Regístralo como gasto de la propiedad para tus reportes.",
+      "noCost": "Cuando tengas la factura, registra el costo como gasto de la propiedad.",
+      "record": "Registrar costo como gasto",
+      "sheetTitle": "Registrar costo como gasto",
+      "sheetDescription": "Crea un gasto de esta propiedad con el costo de la reparación.",
+      "amount": "Cantidad",
+      "date": "Fecha del gasto",
+      "category": "Categoría",
+      "catRepairs": "Reparaciones",
+      "catMaintenance": "Mantenimiento",
+      "hint": "Si el gasto es deducible depende de tu caso. Pendiente de revisión por un CPA.",
+      "save": "Registrar gasto",
+      "saved": "Gasto registrado"
+    }
+  },
+  "timeline": {
+    "empty": "Sin actividad todavía.",
+    "opened": "Solicitud creada",
+    "status": "Estado: {status}",
+    "expense": "Costo registrado como gasto",
+    "author": {
+      "tenant": "Inquilino",
+      "landlord": "Arrendador",
+      "system": "ContractOS"
+    }
+  },
+  "portal": {
+    "title": "Mantenimiento",
+    "none": "No has pedido reparaciones para este contrato.",
+    "visit": "Visita: {date}",
+    "sent": "Enviada el {date}",
+    "request": "Solicitar reparación"
+  },
+  "alerts": {
+    "urgent": "Reparación urgente · {property} · {days, plural, =0 {hoy} one {hace # día} other {hace # días}}",
+    "emergency": "Emergencia · {property} · {days, plural, =0 {hoy} one {hace # día} other {hace # días}}",
+    "renewal": "Termina en {days} días y no tiene renovación",
+    "action": "Atender"
+  }
+}

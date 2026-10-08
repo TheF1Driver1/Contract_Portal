@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Bell, CalendarClock, Landmark, PenLine } from "lucide-react";
+import { AlertTriangle, Bell, CalendarClock, Landmark, PenLine, RefreshCw, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { alertHref, type Alert } from "@/lib/alerts";
 
-const ICON = { expiring: CalendarClock, unsigned: PenLine, failed: AlertTriangle, crim: Landmark } as const;
-const TONE = { expiring: "text-warning", unsigned: "text-info", failed: "text-danger", crim: "text-warning" } as const;
+const ICON = { expiring: CalendarClock, unsigned: PenLine, failed: AlertTriangle, crim: Landmark, maintenance: Wrench, renewal: RefreshCw } as const;
+const TONE = { expiring: "text-warning", unsigned: "text-info", failed: "text-danger", crim: "text-warning", maintenance: "text-danger", renewal: "text-info" } as const;
 
 export function NotificationBell({ alerts }: { alerts: Alert[] }) {
   const t = useTranslations("nav");
   const tTax = useTranslations("tax.alerts");
+  const tm = useTranslations("maintenance.alerts");
   const count = alerts.length;
 
   return (
@@ -42,7 +43,11 @@ export function NotificationBell({ alerts }: { alerts: Alert[] }) {
                   ? t("alertExpiring", { days: a.days })
                   : a.kind === "unsigned"
                     ? t("alertUnsigned", { days: a.days })
-                    : t("alertFailed", { channel: a.channel.toUpperCase() });
+                    : a.kind === "maintenance"
+                      ? tm(a.urgency === "emergency" ? "emergency" : "urgent", { days: a.days, property: a.property })
+                      : a.kind === "renewal"
+                        ? tm("renewal", { days: a.days })
+                        : t("alertFailed", { channel: a.channel.toUpperCase() });
               return (
                 <li key={`${a.kind}-${a.kind === "crim" ? a.propertyId : a.contractId}-${i}`}>
                   <Link

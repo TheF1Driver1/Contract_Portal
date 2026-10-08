@@ -123,6 +123,8 @@ export default async function DashboardPage() {
   const expiringLater: QueueItem[] = [];
   const unsigned: QueueItem[] = [];
   const crimDue: QueueItem[] = [];
+  const repairs: QueueItem[] = []; // Plan 36: open urgent/emergency maintenance
+  const renewals: QueueItem[] = []; // Plan 36: leases ending in 60–90 days with no renewal
   for (const a of alerts) {
     if (a.kind === "crim") {
       crimDue.push(a);
@@ -136,18 +138,24 @@ export default async function DashboardPage() {
       failed.push({ kind: "failed", contractId: a.contractId, title: c ? titleOf(c) : "", channel: a.channel });
     } else if (a.kind === "expiring") {
       (a.days <= 14 ? expiringSoon : expiringLater).push(a);
+    } else if (a.kind === "maintenance") {
+      repairs.push({ kind: "maintenance", requestId: a.requestId, title: a.title, property: a.property, urgency: a.urgency, days: a.days });
+    } else if (a.kind === "renewal") {
+      renewals.push(a);
     } else {
       unsigned.push(a);
     }
   }
   unsigned.sort((a, b) => ("days" in b ? b.days : 0) - ("days" in a ? a.days : 0));
   const queue: QueueItem[] = [
+    ...repairs,
     ...failed,
     ...expiringSoon,
     ...crimDue,
     ...unsigned,
     ...drafts.map((c): QueueItem => ({ kind: "draft", contractId: c.id, title: titleOf(c) })),
     ...expiringLater,
+    ...renewals,
   ];
 
   // ── Chart: expected rent vs expenses per month ──

@@ -396,3 +396,84 @@ export const CrimBillVoidSchema = z.object({
   id: z.string().uuid(),
   reason: z.string().trim().min(1).max(300),
 });
+
+// ── Maintenance and inspections (Plan 36) ─────────────────────────────────────
+
+const maintenanceCategory = z.enum(["plumbing", "electrical", "appliance", "ac", "pest", "structural", "other"]);
+const maintenanceUrgency = z.enum(["low", "normal", "urgent", "emergency"]);
+const maintenanceStatus = z.enum(["open", "scheduled", "in_progress", "resolved", "cancelled"]);
+const optNullText = (max: number) => z.string().trim().max(max).optional().nullable();
+
+export const MaintenanceCreateSchema = z.object({
+  contract_id: uuid,
+  title: z.string().trim().min(1).max(120),
+  description: optNullText(2000),
+  category: maintenanceCategory,
+  urgency: maintenanceUrgency,
+});
+
+export const MaintenanceUpdateSchema = z.object({
+  id: uuid,
+  status: maintenanceStatus.optional(),
+  vendor_name: optNullText(120),
+  vendor_phone: optNullText(30),
+  scheduled_for: isoDate.optional().nullable().or(z.literal("")),
+  cost: z.number().min(0).max(1_000_000).transform((n) => Math.round(n * 100) / 100).optional().nullable(),
+  urgency: maintenanceUrgency.optional(),
+  note: optNullText(2000),
+});
+
+export const MaintenanceNoteSchema = z.object({
+  id: uuid,
+  note: z.string().trim().min(1).max(2000),
+});
+
+export const MaintenanceExpenseSchema = z.object({
+  id: uuid,
+  amount: z.number().positive().max(1_000_000).transform((n) => Math.round(n * 100) / 100),
+  expense_date: isoDate,
+  category: z.enum(["repairs", "maintenance"]),
+});
+
+export const PhotoUploadRequestSchema = z.object({
+  scope: z.enum(["maintenance", "inspections"]),
+  record_id: uuid,
+  item_id: uuid.optional().nullable(),
+  content_type: z.string().max(40),
+  size: z.number().int().positive(),
+});
+
+export const PhotoRegisterSchema = z.object({
+  scope: z.enum(["maintenance", "inspections"]),
+  record_id: uuid,
+  item_id: uuid.optional().nullable(),
+  path: z.string().max(300),
+});
+
+export const InspectionCreateSchema = z.object({
+  contract_id: uuid,
+  kind: z.enum(["move_in", "move_out"]),
+});
+
+export const InspectionItemSchema = z.object({
+  id: uuid,
+  condition: z.enum(["good", "fair", "poor", "damaged", "na"]).nullable().optional(),
+  note: optNullText(1000),
+});
+
+export const InspectionDetailsSchema = z.object({
+  id: uuid,
+  inspected_on: isoDate,
+  notes: optNullText(4000),
+});
+
+export const InspectionCompleteSchema = z.object({
+  id: uuid,
+  confirm: z.literal(true),
+});
+
+export const InspectionAckSchema = z.object({
+  id: uuid,
+  name: z.string().trim().min(2).max(120),
+  confirm: z.literal(true),
+});

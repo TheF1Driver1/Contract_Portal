@@ -1,0 +1,160 @@
+{
+  "title": "Maintenance",
+  "description": "Repair requests from your tenants and the ones you create.",
+  "new": "New request",
+  "search": "Search requests",
+  "fromTenant": "From tenant",
+  "fromLandlord": "Created by you",
+  "kpi": {
+    "open": "Open",
+    "urgent": "Urgent",
+    "scheduled": "Scheduled",
+    "costYear": "Cost this year"
+  },
+  "col": {
+    "title": "Request",
+    "property": "Property",
+    "tenant": "Tenant",
+    "category": "Category",
+    "urgency": "Urgency",
+    "status": "Status",
+    "created": "Received",
+    "scheduled": "Visit",
+    "cost": "Cost"
+  },
+  "empty": {
+    "title": "No maintenance requests",
+    "body": "When a tenant asks for a repair from their portal, it shows up here. You can also create one yourself."
+  },
+  "category": {
+    "plumbing": "Plumbing",
+    "electrical": "Electrical",
+    "appliance": "Appliances",
+    "ac": "Air conditioning",
+    "pest": "Pests",
+    "structural": "Structure (roof, walls, doors)",
+    "other": "Other"
+  },
+  "urgency": {
+    "low": "Low",
+    "normal": "Normal",
+    "urgent": "Urgent",
+    "emergency": "Emergency"
+  },
+  "urgencyHint": {
+    "low": "Can wait.",
+    "normal": "Within the next few days.",
+    "urgent": "Affects using the home.",
+    "emergency": "Water, power or danger: also call your landlord."
+  },
+  "status": {
+    "open": "Open",
+    "scheduled": "Scheduled",
+    "in_progress": "In progress",
+    "resolved": "Resolved",
+    "cancelled": "Cancelled"
+  },
+  "photos": {
+    "take": "Take photo",
+    "choose": "Choose photos",
+    "open": "Open photo {n}",
+    "heic": "HEIC photo: tap to open",
+    "unavailable": "Unavailable"
+  },
+  "form": {
+    "title": "New maintenance request",
+    "tenantTitle": "Request a repair",
+    "description": "Write down the issue to keep track of it.",
+    "tenantDescription": "Tell your landlord what is going on. Photos help a lot.",
+    "lease": "Lease",
+    "leasePlaceholder": "Choose a lease",
+    "noLeases": "You need a signed lease to create requests.",
+    "summary": "What's wrong?",
+    "summaryPlaceholder": "E.g. Leak under the kitchen sink",
+    "category": "Category",
+    "urgency": "Urgency",
+    "details": "Details",
+    "detailsPlaceholder": "Since when, where it is, and anything useful.",
+    "photos": "Photos",
+    "photosHint": "JPG, PNG, WebP or HEIC, up to 8 MB each. Up to {max}.",
+    "removePhoto": "Remove {name}",
+    "submit": "Send request",
+    "create": "Create request",
+    "created": "Request created",
+    "sent": "Request sent to your landlord",
+    "photoFailed": "Could not upload {name}: {error}",
+    "uploading": "Uploading photos…",
+    "failed": "Could not send the request."
+  },
+  "detail": {
+    "back": "Maintenance",
+    "filed": "received {date} ({by})",
+    "details": "Details",
+    "noDescription": "No details.",
+    "address": "Address",
+    "tenantPhone": "Tenant phone",
+    "tenantEmail": "Tenant email",
+    "lease": "Lease",
+    "viewLease": "View lease",
+    "photos": "Photos",
+    "noPhotos": "No photos yet.",
+    "photoAlt": "Photo",
+    "timeline": "History",
+    "manage": "Manage",
+    "tenantNotified": "We will email the tenant about this change.",
+    "vendor": "Technician or company",
+    "vendorPhone": "Technician phone",
+    "call": "Call {vendor}",
+    "scheduledFor": "Visit date",
+    "cost": "Cost",
+    "statusNote": "Note for the history (optional)",
+    "save": "Save changes",
+    "saved": "Changes saved",
+    "note": "Add a note",
+    "notePlaceholder": "Write an update…",
+    "addNote": "Add note",
+    "noteAdded": "Note added",
+    "expense": {
+      "title": "Cost and expense",
+      "linked": "Recorded as a {amount} expense on {date}.",
+      "view": "View expenses",
+      "ready": "Cost noted: {amount}. Record it as a property expense for your reports.",
+      "noCost": "When you have the invoice, record the cost as a property expense.",
+      "record": "Record cost as expense",
+      "sheetTitle": "Record cost as expense",
+      "sheetDescription": "Creates an expense for this property with the repair cost.",
+      "amount": "Amount",
+      "date": "Expense date",
+      "category": "Category",
+      "catRepairs": "Repairs",
+      "catMaintenance": "Maintenance",
+      "hint": "Whether it is deductible depends on your situation. Pending review by a CPA.",
+      "save": "Record expense",
+      "saved": "Expense recorded"
+    }
+  },
+  "timeline": {
+    "empty": "No activity yet.",
+    "opened": "Request created",
+    "status": "Status: {status}",
+    "expense": "Cost recorded as an expense",
+    "author": {
+      "tenant": "Tenant",
+      "landlord": "Landlord",
+      "system": "ContractOS"
+    }
+  },
+  "portal": {
+    "title": "Maintenance",
+    "none": "You have not requested repairs for this lease.",
+    "visit": "Visit: {date}",
+    "sent": "Sent {date}",
+    "request": "Request a repair"
+  },
+  "alerts": {
+    "urgent": "Urgent repair · {property} · {days, plural, =0 {today} one {# day ago} other {# days ago}}",
+    "emergency": "Emergency · {property} · {days, plural, =0 {today} one {# day ago} other {# days ago}}",
+    "renewal": "Ends in {days} days with no renewal",
+    "action": "Handle"
+  }
+}
