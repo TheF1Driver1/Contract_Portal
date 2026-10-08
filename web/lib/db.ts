@@ -252,6 +252,42 @@ type LifecycleTables = {
 };
 // ── end Plan 36 ─────────────────────────────────────────────────────────────
 
+// ── ATH Móvil (Plan 33, migration 031) ─────────────────────────────────────
+type AthMovilAccount = {
+  owner_id: string;
+  public_token_enc: string;
+  private_token_enc: string | null;
+  business_name: string | null;
+  connected_at: string;
+  updated_at: string;
+};
+type AthPaymentStatus = "open" | "confirm" | "completed" | "cancel" | "failed";
+type AthMovilPayment = {
+  id: string;
+  owner_id: string;
+  contract_id: string;
+  payer_user_id: string | null;
+  phone: string | null;
+  amount: number;
+  ecommerce_id: string;
+  auth_token_enc: string | null;
+  status: AthPaymentStatus;
+  authorizing_at: string | null;
+  reference_number: string | null;
+  payment_id: string | null;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+};
+type AthTables = {
+  ath_movil_accounts: Table<AthMovilAccount, Partial<AthMovilAccount> & Pick<AthMovilAccount, "owner_id" | "public_token_enc">>;
+  ath_movil_payments: Table<
+    AthMovilPayment,
+    Partial<Omit<AthMovilPayment, "id">> & Pick<AthMovilPayment, "owner_id" | "contract_id" | "amount" | "ecommerce_id">
+  >;
+};
+// ── end ATH Móvil ───────────────────────────────────────────────────────────
+
 type PendingTables = {
   message_log: Table<
     MessageLog,
@@ -364,6 +400,8 @@ type OccupantsPatched = {
 
 type PendingFunctions = {
   market_data_updated_at: { Args: Record<PropertyKey, never>; Returns: string | null };
+  // Plan 33 (migration 031)
+  ath_movil_status: { Args: Record<PropertyKey, never>; Returns: { connected: boolean; business_name: string | null; connected_at: string | null }[] };
 };
 
 export type Database = Omit<Generated, "public"> & {
@@ -374,7 +412,8 @@ export type Database = Omit<Generated, "public"> & {
       contracts: ContractsPatched;
       profiles: ProfilesPatched;
     } & PendingTables &
-      LifecycleTables;
+      LifecycleTables &
+      AthTables;
     Views: Omit<GenViews, "zillow_market"> & { zillow_market: ZillowMarketPatched };
     Functions: Generated["public"]["Functions"] & PendingFunctions;
   };
@@ -383,6 +422,7 @@ export type Database = Omit<Generated, "public"> & {
 export type { ContractSigner, SignatureEvent, RentLedger, RentCharge, Payment, PaymentMethod };
 export type { MessageLog, MessageChannel, MessageStatus, MessagingConsent, ConsentSource };
 export type { TaxResidency, PropertyCrim, CrimBill };
+export type { AthMovilAccount, AthMovilPayment, AthPaymentStatus };
 export type {
   MaintenanceCategory,
   MaintenanceUrgency,
