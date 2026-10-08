@@ -5,16 +5,16 @@ import { Landing } from "@/components/marketing/Landing";
 import { bilingualMetadata } from "@/lib/seo";
 
 export async function generateMetadata() {
-  const t = await getTranslations({ locale: "es", namespace: "marketing.meta" });
-  return bilingualMetadata({ title: t("title"), description: t("description"), esPath: "/", enPath: "/en", locale: "es" });
+  const t = await getTranslations({ locale: "en", namespace: "marketing.meta" });
+  return bilingualMetadata({ title: t("title"), description: t("description"), esPath: "/", enPath: "/en", locale: "en" });
 }
 
-export default async function RootPage() {
+export default async function EnglishHome() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) redirect("/dashboard");
 
-  return <Landing locale="es" />;
+  return <Landing locale="en" />;
 }

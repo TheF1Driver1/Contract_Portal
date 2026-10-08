@@ -9,11 +9,30 @@ test("landing page links to legal pages", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Privacidad" })).toBeVisible();
 });
 
-test("pricing shows the three plans", async ({ page }) => {
+test("pricing shows the three plans in both languages", async ({ page }) => {
   await page.goto("/pricing");
   for (const plan of ["Gratis", "Propietario", "Inversionista"]) {
     await expect(page.getByRole("heading", { name: plan, exact: true })).toBeVisible();
   }
+  await page.goto("/en/pricing");
+  for (const plan of ["Free", "Landlord", "Investor"]) {
+    await expect(page.getByRole("heading", { name: plan, exact: true })).toBeVisible();
+  }
+});
+
+test("landing is Spanish at / and English at /en", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Puerto Rico");
+  await expect(page.getByRole("link", { name: "Empieza gratis" }).first()).toBeVisible();
+  await page.goto("/en");
+  await expect(page.getByRole("link", { name: "Start free" }).first()).toBeVisible();
+});
+
+test("SEO files are served", async ({ request }) => {
+  expect((await request.get("/robots.txt")).status()).toBe(200);
+  const sitemap = await request.get("/sitemap.xml");
+  expect(sitemap.status()).toBe(200);
+  expect(await sitemap.text()).toContain("/en/pricing");
 });
 
 test("terms and privacy are public in both languages", async ({ page }) => {

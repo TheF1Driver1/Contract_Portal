@@ -4,14 +4,14 @@ import { PricingPage } from "@/components/marketing/PricingPage";
 import { bilingualMetadata } from "@/lib/seo";
 
 export async function generateMetadata() {
-  const t = await getTranslations({ locale: "es", namespace: "pricing.meta" });
-  return bilingualMetadata({ title: t("title"), description: t("description"), esPath: "/pricing", enPath: "/en/pricing", locale: "es" });
+  const t = await getTranslations({ locale: "en", namespace: "pricing.meta" });
+  return bilingualMetadata({ title: t("title"), description: t("description"), esPath: "/pricing", enPath: "/en/pricing", locale: "en" });
 }
 
-export default async function Pricing() {
+export default async function PricingEn() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  return <PricingPage locale="es" signedIn={!!user} />;
+  return <PricingPage locale="en" signedIn={!!user} />;
 }

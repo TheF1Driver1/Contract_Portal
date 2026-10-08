@@ -1,1 +1,126 @@
-{}
+{
+  "meta": {
+    "title": "ContractOS — Lease agreements for Puerto Rico",
+    "description": "Create, send and sign lease agreements in minutes. Made in and for Puerto Rico: 2020 Civil Code, expiry reminders, expenses and reports for your accountant."
+  },
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "login": "Log in",
+    "signup": "Start free",
+    "language": "Español"
+  },
+  "hero": {
+    "eyebrow": "Made in Puerto Rico",
+    "title": "Lease agreements for Puerto Rico, signed in minutes",
+    "subtitle": "Prepare the lease, send it by email or text, and your tenant signs from their phone. No paper, no printing, no chasing.",
+    "primary": "Start free",
+    "secondary": "See pricing",
+    "note": "Free for 1 property. No credit card.",
+    "screenshotAlt": "ContractOS dashboard with expiring leases, expected rent and occupancy"
+  },
+  "steps": {
+    "title": "How it works",
+    "items": [
+      {
+        "title": "Add your property and tenant",
+        "body": "Once. Then pick them from a list on every lease."
+      },
+      {
+        "title": "Prepare the lease",
+        "body": "A template based on Puerto Rico's 2020 Civil Code. Adjust rent, deposit, late fees and clauses."
+      },
+      {
+        "title": "Send it for signature",
+        "body": "Your tenant gets a link, reviews and signs on their phone. You get the signed PDF."
+      }
+    ]
+  },
+  "features": {
+    "title": "Everything you need to rent",
+    "items": [
+      {
+        "title": "Leases",
+        "body": "Puerto Rico template, your own clauses, co-tenants and one-click renewals."
+      },
+      {
+        "title": "E-signature",
+        "body": "Sign from any phone, with date, time and device on record."
+      },
+      {
+        "title": "Reminders",
+        "body": "Alerts before a lease ends, by email or text, for you and your tenant."
+      },
+      {
+        "title": "Expenses",
+        "body": "Keep expenses and receipts per property all year, ready to export."
+      },
+      {
+        "title": "Taxes",
+        "body": "A yearly summary per property to share with your accountant."
+      }
+    ]
+  },
+  "pr": {
+    "title": "Built for how renting works in Puerto Rico",
+    "items": [
+      {
+        "title": "2020 Civil Code",
+        "body": "The template follows Puerto Rico's current Civil Code, not repealed laws or U.S. templates."
+      },
+      {
+        "title": "Spanish first",
+        "body": "Everything in Spanish, with English for tenants or owners who prefer it."
+      },
+      {
+        "title": "CRIM rates",
+        "body": "Property-tax estimates using CRIM rates for each municipality."
+      }
+    ]
+  },
+  "pricing": {
+    "title": "Simple pricing",
+    "subtitle": "Start free. Change plans as you grow.",
+    "cta": "See all plans"
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "items": [
+      {
+        "q": "Are electronic signatures valid in Puerto Rico?",
+        "a": "Yes. Puerto Rico's Electronic Transactions Act (Law 148-2006) and the federal ESIGN Act recognize electronic records and signatures. ContractOS records the date, time, IP address and device of every signature."
+      },
+      {
+        "q": "Does the lease replace a lawyer?",
+        "a": "No. ContractOS gives you a solid template and tools to manage it, but it doesn't give legal advice. For specific situations, consult an attorney."
+      },
+      {
+        "q": "Does my tenant need an account?",
+        "a": "They can review and sign from the link you send. If they want to see their leases later, they can create a free account."
+      },
+      {
+        "q": "Can I cancel anytime?",
+        "a": "Yes. Cancel from Billing and keep access until the end of the paid period."
+      },
+      {
+        "q": "Where is my data stored?",
+        "a": "On servers in the United States, encrypted in transit and limited to your account. We don't sell your data."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Your next lease, ready today",
+    "body": "Create your account and send your first lease in under 5 minutes.",
+    "button": "Start free"
+  },
+  "footer": {
+    "tagline": "Lease agreements for Puerto Rico.",
+    "product": "Product",
+    "legal": "Legal",
+    "contact": "Contact",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "rights": "© {year} ContractOS. All rights reserved."
+  }
+}

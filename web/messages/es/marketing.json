@@ -1,1 +1,126 @@
-{}
+{
+  "meta": {
+    "title": "ContractOS — Contratos de arrendamiento para Puerto Rico",
+    "description": "Crea, envía y firma contratos de arrendamiento en minutos. Hecho en y para Puerto Rico: Código Civil 2020, recordatorios de vencimiento, gastos y reportes para tu contador."
+  },
+  "nav": {
+    "features": "Funciones",
+    "pricing": "Precios",
+    "faq": "Preguntas",
+    "login": "Iniciar sesión",
+    "signup": "Empieza gratis",
+    "language": "English"
+  },
+  "hero": {
+    "eyebrow": "Hecho en Puerto Rico",
+    "title": "Contratos de arrendamiento para Puerto Rico, firmados en minutos",
+    "subtitle": "Prepara el contrato, envíalo por correo o SMS y tu inquilino lo firma desde el celular. Sin papel, sin imprimir, sin perseguir a nadie.",
+    "primary": "Empieza gratis",
+    "secondary": "Ver precios",
+    "note": "Gratis para 1 propiedad. Sin tarjeta de crédito.",
+    "screenshotAlt": "Panel de ContractOS con contratos por vencer, renta esperada y ocupación"
+  },
+  "steps": {
+    "title": "Cómo funciona",
+    "items": [
+      {
+        "title": "Añade tu propiedad e inquilino",
+        "body": "Una vez. Después los eliges de una lista en cada contrato."
+      },
+      {
+        "title": "Prepara el contrato",
+        "body": "Plantilla basada en el Código Civil de Puerto Rico de 2020. Ajusta renta, fianza, recargos y cláusulas."
+      },
+      {
+        "title": "Envíalo a firmar",
+        "body": "Tu inquilino recibe un enlace, revisa y firma desde el celular. Tú recibes el PDF firmado."
+      }
+    ]
+  },
+  "features": {
+    "title": "Todo lo que necesitas para alquilar",
+    "items": [
+      {
+        "title": "Contratos",
+        "body": "Plantilla para Puerto Rico, cláusulas propias, co-inquilinos y renovaciones en un clic."
+      },
+      {
+        "title": "Firma electrónica",
+        "body": "Firma desde cualquier teléfono, con registro de fecha, hora y dispositivo."
+      },
+      {
+        "title": "Recordatorios",
+        "body": "Avisos antes de que venza un contrato, por correo o SMS, para ti y tu inquilino."
+      },
+      {
+        "title": "Gastos",
+        "body": "Guarda gastos y recibos por propiedad durante el año, listos para exportar."
+      },
+      {
+        "title": "Impuestos",
+        "body": "Resumen anual por propiedad para compartir con tu contador o contadora."
+      }
+    ]
+  },
+  "pr": {
+    "title": "Pensado para cómo se alquila en Puerto Rico",
+    "items": [
+      {
+        "title": "Código Civil 2020",
+        "body": "La plantilla sigue el Código Civil de Puerto Rico vigente, no leyes derogadas ni plantillas de Estados Unidos."
+      },
+      {
+        "title": "Español primero",
+        "body": "Todo en español, con inglés para inquilinos o dueños que lo prefieran."
+      },
+      {
+        "title": "Tasas del CRIM",
+        "body": "Estimados de contribución sobre la propiedad con las tasas por municipio del CRIM."
+      }
+    ]
+  },
+  "pricing": {
+    "title": "Precios simples",
+    "subtitle": "Empieza gratis. Cambia de plan cuando crezcas.",
+    "cta": "Ver todos los planes"
+  },
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "items": [
+      {
+        "q": "¿Es válida la firma electrónica en Puerto Rico?",
+        "a": "Sí. La Ley 148-2006 de Transacciones Electrónicas de Puerto Rico y la ley federal ESIGN reconocen los documentos y firmas electrónicas. ContractOS guarda la fecha, hora, dirección IP y dispositivo de cada firma."
+      },
+      {
+        "q": "¿El contrato sustituye a un abogado?",
+        "a": "No. ContractOS te da una plantilla sólida y herramientas para manejarla, pero no ofrece asesoría legal. Para casos particulares, consulta a un abogado."
+      },
+      {
+        "q": "¿Mi inquilino necesita crear una cuenta?",
+        "a": "Puede revisar y firmar desde el enlace que le envías. Si quiere ver sus contratos después, puede crear una cuenta gratis."
+      },
+      {
+        "q": "¿Puedo cancelar cuando quiera?",
+        "a": "Sí. Cancelas desde Facturación y mantienes el acceso hasta el final del período pagado."
+      },
+      {
+        "q": "¿Dónde se guardan mis datos?",
+        "a": "En servidores en Estados Unidos con cifrado en tránsito y acceso limitado a tu cuenta. No vendemos tus datos."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Tu próximo contrato, listo hoy",
+    "body": "Crea tu cuenta y envía tu primer contrato en menos de 5 minutos.",
+    "button": "Empieza gratis"
+  },
+  "footer": {
+    "tagline": "Contratos de arrendamiento para Puerto Rico.",
+    "product": "Producto",
+    "legal": "Legal",
+    "contact": "Contacto",
+    "terms": "Términos",
+    "privacy": "Privacidad",
+    "rights": "© {year} ContractOS. Todos los derechos reservados."
+  }
+}

@@ -1,8 +1,83 @@
 {
-  "title": "Pricing",
-  "subtitle": "ContractOS — Built for Puerto Rico landlords",
+  "meta": {
+    "title": "Pricing — ContractOS",
+    "description": "Plans for Puerto Rico landlords. Free for 1 property; Landlord $29/month; Investor $99/month."
+  },
+  "title": "Simple pricing, no surprises",
+  "subtitle": "Start free. Change or cancel anytime.",
   "monthly": "Monthly",
-  "getStarted": "Get Started",
-  "contactUs": "Contact Us",
-  "mostPopular": "Most Popular"
+  "yearly": "Yearly",
+  "yearlySave": "2 months free",
+  "perMonth": "/mo",
+  "perYear": "/yr",
+  "mostPopular": "Most popular",
+  "plans": {
+    "free": {
+      "name": "Free",
+      "description": "To get started with your first property.",
+      "cta": "Start free"
+    },
+    "propietario": {
+      "name": "Landlord",
+      "description": "For owners with up to 5 properties.",
+      "cta": "Choose Landlord"
+    },
+    "inversionista": {
+      "name": "Investor",
+      "description": "For growing portfolios.",
+      "cta": "Choose Investor"
+    },
+    "enterprise": {
+      "name": "Property managers",
+      "description": "For managers with 20+ units. Custom pricing.",
+      "cta": "Contact us"
+    }
+  },
+  "features": {
+    "properties": "{count, plural, =-1 {Unlimited properties} one {# property} other {Up to # properties}}",
+    "contracts": "{count, plural, =-1 {Unlimited leases} other {# leases per month}}",
+    "template": "Puerto Rico template (2020 Civil Code)",
+    "esign": "E-signature for tenants",
+    "email": "Email delivery",
+    "sms": "Text delivery and reminders",
+    "templates": "Your own templates and clauses",
+    "expenses": "Expenses with CSV export",
+    "market": "Market analytics (Labs)",
+    "scheduleE": "Yearly tax summary (Schedule E)",
+    "managers": "{count, plural, =-1 {Unlimited managers} =0 {—} one {# manager} other {Up to # managers}}",
+    "support": "Priority support"
+  },
+  "compare": {
+    "title": "Compare plans",
+    "feature": "Feature",
+    "included": "Included",
+    "notIncluded": "Not included",
+    "rows": {
+      "properties": "Properties",
+      "contracts": "Leases per month",
+      "managers": "Managers"
+    }
+  },
+  "faq": {
+    "title": "Plan questions",
+    "items": [
+      {
+        "q": "Do I need a card for the Free plan?",
+        "a": "No. Just your email."
+      },
+      {
+        "q": "What if I go over the limit?",
+        "a": "We'll let you know and you can upgrade in one click. Nothing is deleted."
+      },
+      {
+        "q": "Can I change or cancel?",
+        "a": "Yes, anytime from Billing. When you cancel you keep access until the end of the paid period."
+      },
+      {
+        "q": "How am I charged?",
+        "a": "By card through Stripe. We never store your card numbers."
+      }
+    ]
+  },
+  "back": "Back to home"
 }

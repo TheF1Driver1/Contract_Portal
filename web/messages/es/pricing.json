@@ -1,8 +1,83 @@
 {
-  "title": "Precios",
-  "subtitle": "ContractOS — Diseñado para propietarios puertorriqueños",
+  "meta": {
+    "title": "Precios — ContractOS",
+    "description": "Planes para propietarios en Puerto Rico. Gratis para 1 propiedad; Propietario $29/mes; Inversionista $99/mes."
+  },
+  "title": "Precios simples, sin sorpresas",
+  "subtitle": "Empieza gratis. Cambia o cancela cuando quieras.",
   "monthly": "Mensual",
-  "getStarted": "Comenzar",
-  "contactUs": "Contáctanos",
-  "mostPopular": "Más popular"
+  "yearly": "Anual",
+  "yearlySave": "2 meses gratis",
+  "perMonth": "/mes",
+  "perYear": "/año",
+  "mostPopular": "Más popular",
+  "plans": {
+    "free": {
+      "name": "Gratis",
+      "description": "Para empezar con tu primera propiedad.",
+      "cta": "Empieza gratis"
+    },
+    "propietario": {
+      "name": "Propietario",
+      "description": "Para dueños con hasta 5 propiedades.",
+      "cta": "Elegir Propietario"
+    },
+    "inversionista": {
+      "name": "Inversionista",
+      "description": "Para portafolios en crecimiento.",
+      "cta": "Elegir Inversionista"
+    },
+    "enterprise": {
+      "name": "Administradoras",
+      "description": "Para administradoras con 20+ unidades. Precio a la medida.",
+      "cta": "Contáctanos"
+    }
+  },
+  "features": {
+    "properties": "{count, plural, =-1 {Propiedades ilimitadas} one {# propiedad} other {Hasta # propiedades}}",
+    "contracts": "{count, plural, =-1 {Contratos ilimitados} other {# contratos al mes}}",
+    "template": "Plantilla para Puerto Rico (Código Civil 2020)",
+    "esign": "Firma electrónica para inquilinos",
+    "email": "Envío por correo electrónico",
+    "sms": "Envío y recordatorios por SMS",
+    "templates": "Plantillas y cláusulas propias",
+    "expenses": "Gastos con exportación CSV",
+    "market": "Análisis de mercado (Labs)",
+    "scheduleE": "Resumen anual de impuestos (Schedule E)",
+    "managers": "{count, plural, =-1 {Administradores ilimitados} =0 {—} one {# administrador} other {Hasta # administradores}}",
+    "support": "Soporte prioritario"
+  },
+  "compare": {
+    "title": "Compara los planes",
+    "feature": "Función",
+    "included": "Incluido",
+    "notIncluded": "No incluido",
+    "rows": {
+      "properties": "Propiedades",
+      "contracts": "Contratos al mes",
+      "managers": "Administradores"
+    }
+  },
+  "faq": {
+    "title": "Preguntas sobre los planes",
+    "items": [
+      {
+        "q": "¿Necesito tarjeta para el plan Gratis?",
+        "a": "No. Solo tu correo electrónico."
+      },
+      {
+        "q": "¿Qué pasa si paso del límite?",
+        "a": "Te avisamos y puedes cambiar de plan en un clic. Tus datos no se borran."
+      },
+      {
+        "q": "¿Puedo cambiar o cancelar?",
+        "a": "Sí, cuando quieras desde Facturación. Al cancelar mantienes el acceso hasta el final del período pagado."
+      },
+      {
+        "q": "¿Cómo se cobra?",
+        "a": "Con tarjeta a través de Stripe. No guardamos los números de tu tarjeta."
+      }
+    ]
+  },
+  "back": "Volver al inicio"
 }
