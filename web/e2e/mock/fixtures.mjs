@@ -85,6 +85,45 @@ const payment = (n, back, amount, method, reference = null) => ({
   receipt_sent_at: ts(-30 * back), voided_at: null, void_reason: null, created_at: ts(-30 * back),
 });
 
+// ── Plan 36: maintenance requests and inspections on lease 1 ──
+const P36_REQ = (n) => `c0000000-0000-4000-8000-00000000000${n}`;
+const P36_INSP = (n) => `d0000000-0000-4000-8000-00000000000${n}`;
+const p36Request = (n, extra) => ({
+  id: P36_REQ(n), contract_id: C1, property_id: P1.id, owner_id: USER.id, submitted_by: null, submitted_by_kind: "tenant",
+  title: "", description: null, category: "plumbing", urgency: "normal", status: "open", vendor_name: null, vendor_phone: null,
+  scheduled_for: null, resolved_at: null, cost: null, expense_id: null, created_at: ts(-2), updated_at: ts(-2), ...extra,
+});
+const p36Items = (inspection, kind) => {
+  const rooms = { living: ["walls", "floors", "doors", "windows"], kitchen: ["walls", "floors", "stove", "fridge", "sink"], bathroom_1: ["walls", "toilet", "basin", "shower"] };
+  const out = [];
+  for (const [room, items] of Object.entries(rooms)) {
+    for (const item of items) {
+      const n = out.length;
+      const condition = kind === "move_in" ? (n === 6 ? "fair" : "good") : n < 3 ? (n === 1 ? "damaged" : "good") : null;
+      out.push({ id: `e000000${kind === "move_in" ? 1 : 2}-0000-4000-8000-0000000000${String(n).padStart(2, "0")}`, inspection_id: inspection, owner_id: USER.id, room, item, condition, note: n === 1 && kind === "move_out" ? "Rayazo profundo cerca de la puerta" : null, sort: n });
+    }
+  }
+  return out;
+};
+const P36 = {
+  maintenance_requests: [
+    p36Request(1, { title: "Gotera debajo del fregadero", description: "Sale agua cada vez que se usa el fregadero. Ya puse un cubo.", urgency: "urgent", created_at: ts(-1), updated_at: ts(-1) }),
+    p36Request(2, { title: "El aire del cuarto no enfría", category: "ac", status: "scheduled", vendor_name: "Frío Boricua", vendor_phone: "+17875550199", scheduled_for: iso(2), created_at: ts(-5) }),
+    p36Request(3, { title: "Cambiar bombilla del pasillo", category: "electrical", urgency: "low", status: "resolved", submitted_by_kind: "landlord", cost: 18.5, resolved_at: ts(-20), created_at: ts(-25) }),
+  ],
+  maintenance_updates: [
+    { id: "c1000000-0000-4000-8000-000000000001", request_id: P36_REQ(1), owner_id: USER.id, author_kind: "tenant", note: null, status_change: "open", created_at: ts(-1) },
+    { id: "c1000000-0000-4000-8000-000000000002", request_id: P36_REQ(1), owner_id: USER.id, author_kind: "tenant", note: "Hoy está peor, por favor.", status_change: null, created_at: ts(-0.5) },
+  ],
+  maintenance_photos: [],
+  inspections: [
+    { id: P36_INSP(1), contract_id: C1, owner_id: USER.id, kind: "move_in", status: "completed", inspected_on: iso(-300), notes: "Se entregaron 2 llaves y 1 control del portón.", landlord_signed_at: ts(-300), tenant_acknowledged_at: ts(-299), tenant_ack_name: "José Martínez", tenant_ack_ip: null, created_at: ts(-300), updated_at: ts(-299) },
+    { id: P36_INSP(2), contract_id: C1, owner_id: USER.id, kind: "move_out", status: "draft", inspected_on: iso(0), notes: null, landlord_signed_at: null, tenant_acknowledged_at: null, tenant_ack_name: null, tenant_ack_ip: null, created_at: ts(-0.2), updated_at: ts(-0.2) },
+  ],
+  inspection_items: [...p36Items(P36_INSP(1), "move_in"), ...p36Items(P36_INSP(2), "move_out")],
+  inspection_photos: [],
+};
+
 export const TABLES = {
   rent_ledgers: [{ contract_id: C1, owner_id: USER.id, started_on: monthStart(2), late_fees: true, created_at: ts(-70) }],
   rent_charges: [
@@ -124,4 +163,5 @@ export const TABLES = {
   ],
   contract_custom_sections: [],
   subscriptions: [{ id: "70000000-0000-4000-8000-000000000001", owner_id: USER.id, plan: "propietario", status: "active", stripe_customer_id: "cus_demo", stripe_subscription_id: "sub_demo", current_period_end: ts(20), created_at: ts(-60), updated_at: ts(-1) }],
+  ...P36,
 };

@@ -12,6 +12,8 @@ import type { Payment, RentCharge } from "@/lib/db";
 import { summarize, type LedgerSummary } from "@/lib/rent/schedule";
 import { todayPR } from "@/lib/rent/service";
 import { receiptNumber } from "@/lib/rent/receipt";
+import type { Inspection, MaintenanceRequest, MaintenanceUpdate } from "@/lib/db";
+import { PortalLeaseExtras, type PortalInspection, type PortalRequest } from "@/components/maintenance/PortalMaintenance";
 
 interface PortalContract {
   id: string;
@@ -82,6 +84,30 @@ export default async function PortalPage() {
       });
     }
   }
+  // Repair requests and completed inspections for these leases (Plan 36).
+  const requestsByLease = new Map<string, PortalRequest[]>();
+  const inspectionsByLease = new Map<string, PortalInspection[]>();
+  if (ids.length > 0) {
+    const [{ data: reqs }, { data: insps }] = await Promise.all([
+      admin.from("maintenance_requests").select("id, contract_id, title, status, category, scheduled_for, created_at").in("contract_id", ids).order("created_at", { ascending: false }),
+      admin.from("inspections").select("id, contract_id, kind, inspected_on, tenant_acknowledged_at").in("contract_id", ids).eq("status", "completed").order("inspected_on"),
+    ]);
+    const reqIds = (reqs ?? []).map((r) => r.id);
+    const { data: updates } = reqIds.length
+      ? await admin.from("maintenance_updates").select("id, request_id, author_kind, note, status_change, created_at").in("request_id", reqIds).order("created_at")
+      : { data: [] };
+    for (const r of (reqs ?? []) as (MaintenanceRequest & { contract_id: string })[]) {
+      const list = requestsByLease.get(r.contract_id) ?? [];
+      list.push({ ...r, updates: ((updates ?? []) as MaintenanceUpdate[]).filter((u) => u.request_id === r.id) });
+      requestsByLease.set(r.contract_id, list);
+    }
+    for (const i of (insps ?? []) as Inspection[]) {
+      const list = inspectionsByLease.get(i.contract_id) ?? [];
+      list.push({ id: i.id, kind: i.kind, inspected_on: i.inspected_on, acknowledged: !!i.tenant_acknowledged_at });
+      inspectionsByLease.set(i.contract_id, list);
+    }
+  }
+
   const money = (n: number) => f.number(n, { style: "currency", currency: "USD", maximumFractionDigits: Number.isInteger(n) ? 0 : 2 });
 
   const day = (d: string | null) => (d ? f.dateTime(new Date(`${d.slice(0, 10)}T12:00:00`), { dateStyle: "medium" }) : "—");
@@ -142,6 +168,13 @@ export default async function PortalPage() {
                   </dl>
 
                   {ledgers.has(c.id) && <TenantLedger data={ledgers.get(c.id)!} money={money} day={day} t={t} />}
+
+                  <PortalLeaseExtras
+                    contractId={c.id}
+                    canRequest={c.status === "signed"}
+                    requests={requestsByLease.get(c.id) ?? []}
+                    inspections={inspectionsByLease.get(c.id) ?? []}
+                  />
 
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
                     {pending ? (

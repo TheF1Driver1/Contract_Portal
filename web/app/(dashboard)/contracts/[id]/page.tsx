@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { ArrowLeft, Bell, Building2, Calendar, FileText, PenLine, Users, Wallet } from "lucide-react";
+import { ArrowLeft, Bell, Building2, Calendar, ClipboardCheck, FileText, PenLine, Users, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import { daysUntil } from "@/lib/utils";
 import type { Contract, ContractNotificationLog, ContractOccupant } from "@/lib/types";
@@ -15,6 +15,8 @@ import ContractSignatures from "./ContractSignatures";
 import { SignersPanel } from "@/components/contracts/SignersPanel";
 import { LedgerPanel } from "@/components/rent/LedgerPanel";
 import { loadLedger, todayPR } from "@/lib/rent/service";
+import { InspectionsSection } from "@/components/inspections/InspectionsSection";
+import type { InspectionSummary } from "@/components/inspections/types";
 
 const AMENITY_KEYS = [
   "ac",
@@ -40,6 +42,7 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
   const t = await getTranslations("contracts.detail");
   const tr = await getTranslations("contracts.renewal");
   const tRent = await getTranslations("rent");
+  const tInsp = await getTranslations("inspections");
   const f = await getFormatter();
   const supabase = await createClient();
   const {
@@ -68,7 +71,18 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
 
   if (error || !contract) notFound();
   const today = todayPR();
-  const ledger = await loadLedger(supabase, params.id, today);
+  const [ledger, { data: inspRows }] = await Promise.all([
+    loadLedger(supabase, params.id, today),
+    supabase.from("inspections").select("id, kind, status, inspected_on, tenant_acknowledged_at").eq("contract_id", params.id).order("created_at"),
+  ]);
+  const inspIds = (inspRows ?? []).map((i) => i.id);
+  const { data: inspItems } = inspIds.length
+    ? await supabase.from("inspection_items").select("inspection_id, condition").in("inspection_id", inspIds)
+    : { data: [] };
+  const inspections: InspectionSummary[] = (inspRows ?? []).map((i) => {
+    const items = (inspItems ?? []).filter((it) => it.inspection_id === i.id);
+    return { ...i, rated: items.filter((it) => it.condition).length, total: items.length };
+  });
 
   const c = contract as Contract;
   const daysLeft = daysUntil(c.lease_end);
@@ -234,6 +248,12 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
               }}
               {...ledger}
             />
+          </Section>
+
+          {/* Move-in / move-out inspections */}
+          <Section icon={<ClipboardCheck />} title={tInsp("section")}>
+            <p className="-mt-2 mb-4 text-sm text-muted-foreground">{tInsp("description")}</p>
+            <InspectionsSection contractId={c.id} inspections={inspections} canCreate={c.status !== "draft" && c.status !== "cancelled"} />
           </Section>
 
           {/* Documents */}
