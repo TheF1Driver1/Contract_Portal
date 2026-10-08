@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
 import { FieldGroup } from "@/components/properties/PropertyFormSheet";
 import { createTenant, updateTenant } from "@/lib/actions/records";
+import { ConsentFields, useTenantConsent } from "@/components/messaging/ConsentFields";
 import type { Tenant } from "@/lib/types";
 
 type Address = { street: string; unit: string; city: string; state: string; zip: string; country: string };
@@ -185,6 +186,7 @@ export function TenantFormSheet({
   const [prev, setPrev] = useState<Address>(initial?.prev ?? EMPTY_ADDR);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const consent = useTenantConsent(tenant?.id, open);
 
   function update<K extends keyof FormState>(field: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -233,11 +235,14 @@ export function TenantFormSheet({
       toast.error(result.error);
       return;
     }
+    const consentError = await consent.save(tenant?.id ?? result.id);
+    if (consentError) toast.error(consentError);
     toast.success(editing ? t("updated") : t("created"));
     if (!editing) {
       setForm(EMPTY_FORM);
       setCur(EMPTY_ADDR);
       setPrev(EMPTY_ADDR);
+      consent.reset();
     }
     onOpenChange(false);
     router.refresh();
@@ -358,6 +363,13 @@ export function TenantFormSheet({
             <p className="text-xs text-muted-foreground">{t("preferredLocaleHint")}</p>
           </div>
         </FieldGroup>
+
+        <ConsentFields
+          hasPhone={!!form.phone.trim()}
+          saved={consent.saved}
+          checked={consent.checked}
+          onChange={consent.setChecked}
+        />
 
         <AddressFields idPrefix={fid("cur")} title={t("currentAddress")} value={cur} onChange={setCur} />
         <AddressFields idPrefix={fid("prev")} title={t("previousAddress")} value={prev} onChange={setPrev} />

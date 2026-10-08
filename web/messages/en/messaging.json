@@ -1,0 +1,67 @@
+{
+  "panel": {
+    "title": "Messages",
+    "empty": "No messages for this lease yet.",
+    "emptyHint": "Rent reminders, receipts and notices will show up here with their delivery status.",
+    "to": "To {address}",
+    "from": "From {address}",
+    "reason": "Reason: {reason}"
+  },
+  "channel": {
+    "email": "Email",
+    "sms": "SMS",
+    "whatsapp": "WhatsApp"
+  },
+  "template": {
+    "rent_reminder": "Rent reminder",
+    "rent_overdue": "Past-due rent notice",
+    "contract_ready_to_sign": "Lease ready to sign",
+    "contract_signed": "Lease signed",
+    "lease_ending": "Lease ending",
+    "receipt": "Payment receipt",
+    "landlord_digest": "Daily summary",
+    "inbound": "Message from tenant",
+    "inbound_stop": "Asked to stop messages (STOP)",
+    "inbound_start": "Turned messages back on (START)",
+    "inbound_help": "Asked for help (HELP)",
+    "other": "Message"
+  },
+  "status": {
+    "queued": "Queued",
+    "sent": "Sent",
+    "delivered": "Delivered",
+    "read": "Read",
+    "failed": "Failed",
+    "skipped": "Not sent",
+    "received": "Received"
+  },
+  "skip": {
+    "no_consent": "no consent for this channel",
+    "invalid_address": "invalid address",
+    "whatsapp_not_configured": "WhatsApp is not set up",
+    "sms_not_configured": "SMS is not set up",
+    "duplicate": "already sent"
+  },
+  "consent": {
+    "title": "WhatsApp and SMS messages",
+    "description": "Check only if the tenant agreed to hear from you this way. Rent reminders use WhatsApp first, then SMS, otherwise email.",
+    "whatsapp": "The tenant agreed to receive WhatsApp messages",
+    "sms": "The tenant agreed to receive text messages (SMS)",
+    "needsPhone": "Add a phone number to record consent.",
+    "recorded": "Recorded on {date} · {source}",
+    "stopped": "Replied STOP on {date}. Only the tenant can turn messages back on by replying START.",
+    "saveFailed": "Could not save the consent",
+    "source": {
+      "lease_signing": "when signing the lease",
+      "portal": "from the portal",
+      "landlord_attested": "confirmed by you",
+      "inbound_stop": "replied STOP",
+      "inbound_start": "replied START"
+    }
+  },
+  "digest": {
+    "title": "Daily summary email",
+    "description": "One morning email, only when there is past-due rent, payments recorded yesterday or pending signatures.",
+    "failed": "Could not save the preference."
+  }
+}

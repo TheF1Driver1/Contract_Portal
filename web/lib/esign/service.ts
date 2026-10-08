@@ -12,6 +12,7 @@ import { emailLayout } from "@/lib/emails/layout";
 import { emailT } from "@/lib/emails/translator";
 import { sendResendEmail, sendTwilioSms } from "@/lib/notify";
 import { getPlan, hasFeature } from "@/lib/entitlements";
+import { sendMessage } from "@/lib/messaging";
 import { agreementHash, hashOtp, hashToken, newOtp, newToken, safeEqualHex, sha256Hex } from "./crypto";
 import { renderCertificate } from "./certificate";
 
@@ -178,23 +179,21 @@ async function notifySigner(admin: Admin, signer: ContractSigner, token: string,
   };
   const channels: string[] = [];
   if (signer.email) {
-    try {
-      await sendResendEmail(
-        signer.email,
-        t("signRequest.subject", vars),
-        emailLayout({
-          lang,
-          heading: t("signRequest.heading"),
-          paragraphs: [t("signRequest.greeting", vars), t("signRequest.body", vars)],
-          cta: { label: t("signRequest.cta"), url },
-          note: t("signRequest.expires", vars),
-          footer: t("footerAuto"),
-        })
-      );
-      channels.push("email");
-    } catch (e) {
-      console.error(JSON.stringify({ level: "error", msg: "sign request email failed", signer: signer.id, err: String(e) }));
-    }
+    // Logged in message_log so the landlord sees delivery and when it was opened.
+    const r = await sendMessage({
+      db: admin,
+      channel: "email",
+      to: signer.email,
+      template: "contract_ready_to_sign",
+      locale: lang,
+      vars,
+      contractId: signer.contract_id,
+      ownerId: signer.owner_id,
+      recipient: { kind: "signer", id: signer.id },
+      idempotencyKey: `sign-request:${signer.id}:${hashToken(token).slice(0, 16)}`,
+    });
+    if (r.status === "sent" || r.skipped === "duplicate") channels.push("email");
+    else console.error(JSON.stringify({ level: "error", msg: "sign request email failed", signer: signer.id, err: r.error ?? r.skipped }));
   }
   if (signer.phone && hasFeature(await getPlan(admin, signer.owner_id), "sms")) {
     try {
@@ -501,27 +500,26 @@ async function seal(admin: Admin, ag: Agreement, signers: ContractSigner[], appU
 
   // Everyone gets the signed copy, each in their language.
   const filename = `contrato-firmado-${c.id.slice(-8).toUpperCase()}.pdf`;
-  const recipients: { email: string; locale: string; landlord: boolean }[] = signers
+  const recipients: { email: string; locale: string; landlord: boolean; id: string }[] = signers
     .filter((s) => s.email)
-    .map((s) => ({ email: s.email!, locale: s.locale, landlord: false }));
+    .map((s) => ({ email: s.email!, locale: s.locale, landlord: false, id: s.id }));
   const owner = await admin.auth.admin.getUserById(c.owner_id);
-  if (owner.data.user?.email) recipients.push({ email: owner.data.user.email, locale: ag.profile?.locale ?? "es", landlord: true });
+  if (owner.data.user?.email) recipients.push({ email: owner.data.user.email, locale: ag.profile?.locale ?? "es", landlord: true, id: c.owner_id });
   for (const r of recipients) {
-    const { lang, t } = emailT(r.locale);
-    const vars = { property: ag.propertyLabel, hash: sealedHash };
-    await sendResendEmail(
-      r.email,
-      t("sealed.subject", vars),
-      emailLayout({
-        lang,
-        heading: t("sealed.heading"),
-        paragraphs: [t("sealed.body", vars)],
-        cta: r.landlord ? { label: t("sealed.cta"), url: `${appUrl}/contracts/${c.id}` } : undefined,
-        note: t("sealed.note", vars),
-        footer: t("footerAuto"),
-      }),
-      [{ filename, content: sealed }]
-    ).catch((e) => console.error(JSON.stringify({ level: "error", msg: "sealed email failed", err: String(e) })));
+    const res = await sendMessage({
+      db: admin,
+      channel: "email",
+      to: r.email,
+      template: "contract_signed",
+      locale: r.locale,
+      vars: { property: ag.propertyLabel, hash: sealedHash, url: r.landlord ? `${appUrl}/contracts/${c.id}` : undefined },
+      contractId: c.id,
+      ownerId: c.owner_id,
+      recipient: { kind: r.landlord ? "landlord" : "signer", id: r.id },
+      idempotencyKey: `sealed:${c.id}:${r.id}`,
+      attachments: [{ filename, content: sealed }],
+    });
+    if (res.status === "failed") console.error(JSON.stringify({ level: "error", msg: "sealed email failed", err: res.error }));
   }
 }
 

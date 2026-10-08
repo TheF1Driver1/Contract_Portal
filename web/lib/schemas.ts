@@ -345,3 +345,11 @@ export const ContactSchema = z.object({
   // Honeypot: real people never see or fill this field.
   website: z.string().max(0).optional().default(""),
 });
+
+// ── Messaging (Plan 34) ───────────────────────────────────────────────────────
+
+export const TenantConsentSchema = z.object({
+  tenant_id: z.string().uuid(),
+  channel: z.enum(["sms", "whatsapp"]),
+  opted_in: z.boolean(),
+});

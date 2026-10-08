@@ -22,7 +22,9 @@ export async function getAlerts(supabase: Client, today = new Date()): Promise<A
   const sentBefore = new Date(today.getTime() - UNSIGNED_AFTER_DAYS * 86_400_000).toISOString();
   const failedSince = new Date(today.getTime() - 14 * 86_400_000).toISOString();
 
-  const [expiring, unsigned, failed] = await Promise.all([
+  const messagesSince = new Date(today.getTime() - 7 * 86_400_000).toISOString();
+
+  const [expiring, unsigned, failed, failedMessages] = await Promise.all([
     supabase
       .from("contracts")
       .select("id, lease_end, property:properties(name), tenant:tenants(full_name)")
@@ -45,6 +47,16 @@ export async function getAlerts(supabase: Client, today = new Date()): Promise<A
       .gte("sent_at", failedSince)
       .order("sent_at", { ascending: false })
       .limit(10),
+    // Failed deliveries from the message log (Plan 34).
+    supabase
+      .from("message_log")
+      .select("contract_id, channel, created_at")
+      .eq("status", "failed")
+      .eq("direction", "outbound")
+      .not("contract_id", "is", null)
+      .gte("created_at", messagesSince)
+      .order("created_at", { ascending: false })
+      .limit(10),
   ]);
 
   const alerts: Alert[] = [];
@@ -57,6 +69,9 @@ export async function getAlerts(supabase: Client, today = new Date()): Promise<A
   }
   for (const f of failed.data ?? []) {
     alerts.push({ kind: "failed", contractId: f.contract_id, title: "", channel: f.channel });
+  }
+  for (const f of failedMessages.data ?? []) {
+    if (f.contract_id) alerts.push({ kind: "failed", contractId: f.contract_id, title: "", channel: f.channel });
   }
   return alerts;
 }

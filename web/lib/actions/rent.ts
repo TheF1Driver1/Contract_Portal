@@ -104,7 +104,7 @@ export async function resendReceipt(paymentId: string): Promise<RentActionResult
   const r = await receiptFor(supabase, paymentId);
   if (!r) return { ok: false, error: "Pago no encontrado." };
   try {
-    await emailReceipt(r);
+    await emailReceipt(r, { resend: true });
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }

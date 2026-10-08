@@ -1,0 +1,67 @@
+{
+  "panel": {
+    "title": "Mensajes",
+    "empty": "Aún no hay mensajes de este contrato.",
+    "emptyHint": "Los recordatorios de renta, recibos y avisos aparecerán aquí con su estado de entrega.",
+    "to": "Para {address}",
+    "from": "De {address}",
+    "reason": "Motivo: {reason}"
+  },
+  "channel": {
+    "email": "Correo",
+    "sms": "SMS",
+    "whatsapp": "WhatsApp"
+  },
+  "template": {
+    "rent_reminder": "Recordatorio de renta",
+    "rent_overdue": "Aviso de renta vencida",
+    "contract_ready_to_sign": "Contrato para firmar",
+    "contract_signed": "Contrato firmado",
+    "lease_ending": "Vencimiento del contrato",
+    "receipt": "Recibo de pago",
+    "landlord_digest": "Resumen diario",
+    "inbound": "Mensaje del inquilino",
+    "inbound_stop": "Pidió no recibir más mensajes (STOP)",
+    "inbound_start": "Reactivó los mensajes (START)",
+    "inbound_help": "Pidió ayuda (HELP)",
+    "other": "Mensaje"
+  },
+  "status": {
+    "queued": "En cola",
+    "sent": "Enviado",
+    "delivered": "Entregado",
+    "read": "Leído",
+    "failed": "Falló",
+    "skipped": "No enviado",
+    "received": "Recibido"
+  },
+  "skip": {
+    "no_consent": "sin consentimiento para este medio",
+    "invalid_address": "dirección inválida",
+    "whatsapp_not_configured": "WhatsApp no está configurado",
+    "sms_not_configured": "SMS no está configurado",
+    "duplicate": "ya se había enviado"
+  },
+  "consent": {
+    "title": "Mensajes por WhatsApp y SMS",
+    "description": "Marca solo si el inquilino te autorizó a escribirle por estos medios. Los recordatorios de renta usan WhatsApp primero, luego SMS y, si no, correo electrónico.",
+    "whatsapp": "El inquilino aceptó recibir mensajes por WhatsApp",
+    "sms": "El inquilino aceptó recibir mensajes de texto (SMS)",
+    "needsPhone": "Añade un teléfono para registrar el consentimiento.",
+    "recorded": "Registrado el {date} · {source}",
+    "stopped": "Respondió STOP el {date}. Solo el inquilino puede reactivarlo respondiendo START.",
+    "saveFailed": "No se pudo guardar el consentimiento",
+    "source": {
+      "lease_signing": "al firmar el contrato",
+      "portal": "desde el portal",
+      "landlord_attested": "confirmado por ti",
+      "inbound_stop": "respondió STOP",
+      "inbound_start": "respondió START"
+    }
+  },
+  "digest": {
+    "title": "Resumen diario por correo",
+    "description": "Un correo por la mañana solo cuando hay rentas vencidas, pagos registrados ayer o firmas pendientes.",
+    "failed": "No se pudo guardar la preferencia."
+  }
+}

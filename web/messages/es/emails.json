@@ -114,5 +114,38 @@
       "transfer": "Transferencia bancaria",
       "other": "Otro"
     }
+  },
+  "rentReminder": {
+    "subject": "Tu renta de {amount} vence el {date}",
+    "heading": "Recordatorio de renta",
+    "body": "Hola {name}: te recordamos que la renta de {property} ({amount}) vence el {date}.",
+    "how": "Paga a {landlord} por el método de siempre. Si ya pagaste, puedes ignorar este mensaje.",
+    "footer": "Enviado con ContractOS por tu arrendador.",
+    "sms": "ContractOS: Hola {name}, tu renta de {amount} para {property} vence el {date}. Si ya pagaste, ignora este mensaje."
+  },
+  "rentOverdue": {
+    "subject": "Renta pendiente: {property}",
+    "heading": "Tienes un balance vencido",
+    "body": "Hola {name}: la renta de {property} que venció el {date} sigue pendiente. Balance vencido: {amount}.",
+    "how": "Comunícate con {landlord} si ya pagaste o si necesitas coordinar el pago.",
+    "footer": "Enviado con ContractOS por tu arrendador.",
+    "sms": "ContractOS: Hola {name}, la renta de {property} que venció el {date} sigue pendiente ({amount}). Comunícate con {landlord}."
+  },
+  "digest": {
+    "subject": "Tu resumen de ContractOS: {count, plural, one {# asunto} other {# asuntos}}",
+    "heading": "Tu resumen diario",
+    "intro": "Esto requiere tu atención hoy:",
+    "overdue": "Rentas vencidas ({count})",
+    "payments": "Pagos registrados ayer ({count})",
+    "pending": "Firmas pendientes ({count})",
+    "line": "• {who}: {amount}",
+    "pendingLine": "• {who}",
+    "cta": "Abrir ContractOS",
+    "footer": "Recibes este resumen porque lo tienes activado en Ajustes › Recordatorios."
+  },
+  "inbound": {
+    "help": "ContractOS: mensajes de tu arrendador sobre tu contrato. Responde STOP para cancelar o START para reactivarlos.",
+    "stopped": "ContractOS: no recibirás más mensajes por este medio. Responde START para reactivarlos.",
+    "started": "ContractOS: volverás a recibir mensajes de tu arrendador. Responde STOP para cancelar."
   }
 }
