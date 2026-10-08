@@ -121,6 +121,33 @@
     "contact": "Contact",
     "terms": "Terms",
     "privacy": "Privacy",
-    "rights": "© {year} ContractOS. All rights reserved."
+    "rights": "© {year} ContractOS. All rights reserved.",
+    "contactForm": "Contact form"
+  },
+  "contact": {
+    "metaTitle": "Enterprise contact | ContractOS",
+    "title": "Let's talk about your portfolio",
+    "subtitle": "For property managers and owners with many units: volume pricing, multiple managers and assisted import.",
+    "points": [
+      "Pricing based on unit count",
+      "Unlimited managers and permissions",
+      "We help you import properties, tenants and leases",
+      "Support in Spanish and English"
+    ],
+    "direct": "Prefer to email us directly?",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "company": "Company (optional)",
+      "units": "Number of units (optional)",
+      "message": "How can we help?",
+      "messagePlaceholder": "Tell us how many properties you manage and what you need.",
+      "submit": "Send",
+      "sending": "Sending…",
+      "sentTitle": "Thanks! We got your message.",
+      "sentBody": "We'll reply by email within one business day.",
+      "error": "We couldn't send your message. Try again or email hola@prcontract.online.",
+      "invalid": "Check the fields: name, a valid email and a message of at least 10 characters."
+    }
   }
 }

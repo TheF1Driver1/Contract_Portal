@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
   const isPortalPage = pathname.startsWith("/portal");
   const isPricingPage = pathname === "/pricing" || pathname === "/en/pricing" || pathname === "/en";
   const isSeoFile = ["/sitemap.xml", "/robots.txt", "/opengraph-image"].includes(pathname);
-  const isLegalPage = ["/terminos", "/privacidad", "/en/terms", "/en/privacy", "/unsubscribe"].includes(pathname);
+  const isLegalPage = ["/terminos", "/privacidad", "/en/terms", "/en/privacy", "/unsubscribe", "/contacto", "/en/contact"].includes(pathname);
   const isResetPassword = pathname.startsWith("/reset-password");
 
   // Public routes — no auth required

@@ -96,5 +96,12 @@
         "body": "Mira lo que incluye y administra tu facturación."
       }
     }
-  }
+  },
+  "interval": {
+    "label": "Frecuencia de pago",
+    "month": "Mensual",
+    "year": "Anual",
+    "billedYearly": "Pago anual"
+  },
+  "trial": "Los planes de pago incluyen {days} días de prueba gratis. Puedes cancelar antes de que termine y no se te cobrará."
 }

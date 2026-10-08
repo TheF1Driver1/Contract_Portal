@@ -1,7 +1,7 @@
 import { trackEvent } from "@/lib/analytics";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase-server";
-import { getStripe, PAID_PLAN_PRICES } from "@/lib/stripe";
+import { getStripe, priceFor, trialDays } from "@/lib/stripe";
 import { rateLimitWrite } from "@/lib/rate-limit";
 
 // GET has no side effects: link prefetching used to create a Checkout Session per view.
@@ -13,7 +13,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const form = await req.formData().catch(() => null);
   const plan = String(form?.get("plan") ?? req.nextUrl.searchParams.get("plan") ?? "");
-  const priceId = PAID_PLAN_PRICES[plan as keyof typeof PAID_PLAN_PRICES];
+  const interval = String(form?.get("interval") ?? req.nextUrl.searchParams.get("interval") ?? "month") === "year" ? "year" : "month";
+  const priceId = priceFor(plan, interval);
   if (!priceId) {
     return NextResponse.redirect(new URL("/pricing", req.url), 303);
   }
@@ -34,9 +35,12 @@ export async function POST(req: NextRequest) {
   const admin = createAdminClient();
   const { data: existing } = await admin
     .from("subscriptions")
-    .select("stripe_customer_id")
+    .select("stripe_customer_id, stripe_subscription_id")
     .eq("owner_id", user.id)
     .maybeSingle();
+
+  // Trials only on a first subscription, never after a cancellation.
+  const trial = existing?.stripe_subscription_id ? 0 : trialDays();
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
@@ -49,9 +53,9 @@ export async function POST(req: NextRequest) {
     client_reference_id: user.id,
     allow_promotion_codes: true,
     metadata: { owner_id: user.id },
-    subscription_data: { metadata: { owner_id: user.id } },
+    subscription_data: { metadata: { owner_id: user.id }, ...(trial ? { trial_period_days: trial } : {}) },
   });
 
-  await trackEvent("checkout_started", { plan });
+  await trackEvent("checkout_started", { plan, interval, trial: trial > 0 });
   return NextResponse.redirect(session.url!, 303);
 }

@@ -96,5 +96,12 @@
         "body": "See what's included and manage billing."
       }
     }
-  }
+  },
+  "interval": {
+    "label": "Billing frequency",
+    "month": "Monthly",
+    "year": "Yearly",
+    "billedYearly": "Billed yearly"
+  },
+  "trial": "Paid plans include a {days}-day free trial. Cancel before it ends and you won't be charged."
 }

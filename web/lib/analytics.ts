@@ -12,7 +12,8 @@ export type FunnelEvent =
   | "checkout_started"
   | "subscribed"
   | "ledger_enabled"
-  | "payment_recorded";
+  | "payment_recorded"
+  | "contact_submitted";
 
 export async function trackEvent(event: FunnelEvent, props?: Record<string, string | number | boolean | null>) {
   try {

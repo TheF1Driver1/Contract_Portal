@@ -11,6 +11,30 @@ export const PAID_PLAN_PRICES: Partial<Record<SubscriptionPlan, string | undefin
   inversionista: process.env.STRIPE_PRICE_INVERSIONISTA,
 };
 
+const YEARLY_PRICES: Partial<Record<SubscriptionPlan, string | undefined>> = {
+  propietario: process.env.STRIPE_PRICE_PROPIETARIO_YEARLY,
+  inversionista: process.env.STRIPE_PRICE_INVERSIONISTA_YEARLY,
+};
+
+export type BillingInterval = "month" | "year";
+
+/** Stripe price for a plan; yearly falls back to monthly when not configured. */
+export function priceFor(plan: string, interval: BillingInterval): string | undefined {
+  const p = plan as SubscriptionPlan;
+  return (interval === "year" ? YEARLY_PRICES[p] : undefined) || PAID_PLAN_PRICES[p] || undefined;
+}
+
+/** What checkout can offer, for the billing page. */
+export function billingOptions(): { yearly: boolean; trialDays: number } {
+  return { yearly: Object.values(YEARLY_PRICES).some(Boolean), trialDays: trialDays() };
+}
+
+/** Free trial on a first paid subscription (STRIPE_TRIAL_DAYS, 0 = none). */
+export function trialDays(): number {
+  const n = Number.parseInt(process.env.STRIPE_TRIAL_DAYS ?? "0", 10);
+  return Number.isFinite(n) && n > 0 && n <= 60 ? n : 0;
+}
+
 export function planForPrice(priceId: string): SubscriptionPlan {
   const map: Record<string, SubscriptionPlan> = {};
   if (process.env.STRIPE_PRICE_PROPIETARIO) map[process.env.STRIPE_PRICE_PROPIETARIO] = "propietario";

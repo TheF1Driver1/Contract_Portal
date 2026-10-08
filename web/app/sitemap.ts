@@ -4,6 +4,7 @@ import { SITE_URL } from "@/lib/seo";
 const PAGES: { es: string; en: string; priority: number }[] = [
   { es: "/", en: "/en", priority: 1 },
   { es: "/pricing", en: "/en/pricing", priority: 0.8 },
+  { es: "/contacto", en: "/en/contact", priority: 0.5 },
   { es: "/terminos", en: "/en/terms", priority: 0.3 },
   { es: "/privacidad", en: "/en/privacy", priority: 0.3 },
 ];

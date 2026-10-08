@@ -121,6 +121,33 @@
     "contact": "Contacto",
     "terms": "Términos",
     "privacy": "Privacidad",
-    "rights": "© {year} ContractOS. Todos los derechos reservados."
+    "rights": "© {year} ContractOS. Todos los derechos reservados.",
+    "contactForm": "Formulario de contacto"
+  },
+  "contact": {
+    "metaTitle": "Contacto Enterprise | ContractOS",
+    "title": "Hablemos de tu cartera",
+    "subtitle": "Para administradoras y propietarios con muchas unidades: precios por volumen, varios administradores e importación asistida.",
+    "points": [
+      "Precio según la cantidad de unidades",
+      "Administradores y permisos ilimitados",
+      "Te ayudamos a importar propiedades, inquilinos y contratos",
+      "Atención en español"
+    ],
+    "direct": "¿Prefieres escribirnos directamente?",
+    "form": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "company": "Empresa (opcional)",
+      "units": "Cantidad de unidades (opcional)",
+      "message": "¿En qué te podemos ayudar?",
+      "messagePlaceholder": "Cuéntanos cuántas propiedades manejas y qué necesitas.",
+      "submit": "Enviar",
+      "sending": "Enviando…",
+      "sentTitle": "¡Gracias! Recibimos tu mensaje.",
+      "sentBody": "Te contestamos por correo en un día laborable.",
+      "error": "No pudimos enviar tu mensaje. Inténtalo de nuevo o escríbenos a hola@prcontract.online.",
+      "invalid": "Revisa los campos: nombre, un correo válido y un mensaje de al menos 10 caracteres."
+    }
   }
 }

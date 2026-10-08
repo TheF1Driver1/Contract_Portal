@@ -332,3 +332,16 @@ export const VoidSchema = z.object({
   id: z.string().uuid(),
   reason: z.string().trim().min(1).max(300),
 });
+
+// ── Marketing contact form (Plan 37) ──────────────────────────────────────────
+
+export const ContactSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  email: z.string().trim().email().max(200),
+  company: z.string().trim().max(160).optional().default(""),
+  units: z.coerce.number().int().min(0).max(100000).optional(),
+  message: z.string().trim().min(10).max(3000),
+  locale: z.enum(["es", "en"]).default("es"),
+  // Honeypot: real people never see or fill this field.
+  website: z.string().max(0).optional().default(""),
+});

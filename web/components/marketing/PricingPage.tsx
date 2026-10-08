@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Check, Minus } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -31,12 +32,12 @@ export async function PricingPage({ locale, signedIn }: { locale: Locale; signed
             <h2 className="font-semibold">{t("plans.enterprise.name")}</h2>
             <p className="text-sm text-muted-foreground">{t("plans.enterprise.description")}</p>
           </div>
-          <a
-            href="mailto:hola@prcontract.online"
+          <Link
+            href={locale === "es" ? "/contacto" : "/en/contact"}
             className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-4 text-sm font-medium hover:bg-surface-hover"
           >
             {t("plans.enterprise.cta")}
-          </a>
+          </Link>
         </div>
 
         <section className="mt-16" aria-labelledby="compare-title">

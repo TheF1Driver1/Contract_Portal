@@ -40,6 +40,8 @@ export default function BillingPage() {
   const [plan, setPlan] = useState<SubscriptionPlan>("free");
   const [propertyCount, setPropertyCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [options, setOptions] = useState<{ yearly: boolean; trialDays: number }>({ yearly: false, trialDays: 0 });
+  const [interval, setBillingInterval] = useState<"month" | "year">("month");
   const requestedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,6 +60,10 @@ export default function BillingPage() {
       setLoading(false);
     }
     load();
+    fetch("/api/billing/options")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((o) => o && setOptions(o))
+      .catch(() => {});
   }, []);
 
   // Arriving from /pricing with ?plan=: bring that plan's card into view.
@@ -150,7 +156,31 @@ export default function BillingPage() {
 
       {/* Plan comparison */}
       <section aria-labelledby="compare-title" className="space-y-4">
-        <h3 id="compare-title" className="text-base font-semibold text-foreground">{t("compareTitle")}</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 id="compare-title" className="text-base font-semibold text-foreground">{t("compareTitle")}</h3>
+          {options.yearly && (
+            <div role="radiogroup" aria-label={t("interval.label")} className="inline-flex rounded-lg border bg-surface-muted p-0.5">
+              {(["month", "year"] as const).map((i) => (
+                <button
+                  key={i}
+                  type="button"
+                  role="radio"
+                  aria-checked={interval === i}
+                  onClick={() => setBillingInterval(i)}
+                  className={cn(
+                    "h-8 rounded-md px-3 text-sm font-medium transition-colors",
+                    interval === i ? "bg-surface text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {t(`interval.${i}`)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {plan === "free" && options.trialDays > 0 && (
+          <p className="text-sm text-muted-foreground">{t("trial", { days: options.trialDays })}</p>
+        )}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {PLANS.map((p) => {
             const isCurrent = p === plan;
@@ -173,7 +203,9 @@ export default function BillingPage() {
                       {isCurrent && <Badge className="bg-primary-soft text-primary-soft-foreground">{t("yourPlan")}</Badge>}
                       {isRequested && <Badge variant="outline">{t("selected")}</Badge>}
                     </div>
-                    <p className="text-lg font-semibold text-foreground tabular">{t(`plans.${p}.price`)}</p>
+                    <p className="text-lg font-semibold text-foreground tabular">
+                      {interval === "year" && CHECKOUT_PLANS.includes(p) ? t("interval.billedYearly") : t(`plans.${p}.price`)}
+                    </p>
                     <CardDescription>{t(`plans.${p}.description`)}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 px-4 md:px-5">
@@ -190,6 +222,7 @@ export default function BillingPage() {
                     <CardFooter className="px-4 md:px-5">
                       <form action="/api/billing/checkout" method="post" className="w-full">
                         <input type="hidden" name="plan" value={p} />
+                        <input type="hidden" name="interval" value={interval} />
                         <Button
                           type="submit"
                           className="h-10 w-full sm:h-9"
@@ -204,7 +237,7 @@ export default function BillingPage() {
                   {p === "enterprise" && !isCurrent && (
                     <CardFooter className="px-4 md:px-5">
                       <Button asChild variant="outline" className="h-10 w-full sm:h-9">
-                        <Link href="/pricing">{t("enterpriseCta")}</Link>
+                        <Link href="/contacto">{t("enterpriseCta")}</Link>
                       </Button>
                     </CardFooter>
                   )}

@@ -66,7 +66,9 @@ New or changed on this branch. `web/.env.example` has the full list.
 | `NEXT_PUBLIC_APP_URL` | Links in emails and SMS, signing links, sitemap | Example: `https://prcontract.online` |
 | `CRON_SECRET` | `/api/cron/notify`, `/api/cron/lifecycle` | Both routes fail closed when it is unset |
 | `UNSUBSCRIBE_SECRET` | Unsubscribe links in onboarding emails | Falls back to `CRON_SECRET`. Set it separately so `CRON_SECRET` can be rotated without breaking old links |
-| `STRIPE_PRICE_ENTERPRISE`, `STRIPE_PRICE_PROPIETARIO_YEARLY`, `STRIPE_PRICE_INVERSIONISTA_YEARLY` | Pricing page and checkout | Create these prices in Stripe first |
+| `STRIPE_PRICE_ENTERPRISE`, `STRIPE_PRICE_PROPIETARIO_YEARLY`, `STRIPE_PRICE_INVERSIONISTA_YEARLY` | Pricing page and checkout | Create these prices in Stripe first. The monthly/yearly toggle in Settings › Billing only appears once a yearly price is set. Also set the `yearly` amounts in `web/lib/pricing.ts` so the public pricing page shows them |
+| `STRIPE_TRIAL_DAYS` | Free trial on a first paid subscription | `0` or unset means no trial; the maximum is 60. Accounts that had a subscription before never get a trial |
+| `CONTACT_EMAIL` | Enterprise contact form (`/contacto`) | Defaults to `hola@prcontract.online` |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Rate limiting | Without them the limiter is in-memory and per-instance only |
 | `FROM_EMAIL` | All email | Must be on a domain verified in Resend (SPF, DKIM, DMARC) |
 
@@ -84,13 +86,13 @@ the cron count allowed on the current plan in Vercel → Settings → Cron Jobs.
 
 ## 5. Smoke test in production (about 15 minutes)
 
-- [ ] `/`, `/pricing`, `/en`, `/terminos` and `/privacidad` load. `/sitemap.xml` and `/robots.txt` respond.
+- [ ] `/`, `/pricing`, `/en`, `/terminos`, `/privacidad` and `/contacto` load. Send one test inquiry from `/contacto` and confirm it arrives. `/sitemap.xml` and `/robots.txt` respond.
 - [ ] Sign up a new landlord with the consent box checked. The welcome email arrives the next day at 10:00 AST; you can also trigger it right away with `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://…/api/cron/lifecycle`.
 - [ ] Use the getting-started checklist: import one property and one tenant from CSV, then create a contract.
 - [ ] On a signed lease, turn on **Renta y pagos**, record an ATH Móvil payment, and confirm that the tenant gets the receipt in their language. The tenant portal should show the balance.
 - [ ] **Request a signature.** Open the link on a phone, give consent, enter the code (SMS or email), sign, then sign as the landlord. The contract becomes `signed`, the sealed PDF downloads, and the certificate shows the SHA-256 hashes.
 - [ ] Try to edit the signed contract. It is blocked; use **Void and reissue**.
-- [ ] Stripe test-mode checkout, then the customer portal. The webhook is recorded once in `stripe_events`.
+- [ ] Stripe test-mode checkout (monthly and, if configured, yearly; with a trial if `STRIPE_TRIAL_DAYS` is set), then the customer portal. The webhook is recorded once in `stripe_events`.
 - [ ] Next morning, `select * from cron_runs order by started_at desc limit 5` shows `ok = true` for both jobs.
 
 ## 6. Rollback

@@ -72,3 +72,21 @@ test("unsubscribe rejects a forged link", async ({ page, request }) => {
   const res = await request.post("/api/unsubscribe?u=00000000-0000-4000-8000-000000000001&s=forged");
   expect(res.status()).toBe(400);
 });
+
+test("enterprise contact page is public and validates input", async ({ page, request }) => {
+  await page.goto("/pricing");
+  await page.getByRole("link", { name: /Contáctanos|Hablemos|Contactar/ }).first().click();
+  await expect(page).toHaveURL(/\/contacto$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByLabel("Correo electrónico")).toBeVisible();
+  await page.goto("/en/contact");
+  await expect(page.getByLabel("Email")).toBeVisible();
+
+  const bad = await request.post("/api/contact", { data: { name: "A", email: "x", message: "hi" } });
+  expect(bad.status()).toBe(400);
+  // A filled honeypot looks like success but sends nothing.
+  const bot = await request.post("/api/contact", {
+    data: { name: "Bot", email: "bot@example.com", message: "Buy cheap things now", website: "http://spam" },
+  });
+  expect(bot.status()).toBe(200);
+});
