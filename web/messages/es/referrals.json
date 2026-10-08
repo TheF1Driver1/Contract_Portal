@@ -1,0 +1,68 @@
+{
+  "card": {
+    "title": "Invita a otro propietario",
+    "description": "Comparte tu enlace. Cuando un propietario se registra con él y paga su primera factura, te regalamos un mes gratis en tu próxima factura.",
+    "linkLabel": "Tu enlace de referido",
+    "copy": "Copiar",
+    "copied": "Enlace copiado",
+    "copyFailed": "No se pudo copiar. Selecciona el enlace y cópialo a mano.",
+    "whatsapp": "Compartir por WhatsApp",
+    "whatsappText": "Yo uso ContractOS para preparar y firmar mis contratos de alquiler en Puerto Rico. Regístrate con mi enlace: {link}",
+    "signedUp": "Registrados",
+    "converted": "Suscritos",
+    "statsLabel": "Tus referidos",
+    "rewardNote": "El mes gratis se aplica a tu próxima factura. No tiene valor en efectivo.",
+    "terms": "Ver reglas del programa",
+    "loadFailed": "No pudimos cargar tu enlace de referido. Intenta de nuevo más tarde."
+  },
+  "partners": {
+    "metaTitle": "Programa de socios",
+    "eyebrow": "Para corredores, administradores y contadores",
+    "title": "Recomienda ContractOS a tus clientes propietarios",
+    "subtitle": "Si trabajas con propietarios en Puerto Rico, únete al programa de socios. Te damos un enlace propio y apoyo para que tus clientes empiecen con buen pie.",
+    "who": {
+      "title": "¿Para quién es?",
+      "items": [
+        "Corredores de bienes raíces que ayudan a clientes a comprar para alquilar.",
+        "Administradores de propiedades que manejan varios contratos al año.",
+        "Contadores (CPA) que preparan las planillas de propietarios."
+      ]
+    },
+    "how": {
+      "title": "Cómo funciona",
+      "steps": [
+        "Envías la solicitud y te contactamos en pocos días laborables.",
+        "Recibes tu enlace y materiales en español e inglés.",
+        "Por cada propietario que se suscribe y paga, ganas un mes gratis en tu plan. Hablemos si necesitas otro arreglo."
+      ]
+    },
+    "fine": "El programa puede cambiar o terminar en cualquier momento. Se excluyen los auto-referidos y el fraude.",
+    "termsLink": "Lee los Términos de servicio",
+    "form": {
+      "title": "Solicita ser socio",
+      "name": "Nombre completo",
+      "email": "Correo electrónico",
+      "phone": "Teléfono (opcional)",
+      "company": "Empresa u oficina (opcional)",
+      "kind": "Tipo de socio",
+      "kinds": {
+        "realtor": "Corredor de bienes raíces",
+        "property_manager": "Administrador de propiedades",
+        "cpa": "Contador / CPA",
+        "other": "Otro"
+      },
+      "clients": "¿Cuántos propietarios atiendes? (opcional)",
+      "message": "Cuéntanos de tu trabajo (opcional)",
+      "messagePlaceholder": "Ej.: Administro 40 unidades en Carolina y Bayamón.",
+      "submit": "Enviar solicitud",
+      "sending": "Enviando…",
+      "sentTitle": "¡Recibimos tu solicitud!",
+      "sentBody": "Te escribiremos pronto al correo que nos diste.",
+      "error": "No se pudo enviar. Intenta de nuevo o escríbenos a hola@prcontract.online.",
+      "invalid": "Revisa los campos: nombre, correo y tipo de socio son requeridos."
+    }
+  },
+  "footer": {
+    "partners": "Programa de socios"
+  }
+}

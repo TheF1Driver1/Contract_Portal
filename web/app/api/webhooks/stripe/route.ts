@@ -7,6 +7,7 @@ import {
   sendSubscriptionCancelledEmail,
 } from "@/lib/emails/subscription";
 import { effectivePlan, getStripe, planForPrice, storedStatus } from "@/lib/stripe";
+import { convertReferral } from "@/lib/referrals/service";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://prcontract.online";
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
@@ -111,6 +112,26 @@ export async function POST(req: NextRequest) {
       await notifyOwner(admin, ownerId, (email) => sendSubscriptionActivatedEmail(email, plan, APP_URL));
     } else if (plan === "free" && existing?.plan && existing.plan !== "free") {
       await notifyOwner(admin, ownerId, (email) => sendSubscriptionCancelledEmail(email, APP_URL));
+    }
+  }
+
+  // Referral conversion (Plan 37): the referred landlord's first invoice that
+  // actually charged money (trials and $0 invoices do not count).
+  if (event.type === "invoice.paid") {
+    const invoice = event.data.object;
+    if (invoice.amount_paid > 0) {
+      const customer = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+      const ownerId = await ownerFor(admin, {
+        customer,
+        metadata: { owner_id: invoice.parent?.subscription_details?.metadata?.owner_id },
+      });
+      if (ownerId) {
+        const result = await convertReferral(admin, ownerId, {
+          stripe,
+          couponId: process.env.STRIPE_REFERRAL_COUPON_ID,
+        });
+        if (result.converted) await trackEvent("referral_converted", { rewarded: result.rewarded });
+      }
     }
   }
 

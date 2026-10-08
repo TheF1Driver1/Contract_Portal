@@ -14,6 +14,8 @@ import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { FormError } from "@/components/auth/FormError";
 import { authErrorKey } from "@/components/auth/auth-errors";
+import { claimReferral } from "@/lib/actions/referrals";
+import { hasReferralCookie } from "@/lib/referrals/code";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
@@ -35,6 +37,8 @@ export default function LoginPage() {
       setError(t(`errors.${authErrorKey(error)}`));
       setLoading(false);
     } else {
+      // First sign-in after confirming the email of a referred signup (Plan 37).
+      if (hasReferralCookie(document.cookie)) await claimReferral().catch(() => null);
       router.push(safeRedirect(new URLSearchParams(window.location.search).get("redirect")));
       router.refresh();
     }

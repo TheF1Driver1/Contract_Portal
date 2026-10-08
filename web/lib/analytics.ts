@@ -13,7 +13,11 @@ export type FunnelEvent =
   | "subscribed"
   | "ledger_enabled"
   | "payment_recorded"
-  | "contact_submitted";
+  | "contact_submitted"
+  // Plan 37: referral and partner loops
+  | "referral_signup"
+  | "referral_converted"
+  | "partner_applied";
 
 export async function trackEvent(event: FunnelEvent, props?: Record<string, string | number | boolean | null>) {
   try {

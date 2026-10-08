@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { claimReferralCookie } from "@/lib/referrals/claim";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -8,8 +9,10 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Email confirmation after signup through a referral link (Plan 37).
+      if (data.user) await claimReferralCookie(data.user).catch(() => false);
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

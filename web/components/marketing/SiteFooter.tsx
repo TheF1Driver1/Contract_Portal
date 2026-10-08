@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/request";
 
 export async function SiteFooter({ locale }: { locale: Locale }) {
   const t = await getTranslations({ locale, namespace: "marketing" });
+  const tr = await getTranslations({ locale, namespace: "referrals.footer" });
   const es = locale === "es";
   return (
     <footer className="border-t bg-surface">
@@ -31,6 +32,7 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
           <p className="text-sm font-semibold">{t("footer.contact")}</p>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li><Link href={es ? "/contacto" : "/en/contact"} className="hover:text-foreground">{t("footer.contactForm")}</Link></li>
+            <li><Link href={es ? "/socios" : "/en/partners"} className="hover:text-foreground">{tr("partners")}</Link></li>
             <li><a href="mailto:hola@prcontract.online" className="hover:text-foreground">hola@prcontract.online</a></li>
             <li>
               <Link href={es ? "/en" : "/"} hrefLang={es ? "en" : "es"} className="hover:text-foreground">

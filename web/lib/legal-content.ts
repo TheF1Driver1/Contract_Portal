@@ -1,5 +1,6 @@
 // Baseline Terms and Privacy text (Plan 26). Pending review by a Puerto Rico
 // attorney before launch; keep ES and EN in step when editing.
+// Section 6 of the Terms (referral program, Plan 37) is new and also pending that review.
 
 export type LegalDoc = {
   title: string;
@@ -14,7 +15,7 @@ const CONTACT = "hola@prcontract.online";
 
 export const TERMS_ES: LegalDoc = {
   title: "Términos de servicio",
-  updated: "Última actualización: 7 de octubre de 2026",
+  updated: "Última actualización: 8 de octubre de 2026",
   intro:
     "Estos términos regulan el uso de ContractOS (prcontract.online y sus aplicaciones). Al crear una cuenta o usar el servicio, aceptas estos términos.",
   altHref: "/en/terms",
@@ -56,31 +57,39 @@ export const TERMS_ES: LegalDoc = {
       ],
     },
     {
-      heading: "6. Uso aceptable",
+      heading: "6. Programa de referidos",
+      body: [
+        "Puedes compartir tu enlace de referido. Si otro propietario crea una cuenta con tu enlace y paga su primera factura de un plan pagado, recibirás un mes gratis de tu plan, aplicado como descuento a tu próxima factura. Si en ese momento no tienes una suscripción activa, o ya tienes otro descuento, aplicaremos la recompensa manualmente cuando sea posible.",
+        "La recompensa no tiene valor en efectivo, no es transferible y no se puede cambiar por dinero. Se excluyen los auto-referidos (incluyendo cuentas duplicadas o de la misma persona o empresa) y cualquier uso fraudulento o abusivo; en esos casos podemos negar o revertir la recompensa.",
+        "Podemos cambiar o terminar el programa en cualquier momento. Los cambios no afectan recompensas ya ganadas.",
+      ],
+    },
+    {
+      heading: "7. Uso aceptable",
       body: [
         "No puedes usar el servicio para actividades ilegales, discriminatorias o fraudulentas, enviar mensajes no solicitados, ni intentar acceder a datos de otros usuarios o vulnerar la seguridad del servicio.",
       ],
     },
     {
-      heading: "7. Tu contenido",
+      heading: "8. Tu contenido",
       body: [
         "Tus datos y documentos son tuyos. Nos das permiso para almacenarlos y procesarlos solo para operar el servicio. Puedes exportarlos o pedir que los borremos.",
       ],
     },
     {
-      heading: "8. Garantías y responsabilidad",
+      heading: "9. Garantías y responsabilidad",
       body: [
         "El servicio se ofrece \"tal cual\". En la medida que la ley lo permita, no garantizamos que esté libre de errores o interrupciones, y nuestra responsabilidad total se limita a lo que nos pagaste en los 12 meses anteriores al reclamo.",
       ],
     },
     {
-      heading: "9. Terminación",
+      heading: "10. Terminación",
       body: [
         "Puedes cerrar tu cuenta en cualquier momento. Podemos suspender cuentas que violen estos términos, con aviso cuando sea razonable.",
       ],
     },
     {
-      heading: "10. Ley aplicable y contacto",
+      heading: "11. Ley aplicable y contacto",
       body: [
         "Estos términos se rigen por las leyes de Puerto Rico. Para preguntas, escríbenos a " + CONTACT + ".",
       ],
@@ -90,7 +99,7 @@ export const TERMS_ES: LegalDoc = {
 
 export const TERMS_EN: LegalDoc = {
   title: "Terms of Service",
-  updated: "Last updated: October 7, 2026",
+  updated: "Last updated: October 8, 2026",
   intro:
     "These terms govern your use of ContractOS (prcontract.online and its apps). By creating an account or using the service, you agree to them.",
   altHref: "/terminos",
@@ -132,31 +141,39 @@ export const TERMS_EN: LegalDoc = {
       ],
     },
     {
-      heading: "6. Acceptable use",
+      heading: "6. Referral program",
+      body: [
+        "You can share your referral link. If another landlord creates an account with your link and pays their first invoice for a paid plan, you get one free month of your plan, applied as a discount on your next invoice. If at that time you have no active subscription, or you already have another discount, we will apply the reward manually when possible.",
+        "The reward has no cash value, is not transferable and cannot be exchanged for money. Self-referrals (including duplicate accounts or accounts of the same person or business) and any fraudulent or abusive use are excluded; in those cases we may deny or reverse the reward.",
+        "We may change or end the program at any time. Changes do not affect rewards already earned.",
+      ],
+    },
+    {
+      heading: "7. Acceptable use",
       body: [
         "Do not use the service for illegal, discriminatory or fraudulent activity, to send unsolicited messages, or to access other users' data or break the service's security.",
       ],
     },
     {
-      heading: "7. Your content",
+      heading: "8. Your content",
       body: [
         "Your data and documents are yours. You let us store and process them only to operate the service. You can export them or ask us to delete them.",
       ],
     },
     {
-      heading: "8. Warranties and liability",
+      heading: "9. Warranties and liability",
       body: [
         "The service is provided \"as is\". To the extent the law allows, we do not warrant that it is error-free or uninterrupted, and our total liability is limited to what you paid us in the 12 months before the claim.",
       ],
     },
     {
-      heading: "9. Termination",
+      heading: "10. Termination",
       body: [
         "You may close your account at any time. We may suspend accounts that break these terms, with notice when reasonable.",
       ],
     },
     {
-      heading: "10. Governing law and contact",
+      heading: "11. Governing law and contact",
       body: ["These terms are governed by the laws of Puerto Rico. Questions: " + CONTACT + "."],
     },
   ],

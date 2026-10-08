@@ -468,3 +468,38 @@ test.describe("AI assistance (Plan 39)", () => {
     }
   });
 });
+
+test.describe("referrals (Plan 37)", () => {
+  test.skip(!MOCK_URL, "MOCK_SUPABASE_URL not set");
+
+  for (const scheme of ["light", "dark"] as const) {
+    test(`billing shows the referral card accessibly (${scheme})`, async ({ page, context, baseURL }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      await signInMock(context, baseURL!, MOCK_URL!);
+      await page.goto("/settings/billing");
+      const card = page.getByRole("region", { name: "Invita a otro propietario" });
+      await expect(card).toBeVisible();
+      await expect(card.getByLabel("Tu enlace de referido")).toHaveValue(/\/r\/MRV7K3QH$/);
+      const stats = card.getByRole("definition");
+      await expect(stats.nth(0)).toHaveText("2");
+      await expect(stats.nth(1)).toHaveText("1");
+      const wa = card.getByRole("link", { name: "Compartir por WhatsApp" });
+      await expect(wa).toHaveAttribute("href", /^https:\/\/wa\.me\/\?text=.*r%2FMRV7K3QH/);
+      await card.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `test-results/referral-card-${scheme}-${test.info().project.name}.png`, fullPage: false });
+      const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+      const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(", ")}`)).toEqual([]);
+    });
+  }
+
+  test("copy button copies the link", async ({ page, context, baseURL, browserName }) => {
+    test.skip(browserName !== "chromium", "clipboard permissions are Chromium-only");
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/settings/billing");
+    await page.getByRole("button", { name: "Copiar" }).click();
+    await expect(page.getByText("Enlace copiado")).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/\/r\/MRV7K3QH$/);
+  });
+});

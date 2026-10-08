@@ -520,3 +520,20 @@ export const AiAskDataSchema = z.object({
   question: z.string().trim().min(3).max(300),
 });
 // ── end Plan 39 ─────────────────────────────────────────────────────────────
+
+// ── Referrals and partners (Plan 37) ─────────────────────────────────────────
+
+export const PARTNER_KINDS = ["realtor", "property_manager", "cpa", "other"] as const;
+
+export const PartnerApplicationSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  email: z.string().trim().email().max(200),
+  phone: z.string().trim().max(30).regex(/^[0-9+()\-.\s]*$/).optional().default(""),
+  company: z.string().trim().max(160).optional().default(""),
+  kind: z.enum(PARTNER_KINDS),
+  clients: z.coerce.number().int().min(0).max(100000).optional(),
+  message: z.string().trim().max(2000).optional().default(""),
+  locale: z.enum(["es", "en"]).default("es"),
+  // Honeypot: real people never see or fill this field.
+  website: z.string().max(0).optional().default(""),
+});

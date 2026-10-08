@@ -197,6 +197,12 @@ export const TABLES = {
     { id: "c2000000-0000-4000-8000-000000000002", property_id: P1.id, owner_id: USER.id, fiscal_year: PREV_FY, installment: 2, amount: 2274.3, due_date: iso(-200), paid_on: iso(-205), payment_reference: "CRIM-88412", expense_id: null, voided_at: null, void_reason: null, created_at: ts(-230), property: { name: P1.name } },
   ],
   ...P36,
+  // ── Plan 37: referrals ──
+  referral_codes: [{ owner_id: USER.id, code: "MRV7K3QH", created_at: ts(-30) }],
+  referrals: [
+    { id: "f3700000-0000-4000-8000-000000000001", referrer_id: USER.id, referred_user_id: "f3700000-0000-4000-8000-0000000000a1", code: "MRV7K3QH", status: "rewarded", converted_at: ts(-10), reward_reference: "sub_demo:coupon_demo", created_at: ts(-25) },
+    { id: "f3700000-0000-4000-8000-000000000002", referrer_id: USER.id, referred_user_id: "f3700000-0000-4000-8000-0000000000a2", code: "MRV7K3QH", status: "signed_up", converted_at: null, reward_reference: null, created_at: ts(-3) },
+  ],
 };
 
 // ── Plan 40: market data ────────────────────────────────────────────────────

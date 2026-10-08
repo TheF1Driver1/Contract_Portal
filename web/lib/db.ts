@@ -288,6 +288,25 @@ type AthTables = {
 };
 // ── end ATH Móvil ───────────────────────────────────────────────────────────
 
+// ── Plan 37: referrals (migration 030) ─────────────────────────────────────
+type ReferralStatus = "signed_up" | "converted" | "rewarded";
+type ReferralCode = { owner_id: string; code: string; created_at: string };
+type Referral = {
+  id: string;
+  referrer_id: string;
+  referred_user_id: string;
+  code: string;
+  status: ReferralStatus;
+  converted_at: string | null;
+  reward_reference: string | null;
+  created_at: string;
+};
+type ReferralTables = {
+  referral_codes: Table<ReferralCode, Partial<ReferralCode> & Pick<ReferralCode, "owner_id" | "code">>;
+  referrals: Table<Referral, Partial<Omit<Referral, "id">> & Pick<Referral, "referrer_id" | "referred_user_id" | "code">>;
+};
+// ── end Plan 37 ─────────────────────────────────────────────────────────────
+
 type PendingTables = {
   message_log: Table<
     MessageLog,
@@ -413,7 +432,8 @@ export type Database = Omit<Generated, "public"> & {
       profiles: ProfilesPatched;
     } & PendingTables &
       LifecycleTables &
-      AthTables;
+      AthTables &
+      ReferralTables;
     Views: Omit<GenViews, "zillow_market"> & { zillow_market: ZillowMarketPatched };
     Functions: Generated["public"]["Functions"] & PendingFunctions;
   };
@@ -423,6 +443,7 @@ export type { ContractSigner, SignatureEvent, RentLedger, RentCharge, Payment, P
 export type { MessageLog, MessageChannel, MessageStatus, MessagingConsent, ConsentSource };
 export type { TaxResidency, PropertyCrim, CrimBill };
 export type { AthMovilAccount, AthMovilPayment, AthPaymentStatus };
+export type { Referral, ReferralCode, ReferralStatus };
 export type {
   MaintenanceCategory,
   MaintenanceUrgency,
