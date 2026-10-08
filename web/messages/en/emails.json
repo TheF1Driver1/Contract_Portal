@@ -114,5 +114,38 @@
       "transfer": "Bank transfer",
       "other": "Other"
     }
+  },
+  "rentReminder": {
+    "subject": "Your rent of {amount} is due on {date}",
+    "heading": "Rent reminder",
+    "body": "Hi {name}: this is a reminder that rent for {property} ({amount}) is due on {date}.",
+    "how": "Pay {landlord} the usual way. If you already paid, you can ignore this message.",
+    "footer": "Sent with ContractOS on behalf of your landlord.",
+    "sms": "ContractOS: Hi {name}, your rent of {amount} for {property} is due on {date}. If you already paid, ignore this message."
+  },
+  "rentOverdue": {
+    "subject": "Rent past due: {property}",
+    "heading": "You have a past-due balance",
+    "body": "Hi {name}: rent for {property} that was due on {date} is still unpaid. Past-due balance: {amount}.",
+    "how": "Contact {landlord} if you already paid or need to arrange payment.",
+    "footer": "Sent with ContractOS on behalf of your landlord.",
+    "sms": "ContractOS: Hi {name}, rent for {property} due on {date} is still unpaid ({amount}). Please contact {landlord}."
+  },
+  "digest": {
+    "subject": "Your ContractOS summary: {count, plural, one {# item} other {# items}}",
+    "heading": "Your daily summary",
+    "intro": "Here is what needs your attention today:",
+    "overdue": "Past-due rent ({count})",
+    "payments": "Payments recorded yesterday ({count})",
+    "pending": "Pending signatures ({count})",
+    "line": "• {who}: {amount}",
+    "pendingLine": "• {who}",
+    "cta": "Open ContractOS",
+    "footer": "You get this summary because it is turned on in Settings › Reminders."
+  },
+  "inbound": {
+    "help": "ContractOS: messages from your landlord about your lease. Reply STOP to opt out or START to resubscribe.",
+    "stopped": "ContractOS: you will not get more messages here. Reply START to resubscribe.",
+    "started": "ContractOS: you will get messages from your landlord again. Reply STOP to opt out."
   }
 }

@@ -1,6 +1,6 @@
 // Database type used by every Supabase client. database.types.ts is generated
 // from production; PendingTables covers tables created by migrations that are
-// applied at merge (012, 013, 018, 020–022). Regenerate and delete entries once applied.
+// applied at merge (012, 013, 018, 020–023). Regenerate and delete entries once applied.
 import type { Database as Generated } from "@/lib/database.types";
 
 type Table<Row, Insert = Partial<Row>> = {
@@ -102,7 +102,55 @@ type Payment = {
   created_at: string;
 };
 
+// ── Messaging (Plan 34, migration 023) ─────────────────────────────────────
+type MessageChannel = "email" | "sms" | "whatsapp";
+type MessageStatus = "queued" | "sent" | "delivered" | "read" | "failed" | "skipped" | "received";
+type MessageLog = {
+  id: string;
+  owner_id: string;
+  contract_id: string | null;
+  direction: "outbound" | "inbound";
+  recipient_kind: "tenant" | "landlord" | "signer";
+  recipient_id: string | null;
+  channel: MessageChannel;
+  template: string;
+  locale: "es" | "en";
+  to_address: string;
+  body: string | null;
+  idempotency_key: string | null;
+  provider: "resend" | "twilio" | null;
+  provider_id: string | null;
+  status: MessageStatus;
+  error: string | null;
+  sent_at: string | null;
+  delivered_at: string | null;
+  read_at: string | null;
+  created_at: string;
+};
+type ConsentSource = "lease_signing" | "portal" | "landlord_attested" | "inbound_stop" | "inbound_start";
+type MessagingConsent = {
+  id: string;
+  owner_id: string;
+  subject_kind: "tenant" | "landlord";
+  subject_id: string;
+  channel: MessageChannel;
+  address: string;
+  status: "opted_in" | "opted_out";
+  source: ConsentSource;
+  consented_at: string;
+  updated_at: string;
+};
+
 type PendingTables = {
+  message_log: Table<
+    MessageLog,
+    Partial<Omit<MessageLog, "id">> & Pick<MessageLog, "owner_id" | "recipient_kind" | "channel" | "template" | "to_address">
+  >;
+  messaging_consents: Table<
+    MessagingConsent,
+    Partial<Omit<MessagingConsent, "id">> &
+      Pick<MessagingConsent, "owner_id" | "subject_kind" | "subject_id" | "channel" | "address" | "status" | "source">
+  >;
   rent_ledgers: Table<RentLedger, Partial<RentLedger> & Pick<RentLedger, "contract_id" | "owner_id" | "started_on">>;
   rent_charges: Table<RentCharge, Partial<RentCharge> & Pick<RentCharge, "contract_id" | "owner_id" | "kind" | "due_date" | "amount">>;
   payments: Table<
@@ -143,9 +191,10 @@ type PendingTables = {
 type GenTables = Generated["public"]["Tables"];
 
 type ProfilesPatched = {
-  Row: GenTables["profiles"]["Row"] & { lifecycle_emails: boolean };
-  Insert: GenTables["profiles"]["Insert"] & { lifecycle_emails?: boolean };
-  Update: GenTables["profiles"]["Update"] & { lifecycle_emails?: boolean };
+  // digest_emails: migration 023 (Plan 34)
+  Row: GenTables["profiles"]["Row"] & { lifecycle_emails: boolean; digest_emails: boolean };
+  Insert: GenTables["profiles"]["Insert"] & { lifecycle_emails?: boolean; digest_emails?: boolean };
+  Update: GenTables["profiles"]["Update"] & { lifecycle_emails?: boolean; digest_emails?: boolean };
   Relationships: GenTables["profiles"]["Relationships"];
 };
 
@@ -184,5 +233,6 @@ export type Database = Omit<Generated, "public"> & {
 };
 
 export type { ContractSigner, SignatureEvent, RentLedger, RentCharge, Payment, PaymentMethod };
+export type { MessageLog, MessageChannel, MessageStatus, MessagingConsent, ConsentSource };
 
 export type Row<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];

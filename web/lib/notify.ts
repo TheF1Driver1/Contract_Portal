@@ -7,25 +7,61 @@ export function withSmsFooter(body: string): string {
   return /\bSTOP\b/.test(body) ? body : `${body}\n\n${SMS_FOOTER}`;
 }
 
-export async function sendTwilioSms(to: string, body: string): Promise<void> {
-  const sid   = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const from  = process.env.TWILIO_PHONE_NUMBER;
-
-  if (!sid || !token || !from) throw new Error("Twilio env vars not configured");
-
-  const twilio = (await import("twilio")).default;
-  const client = twilio(sid, token);
-  await client.messages.create({ body: withSmsFooter(body), from, to });
+/** Twilio delivery-status callback, when the app has a public URL. */
+export function twilioStatusCallback(): string | undefined {
+  const base = process.env.NEXT_PUBLIC_APP_URL;
+  return base && /^https:\/\//.test(base) ? `${base.replace(/\/$/, "")}/api/webhooks/twilio/status` : undefined;
 }
 
+async function twilioClient() {
+  const sid   = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  if (!sid || !token) throw new Error("Twilio env vars not configured");
+  const twilio = (await import("twilio")).default;
+  return twilio(sid, token);
+}
+
+/** Sends an SMS (with the opt-out footer). Returns the Twilio message SID. */
+export async function sendTwilioSms(to: string, body: string, opts?: { statusCallback?: string }): Promise<string> {
+  const from = process.env.TWILIO_PHONE_NUMBER;
+  if (!from) throw new Error("Twilio env vars not configured");
+  const client = await twilioClient();
+  const msg = await client.messages.create({ body: withSmsFooter(body), from, to, statusCallback: opts?.statusCallback });
+  return msg.sid;
+}
+
+/**
+ * Sends an approved WhatsApp template (Twilio Content API). Free-form text is
+ * only allowed inside a 24-hour customer-service window, so outbound notices
+ * always use a template. Returns the SID and Twilio's initial status.
+ */
+export async function sendTwilioWhatsApp(
+  to: string,
+  template: { contentSid: string; variables: Record<string, string> },
+  opts?: { statusCallback?: string }
+): Promise<{ sid: string; status: string }> {
+  const from = process.env.TWILIO_WHATSAPP_FROM;
+  if (!from) throw new Error("TWILIO_WHATSAPP_FROM not configured");
+  const client = await twilioClient();
+  const wa = (n: string) => (n.startsWith("whatsapp:") ? n : `whatsapp:${n}`);
+  const msg = await client.messages.create({
+    from: wa(from),
+    to: wa(to),
+    contentSid: template.contentSid,
+    contentVariables: JSON.stringify(template.variables),
+    statusCallback: opts?.statusCallback,
+  });
+  return { sid: msg.sid, status: msg.status };
+}
+
+/** Sends an email through Resend. Returns the Resend email id (null if Resend gave none). */
 export async function sendResendEmail(
   to: string,
   subject: string,
   html: string,
   attachments?: { filename: string; content: Buffer }[],
   headers?: Record<string, string>
-): Promise<void> {
+): Promise<string | null> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) throw new Error("RESEND_API_KEY not configured");
 
@@ -33,11 +69,13 @@ export async function sendResendEmail(
   const resend = new Resend(apiKey);
   const from   = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
 
-  const { error } = await resend.emails.send({ from, to, subject, html, attachments, headers });
+  const { data, error } = await resend.emails.send({ from, to, subject, html, attachments, headers });
   if (error) {
     console.error(JSON.stringify({ level: "error", msg: "resend send failed", err: error.message }));
     throw new Error(error.message);
   }
+  // The Resend email id; delivery webhooks report status against it.
+  return data?.id ?? null;
 }
 
 export async function sendTenantInviteEmail(opts: {

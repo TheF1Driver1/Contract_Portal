@@ -55,6 +55,7 @@ export function fakeSupabase(tables: Record<string, Row[]>) {
       delete: () => ((op = "delete"), b),
       eq: (c: string, v: unknown) => (filters.push((r) => r[c] === v), b),
       neq: (c: string, v: unknown) => (filters.push((r) => r[c] !== v), b),
+      is: (c: string, v: unknown) => (filters.push((r) => (r[c] ?? null) === v), b),
       in: (c: string, vs: unknown[]) => (filters.push((r) => vs.includes(r[c])), b),
       ilike: (c: string, v: string) => (filters.push((r) => String(r[c] ?? "").toLowerCase() === v.toLowerCase()), b),
       order: (col: string, o?: { ascending?: boolean }) => ((order = { col, asc: o?.ascending !== false }), b),
