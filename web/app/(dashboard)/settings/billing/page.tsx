@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { SectionHeader } from "@/components/settings/SectionHeader";
 import { cn } from "@/lib/utils";
+import { ReferralCard } from "@/components/referrals/ReferralCard";
 import BillingLoading from "./loading";
 
 const PLANS: SubscriptionPlan[] = ["free", "propietario", "inversionista", "enterprise"];
@@ -247,6 +248,9 @@ export default function BillingPage() {
           })}
         </div>
       </section>
+
+      {/* Referral loop (Plan 37) */}
+      <ReferralCard />
 
       {/* Managers shortcut */}
       {(plan === "inversionista" || plan === "enterprise") && (

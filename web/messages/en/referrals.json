@@ -1,0 +1,68 @@
+{
+  "card": {
+    "title": "Invite another landlord",
+    "description": "Share your link. When a landlord signs up with it and pays their first invoice, you get one free month on your next invoice.",
+    "linkLabel": "Your referral link",
+    "copy": "Copy",
+    "copied": "Link copied",
+    "copyFailed": "Couldn't copy. Select the link and copy it by hand.",
+    "whatsapp": "Share on WhatsApp",
+    "whatsappText": "I use ContractOS to prepare and sign my rental leases in Puerto Rico. Sign up with my link: {link}",
+    "signedUp": "Signed up",
+    "converted": "Subscribed",
+    "statsLabel": "Your referrals",
+    "rewardNote": "The free month applies to your next invoice. It has no cash value.",
+    "terms": "See program rules",
+    "loadFailed": "We couldn't load your referral link. Try again later."
+  },
+  "partners": {
+    "metaTitle": "Partner program",
+    "eyebrow": "For realtors, property managers and accountants",
+    "title": "Recommend ContractOS to your landlord clients",
+    "subtitle": "If you work with landlords in Puerto Rico, join the partner program. We give you your own link and support so your clients start on the right foot.",
+    "who": {
+      "title": "Who is it for?",
+      "items": [
+        "Real estate agents helping clients buy to rent.",
+        "Property managers handling several leases a year.",
+        "Accountants (CPAs) preparing landlords' tax returns."
+      ]
+    },
+    "how": {
+      "title": "How it works",
+      "steps": [
+        "Send the application and we'll reach out within a few business days.",
+        "Get your link and materials in Spanish and English.",
+        "For every landlord who subscribes and pays, you earn one free month on your plan. Let's talk if you need a different arrangement."
+      ]
+    },
+    "fine": "The program can change or end at any time. Self-referrals and fraud are excluded.",
+    "termsLink": "Read the Terms of Service",
+    "form": {
+      "title": "Apply to become a partner",
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone (optional)",
+      "company": "Company or office (optional)",
+      "kind": "Partner type",
+      "kinds": {
+        "realtor": "Real estate agent",
+        "property_manager": "Property manager",
+        "cpa": "Accountant / CPA",
+        "other": "Other"
+      },
+      "clients": "How many landlords do you work with? (optional)",
+      "message": "Tell us about your work (optional)",
+      "messagePlaceholder": "E.g.: I manage 40 units in Carolina and Bayamón.",
+      "submit": "Send application",
+      "sending": "Sending…",
+      "sentTitle": "We got your application!",
+      "sentBody": "We'll write to you soon at the email you gave us.",
+      "error": "Couldn't send. Try again or email us at hola@prcontract.online.",
+      "invalid": "Check the fields: name, email and partner type are required."
+    }
+  },
+  "footer": {
+    "partners": "Partner program"
+  }
+}
