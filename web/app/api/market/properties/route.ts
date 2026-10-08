@@ -5,7 +5,7 @@ import { MarketPropertiesQuerySchema } from "@/lib/schemas";
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 
-const COLS = "id,price,beds,baths,street,city,state,zipcode,latitude,longitude,imgSrc,detailUrl,homeType,homeStatus,daysOnZillow,original_price,num_price_cuts,price_cut_pct,last_cut_date,desperation_score";
+const COLS = "id,price,beds,baths,street,city,state,zipcode,latitude,longitude,detailUrl,homeType,homeStatus,daysOnZillow,original_price,num_price_cuts,price_cut_pct,last_cut_date,desperation_score";
 
 // ponytail: 1h TTL — Zillow data updates infrequently; bump revalidate if staleness matters
 const fetchMarketProperties = unstable_cache(

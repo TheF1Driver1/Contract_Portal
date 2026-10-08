@@ -8,11 +8,8 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/api/generate": ["./templates/**"],
   },
+  // No remote image hosts: Zillow listing photos are not hotlinked or proxied (Plan 40).
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "**.zillowstatic.com" },
-      { protocol: "https", hostname: "**.zillow.com" },
-    ],
     minimumCacheTTL: 60,
   },
   // Baseline security headers. CSP omitted deliberately — needs per-route testing

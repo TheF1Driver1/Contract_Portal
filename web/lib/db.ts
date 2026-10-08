@@ -173,13 +173,29 @@ type TenantsPatched = {
   Relationships: GenTables["tenants"]["Relationships"];
 };
 
+// ── Plan 40 (migration 026): market data ────────────────────────────────────
+// zillow_market gains rentZestimate + livingArea; market_data_updated_at() RPC.
+type GenViews = Generated["public"]["Views"];
+type ZillowMarketExtra = { rentZestimate: number | null; livingArea: number | null };
+type ZillowMarketPatched = {
+  Row: GenViews["zillow_market"]["Row"] & ZillowMarketExtra;
+  Insert: GenViews["zillow_market"]["Insert"] & Partial<ZillowMarketExtra>;
+  Update: GenViews["zillow_market"]["Update"] & Partial<ZillowMarketExtra>;
+  Relationships: GenViews["zillow_market"]["Relationships"];
+};
+type PendingFunctions = {
+  market_data_updated_at: { Args: Record<PropertyKey, never>; Returns: string | null };
+};
+
 export type Database = Omit<Generated, "public"> & {
-  public: Omit<Generated["public"], "Tables"> & {
+  public: Omit<Generated["public"], "Tables" | "Views" | "Functions"> & {
     Tables: Omit<GenTables, "tenants" | "contracts" | "profiles"> & {
       tenants: TenantsPatched;
       contracts: ContractsPatched;
       profiles: ProfilesPatched;
     } & PendingTables;
+    Views: Omit<GenViews, "zillow_market"> & { zillow_market: ZillowMarketPatched };
+    Functions: Generated["public"]["Functions"] & PendingFunctions;
   };
 };
 

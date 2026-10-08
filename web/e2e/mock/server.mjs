@@ -2,7 +2,7 @@
 // pages for screenshots and axe checks without a real project.
 // Usage: node e2e/mock/server.mjs [port]
 import http from "node:http";
-import { TABLES, USER } from "./fixtures.mjs";
+import { RPCS, TABLES, USER } from "./fixtures.mjs";
 
 const PORT = Number(process.argv[2] ?? process.env.MOCK_SUPABASE_PORT ?? 54399);
 
@@ -48,6 +48,9 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, { access_token: "mock", token_type: "bearer", expires_in: 3600, refresh_token: "mock", user: USER });
   }
   if (url.pathname === "/auth/v1/logout") return send(res, 204);
+
+  const rpc = url.pathname.match(/^\/rest\/v1\/rpc\/([a-z_]+)/);
+  if (rpc && rpc[1] in RPCS) return send(res, 200, RPCS[rpc[1]]);
 
   const rest = url.pathname.match(/^\/rest\/v1\/(?:rpc\/)?([a-z_]+)/);
   if (rest) {

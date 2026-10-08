@@ -31,7 +31,6 @@ export default function WatchlistButton({ property, saved }: { property: any; sa
               street: property.street,
               city: property.city,
               state: property.state,
-              img_src: property.imgSrc || undefined,
               detail_url: property.detailUrl || undefined,
               home_type: property.homeType,
               home_status: property.homeStatus,

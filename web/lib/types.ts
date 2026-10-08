@@ -182,7 +182,6 @@ export interface MarketProperty {
   zipcode: string | null;
   latitude: number;
   longitude: number;
-  imgSrc: string | null;
   detailUrl: string | null;
   homeType: string | null;
   homeStatus: string | null;

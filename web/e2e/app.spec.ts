@@ -81,3 +81,74 @@ test.describe("rent ledger", () => {
     await expect(sheet.getByLabel("Enviar recibo al inquilino por correo")).toBeChecked();
   });
 });
+
+test.describe("market data (Plan 40)", () => {
+  test.skip(!MOCK_URL, "MOCK_SUPABASE_URL not set");
+  const LISTING = "/market/4100009";
+  const ANALYZE = "/watchlist/90000000-0000-4000-8000-000000000001/analyze";
+
+  async function axeSerious(page: import("@playwright/test").Page) {
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .exclude(".leaflet-container")
+      .analyze();
+    return results.violations
+      .filter((v) => v.impact === "serious" || v.impact === "critical")
+      .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(", ")}`);
+  }
+
+  for (const scheme of ["light", "dark"] as const) {
+    test.describe(scheme, () => {
+      test.use({ colorScheme: scheme });
+
+      test("market overview: freshness, yields and rent comps", async ({ page, context, baseURL }, info) => {
+        await signInMock(context, baseURL!, MOCK_URL!);
+        await page.goto("/market");
+        await expect(page.getByRole("heading", { level: 1, name: /Mercado/ })).toBeVisible();
+        await expect(page.getByText("Datos actualizados hace 3 días").first()).toBeVisible();
+
+        const yields = page.locator("section", { has: page.getByRole("heading", { name: "Rendimiento por pueblo" }) });
+        await expect(yields.getByText("Bayamón")).toBeVisible(); // accent variants merged
+        await expect(yields.getByText("6 anuncios")).toBeVisible();
+        await expect(yields.getByText("Dorado")).toHaveCount(0); // fewer than 5 listings
+
+        const comps = page.locator("section", { has: page.getByRole("heading", { name: "Tu renta vs. la renta del mercado" }) });
+        await expect(comps.getByText("Mediana $1,500 · 9 comparables")).toBeVisible();
+        await expect(comps.getByText("23.3% bajo el mercado")).toBeVisible();
+
+        await expect(page.locator('img[src*="zillowstatic"]')).toHaveCount(0);
+        expect(await axeSerious(page)).toEqual([]);
+        await comps.scrollIntoViewIfNeeded();
+        await page.screenshot({ path: info.outputPath(`market-${scheme}.png`), fullPage: true });
+      });
+
+      test("listing detail: no hotlinked photo, rent estimate and listing link", async ({ page, context, baseURL }, info) => {
+        await signInMock(context, baseURL!, MOCK_URL!);
+        await page.goto(LISTING);
+        await expect(page.getByRole("heading", { level: 1, name: /Calle Demo 9/ })).toBeVisible();
+        await expect(page.getByText("Las fotos están en el anuncio original.")).toBeVisible();
+        await expect(page.locator("img")).toHaveCount(0);
+        await expect(page.getByText("Renta estimada (Zillow)")).toBeVisible();
+        await expect(page.getByRole("link", { name: "Ver anuncio original" })).toHaveAttribute("href", /zillow\.com\/homedetails/);
+        await expect(page.getByText("Datos actualizados hace 3 días")).toBeVisible();
+        expect(await axeSerious(page)).toEqual([]);
+        await page.screenshot({ path: info.outputPath(`market-detail-${scheme}.png`), fullPage: true });
+      });
+
+      test("watchlist and analyzer: placeholder image and CRIM estimate", async ({ page, context, baseURL }, info) => {
+        await signInMock(context, baseURL!, MOCK_URL!);
+        await page.goto("/watchlist");
+        await expect(page.getByRole("heading", { level: 1, name: /Mi lista/ })).toBeVisible();
+        await expect(page.locator('img[src*="zillowstatic"], img[srcset*="zillowstatic"]')).toHaveCount(0);
+        expect(await axeSerious(page)).toEqual([]);
+        await page.screenshot({ path: info.outputPath(`watchlist-${scheme}.png`), fullPage: true });
+
+        await page.goto(ANALYZE);
+        // "Bayamon" on the listing matches the "Bayamón" CRIM row; 9.58% × 45% ≈ 4.311%.
+        await expect(page.getByText(/Estimado CRIM Bayamón \(2026-2027\): 9\.58%/)).toBeVisible();
+        expect(await axeSerious(page)).toEqual([]);
+        await page.screenshot({ path: info.outputPath(`analyze-${scheme}.png`), fullPage: true });
+      });
+    });
+  }
+});

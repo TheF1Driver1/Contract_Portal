@@ -7,16 +7,19 @@ import { List, Map as MapIcon, SlidersHorizontal } from "lucide-react";
 import MapFilters, { type MarketFilters } from "@/components/MapFilters";
 import MarketListView from "@/components/MarketListView";
 import MarketStatsWidget, { type CityStat } from "@/components/MarketStatsWidget";
-import RentVsMarketChart from "@/components/RentVsMarketChart";
+import RentCompsCard from "@/components/market/RentCompsCard";
+import { MarketFreshness } from "@/components/market/MarketFreshness";
+import { MunicipalityYields } from "@/components/market/MunicipalityYields";
 import { PageHeader } from "@/components/app/PageHeader";
 import { LabsTitle } from "@/components/market/LabsTitle";
 import { UpgradeCard } from "@/components/market/UpgradeCard";
 import { MotivationBadge } from "@/components/market/MotivationBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { MarketProperty } from "@/lib/types";
+import type { MunicipalityYield } from "@/lib/market/comps";
 
 interface TopMotivated {
   id: string; street: string | null; city: string | null; state: string | null;
@@ -43,6 +46,8 @@ export default function MarketPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [cityStats, setCityStats] = useState<CityStat[]>([]);
   const [topMotivated, setTopMotivated] = useState<TopMotivated[]>([]);
+  const [yields, setYields] = useState<MunicipalityYield[]>([]);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(
@@ -71,6 +76,8 @@ export default function MarketPage() {
         if (!d) return;
         if (d.stats) setCityStats(d.stats);
         if (d.top_motivated) setTopMotivated(d.top_motivated);
+        if (Array.isArray(d.yields)) setYields(d.yields);
+        if (typeof d.updated_at === "string") setUpdatedAt(d.updated_at);
       })
       .catch(() => null);
   }, []);
@@ -81,18 +88,27 @@ export default function MarketPage() {
       description={t("description")}
       actions={
         !gated && (
-          <Tabs value={view} onValueChange={(v) => setView(v as "map" | "list")}>
-            <TabsList aria-label={t("viewToggle")}>
-              <TabsTrigger value="map" className="min-h-9 px-3">
-                <MapIcon aria-hidden />
-                {t("views.map")}
-              </TabsTrigger>
-              <TabsTrigger value="list" className="min-h-9 px-3">
-                <List aria-hidden />
-                {t("views.list")}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          // A two-button toggle: radix Tabs would point aria-controls at panels that don't exist.
+          <div role="group" aria-label={t("viewToggle")} className="inline-flex items-center rounded-lg bg-muted p-[3px]">
+            {(["map", "list"] as const).map((v) => {
+              const Icon = v === "map" ? MapIcon : List;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={view === v}
+                  onClick={() => setView(v)}
+                  className={cn(
+                    "inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&_svg]:size-4",
+                    view === v && "bg-surface text-foreground shadow-sm"
+                  )}
+                >
+                  <Icon aria-hidden />
+                  {t(`views.${v}`)}
+                </button>
+              );
+            })}
+          </div>
         )
       }
     />
@@ -117,7 +133,10 @@ export default function MarketPage() {
     <div className="space-y-6">
       <div>
         {header}
-        <p className="-mt-3 text-xs text-subtle-foreground">{t("labsNote")}</p>
+        <div className="-mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <p className="text-xs text-subtle-foreground">{t("labsNote")}</p>
+          <MarketFreshness updatedAt={updatedAt} />
+        </div>
       </div>
 
       {/* Filters: toolbar on desktop, sheet on phones */}
@@ -215,7 +234,8 @@ export default function MarketPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <MarketStatsWidget stats={cityStats} />
-        <RentVsMarketChart />
+        <MunicipalityYields yields={yields} />
+        <RentCompsCard />
       </div>
     </div>
   );

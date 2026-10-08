@@ -1,4 +1,6 @@
 import { requireFeature } from "@/lib/entitlements";
+import { municipalityYields, normalizeMunicipality } from "@/lib/market/comps";
+import { getMarketDataUpdatedAt } from "@/lib/market/status";
 import { createClient } from "@/lib/supabase-server";
 import { rateLimitPublic } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
@@ -15,27 +17,35 @@ export async function GET(req: NextRequest) {
   if (gated) return gated;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("zillow_market")
-    .select("id,city,price,beds,street,state,imgSrc,detailUrl,daysOnZillow,homeStatus,desperation_score,num_price_cuts,price_cut_pct")
-    .not("price", "is", null)
-    .eq("homeStatus", "FOR_SALE");
+  const [{ data, error }, updated_at] = await Promise.all([
+    supabase
+      .from("zillow_market")
+      .select("id,city,price,beds,street,state,detailUrl,daysOnZillow,homeStatus,rentZestimate,desperation_score,num_price_cuts,price_cut_pct")
+      .not("price", "is", null)
+      .eq("homeStatus", "FOR_SALE")
+      .limit(5000),
+    getMarketDataUpdatedAt(supabase),
+  ]);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const cityMap: Record<string, { prices: number[]; days: number[]; scores: number[]; count: number }> = {};
+  // Group accent variants ("Bayamon"/"Bayamón") together; label with the most common spelling.
+  type CityAgg = { names: Record<string, number>; prices: number[]; days: number[]; scores: number[]; count: number };
+  const cityMap: Record<string, CityAgg> = {};
   for (const row of data) {
-    if (!row.city) continue;
-    if (!cityMap[row.city]) cityMap[row.city] = { prices: [], days: [], scores: [], count: 0 };
-    if (row.price) cityMap[row.city].prices.push(row.price);
-    if (row.daysOnZillow) cityMap[row.city].days.push(row.daysOnZillow);
-    if (row.desperation_score != null) cityMap[row.city].scores.push(row.desperation_score);
-    cityMap[row.city].count++;
+    const key = normalizeMunicipality(row.city);
+    if (!row.city || !key) continue;
+    const agg = (cityMap[key] ??= { names: {}, prices: [], days: [], scores: [], count: 0 });
+    agg.names[row.city] = (agg.names[row.city] ?? 0) + 1;
+    if (row.price) agg.prices.push(row.price);
+    if (row.daysOnZillow) agg.days.push(row.daysOnZillow);
+    if (row.desperation_score != null) agg.scores.push(row.desperation_score);
+    agg.count++;
   }
 
-  const stats = Object.entries(cityMap)
-    .map(([city, { prices, days, scores, count }]) => ({
-      city,
+  const stats = Object.values(cityMap)
+    .map(({ names, prices, days, scores, count }) => ({
+      city: Object.entries(names).sort((a, b) => b[1] - a[1] || b[0].localeCompare(a[0]))[0][0],
       count,
       avg_price: prices.length ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : null,
       avg_days: days.length ? Math.round(days.reduce((a, b) => a + b, 0) / days.length) : null,
@@ -60,5 +70,8 @@ export async function GET(req: NextRequest) {
       price_cut_pct: r.price_cut_pct,
     }));
 
-  return NextResponse.json({ stats, top_motivated });
+  // Gross yield / price-to-rent need a rentZestimate on for-sale listings.
+  const yields = municipalityYields(data);
+
+  return NextResponse.json({ stats, top_motivated, yields, updated_at });
 }
