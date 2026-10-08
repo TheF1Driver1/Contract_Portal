@@ -31,5 +31,70 @@
     "sms": "SMS delivery",
     "scheduleE": "Schedule E export",
     "managers": "property managers"
+  },
+  "description": "Manage your subscription and payment method.",
+  "unlimited": "Unlimited",
+  "manageHint": "Change your payment method, download invoices or cancel.",
+  "compareTitle": "Compare plans",
+  "yourPlan": "Your plan",
+  "selected": "Selected",
+  "upgradeTo": "Upgrade to {plan}",
+  "enterpriseCta": "See details",
+  "managersTitle": "Property managers",
+  "managersBody": "Invite team members to manage properties on your behalf.",
+  "legal": "Prices are in USD. You can cancel anytime. When you upgrade, you're charged a prorated amount for the rest of the current billing period.",
+  "usage": {
+    "properties": "Properties",
+    "contracts": "Contracts",
+    "sms": "SMS",
+    "scheduleE": "Schedule E",
+    "managers": "Managers",
+    "limitReached": "Limit reached",
+    "perMonth": "{count} per month",
+    "upTo": "Up to {max}",
+    "included": "Included",
+    "notIncluded": "Not included"
+  },
+  "compare": {
+    "oneProperty": "1 property",
+    "threeContracts": "3 contracts per month",
+    "fiveProperties": "Up to 5 properties",
+    "unlimitedContracts": "Unlimited contracts",
+    "sms": "SMS delivery",
+    "expenseCsv": "Expense export (CSV)",
+    "prContract": "Puerto Rico lease (2020 Civil Code)",
+    "market": "Market analysis and watchlist",
+    "unlimitedProperties": "Unlimited properties",
+    "scheduleE": "Tax reports (Schedule E)",
+    "portfolio": "Portfolio dashboard",
+    "threeManagers": "Up to 3 property managers",
+    "prioritySupport": "Priority support (48h SLA)",
+    "unlimitedManagers": "Unlimited managers"
+  },
+  "success": {
+    "loadingTitle": "Processing your subscription…",
+    "loadingBody": "This will only take a moment.",
+    "doneTitle": "Subscription activated!",
+    "doneBody": "Your plan is updated. You can now use all of its features.",
+    "nextSteps": "Next steps",
+    "goDashboard": "Go to dashboard",
+    "steps": {
+      "property": {
+        "title": "Add your properties",
+        "body": "Register each unit you rent."
+      },
+      "contract": {
+        "title": "Create a contract",
+        "body": "Generate a lease and send it for signature."
+      },
+      "reminders": {
+        "title": "Set up reminders",
+        "body": "Get notices before your leases expire."
+      },
+      "billing": {
+        "title": "Review your plan",
+        "body": "See what's included and manage billing."
+      }
+    }
   }
 }

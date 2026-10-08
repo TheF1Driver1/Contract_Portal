@@ -42,7 +42,7 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   }
 
   const property = contract.property as unknown as { name: string } | null;
-  const propertyName = property?.name ?? "your property";
+  const propertyName = property?.name ?? "";
 
   const { data: landlordProfile } = await supabase
     .from("profiles")
@@ -87,7 +87,20 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
   const inviteUrl = `${appUrl}/invite/${token}`;
 
   try {
-    await sendTenantInviteEmail(tenantEmail, tenantName, propertyName, inviteUrl, landlordName);
+    // Tenant's own language; defaults to Spanish (column added in migration 019).
+    const { data: tenantPrefs } = await supabase
+      .from("tenants")
+      .select("preferred_locale")
+      .eq("id", contract.tenant_id)
+      .maybeSingle();
+    await sendTenantInviteEmail({
+      to: tenantEmail,
+      tenantName,
+      propertyName,
+      inviteUrl,
+      landlordName,
+      locale: tenantPrefs?.preferred_locale,
+    });
   } catch (emailErr) {
     console.error(JSON.stringify({ level: "error", msg: "invite email failed", contract: params.id, err: String(emailErr) }));
     return NextResponse.json(

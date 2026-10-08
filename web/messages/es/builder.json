@@ -1,1 +1,320 @@
-{}
+{
+  "page": {
+    "newTitle": "Nuevo contrato",
+    "editTitle": "Editar contrato",
+    "newDescription": "Completa los pasos para preparar tu contrato de arrendamiento.",
+    "editDescription": "Sigue editando tu borrador.",
+    "missingTitle": "Antes de empezar",
+    "missingProperty": "Añade al menos una propiedad para crear un contrato.",
+    "missingTenant": "Añade al menos un inquilino para crear un contrato.",
+    "addProperty": "Añadir propiedad",
+    "addTenant": "Añadir inquilino"
+  },
+  "steps": {
+    "label": "Pasos del contrato",
+    "parties": "Partes y propiedad",
+    "terms": "Términos",
+    "clauses": "Cláusulas",
+    "review": "Revisar y enviar",
+    "mobile": "Paso {current} de {total}",
+    "completed": "completado"
+  },
+  "actions": {
+    "back": "Atrás",
+    "next": "Siguiente",
+    "saveDraft": "Guardar borrador",
+    "downloadPdf": "Descargar PDF",
+    "downloadDocx": "Descargar DOCX",
+    "send": "Enviar al inquilino"
+  },
+  "autosave": {
+    "saving": "Guardando…",
+    "savedAgo": "Guardado {time}",
+    "justNow": "ahora mismo",
+    "draft": "Borrador guardado",
+    "notSaved": "Sin guardar todavía",
+    "failed": "No se pudo guardar automáticamente"
+  },
+  "toast": {
+    "saved": "Borrador guardado",
+    "saveFailed": "No se pudo guardar el contrato.",
+    "fixErrors": "Revisa los campos marcados antes de continuar.",
+    "downloadFailed": "No se pudo generar el documento. Intenta de nuevo.",
+    "sendFailed": "No se pudo enviar el contrato. Tu borrador está guardado.",
+    "sent": "Contrato enviado al inquilino",
+    "emailIssue": "Contrato guardado, pero hubo un problema con el email: {issue}",
+    "seePlans": "Ver planes"
+  },
+  "preview": {
+    "title": "Vista previa",
+    "open": "Vista previa",
+    "description": "Se actualiza mientras llenas el formulario."
+  },
+  "fields": {
+    "property": "Propiedad",
+    "propertyPlaceholder": "Selecciona una propiedad…",
+    "unit": "Unidad",
+    "unitPlaceholder": "Ej. 2A",
+    "jurisdiction": "Jurisdicción",
+    "tenant": "Inquilino principal",
+    "tenantPlaceholder": "Selecciona un inquilino…",
+    "occupantNames": "Nombres de los ocupantes",
+    "occupantNamesHint": "Separa los nombres con comas.",
+    "occupantNamesPlaceholder": "Juan del Pueblo, María Rivera",
+    "occupantCount": "Número de ocupantes",
+    "contractType": "Tipo de contrato",
+    "template": "Plantilla",
+    "templateHint": "El documento final se genera con esta plantilla.",
+    "templateDefault": "Plantilla predeterminada",
+    "templateUnknown": "Plantilla actual",
+    "leaseStart": "Fecha de inicio",
+    "leaseMonths": "Duración (meses)",
+    "leaseEnd": "Fecha de terminación",
+    "leaseEndHint": "Se calcula con la duración; puedes cambiarla.",
+    "rent": "Renta mensual",
+    "rentVerbal": "Renta en palabras",
+    "rentVerbalHint": "Así aparecerá escrita en el contrato.",
+    "rentVerbalPlaceholder": "Ej. mil doscientos dólares",
+    "dueDay": "Día de pago",
+    "firstLateDay": "Primer día de atraso: día {day} de cada mes",
+    "deposit": "Depósito (fianza)",
+    "lateFeeType": "Tipo de recargo",
+    "graceDays": "Días de gracia",
+    "lateFeeFixed": "Recargo fijo",
+    "lateFeeDaily": "Recargo por día",
+    "keys": "Llaves entregadas",
+    "customAmenities": "Otros enseres o comodidades",
+    "customAmenitiesHint": "Separa cada uno con comas.",
+    "customAmenitiesPlaceholder": "Ej. lavadora, secadora, patio privado",
+    "parkingIncluded": "Incluye estacionamiento",
+    "parkingCount": "Espacios",
+    "parkingSpot": "Número o identificación del espacio",
+    "parkingSpotPlaceholder": "Ej. A-1, 12"
+  },
+  "errors": {
+    "propertyRequired": "Selecciona la propiedad.",
+    "tenantRequired": "Selecciona el inquilino.",
+    "occupantsMin": "Debe haber al menos 1 ocupante.",
+    "startRequired": "Indica la fecha de inicio.",
+    "endRequired": "Indica la fecha de terminación.",
+    "endAfterStart": "La terminación debe ser después del inicio.",
+    "monthsMin": "La duración mínima es 1 mes.",
+    "rentRequired": "Indica la renta mensual.",
+    "rentMin": "La renta debe ser mayor que 0.",
+    "dueDayRange": "Usa un día entre 1 y 28."
+  },
+  "jurisdiction": {
+    "pr": "Puerto Rico",
+    "us_mainland": "EE. UU. continental",
+    "other": "Otra"
+  },
+  "contractType": {
+    "lease": "Contrato de arrendamiento",
+    "rental": "Contrato de alquiler",
+    "addendum": "Adenda"
+  },
+  "lateFeeType": {
+    "fixed": "Cantidad fija",
+    "daily": "Por día de atraso",
+    "both": "Fijo + por día"
+  },
+  "parties": {
+    "propertyTitle": "Propiedad",
+    "propertyDescription": "La unidad que vas a arrendar.",
+    "tenantTitle": "Inquilinos",
+    "tenantDescription": "Quién firma el contrato.",
+    "coTenants": "Co-inquilinos",
+    "coTenantsEmpty": "Sin co-inquilinos.",
+    "coTenantLabel": "Co-inquilino {n}",
+    "coTenantPlaceholder": "Selecciona un co-inquilino…",
+    "removeCoTenant": "Quitar co-inquilino {n}",
+    "addCoTenant": "Añadir co-inquilino",
+    "occupantsTitle": "Ocupantes",
+    "occupantsDescription": "Personas que vivirán en la propiedad.",
+    "documentTitle": "Documento",
+    "documentDescription": "Tipo de contrato y plantilla."
+  },
+  "terms": {
+    "periodTitle": "Término",
+    "periodDescription": "La fecha de terminación se calcula con la duración.",
+    "rentTitle": "Renta y depósito",
+    "rentDescription": "Cuánto y cuándo se paga.",
+    "depositNotePr": "La ley de Puerto Rico no fija un máximo para el depósito. Acuerda la cantidad por escrito en el contrato. Esto no es asesoría legal.",
+    "depositNoteOther": "Las reglas sobre depósitos cambian según la jurisdicción. Verifica la ley aplicable. Esto no es asesoría legal.",
+    "depositAboveRent": "El depósito ({deposit}) es mayor que un mes de renta ({rent}). Confirma que esté acordado por escrito.",
+    "lateFeeTitle": "Recargos por atraso",
+    "lateFeeDescription": "Qué pasa si la renta llega tarde.",
+    "keysTitle": "Llaves"
+  },
+  "amenities": {
+    "fridge": "Nevera",
+    "microwave": "Microondas",
+    "ac": "Aire acondicionado",
+    "mini_blinds": "Persianas (mini blinds)",
+    "mirror_doors": "Puertas de clóset con espejo",
+    "renovated_bathroom": "Baño remodelado",
+    "sofa": "Sofá",
+    "futon": "Futón",
+    "wall_art": "Cuadros decorativos"
+  },
+  "counts": {
+    "room_count": "Habitaciones",
+    "bathroom_count": "Baños",
+    "fan_count": "Abanicos de techo",
+    "stool_count": "Banquetas",
+    "stove_count": "Estufas"
+  },
+  "clauses": {
+    "amenitiesTitle": "Enseres y comodidades",
+    "amenitiesDescription": "Marca lo que se entrega con la propiedad.",
+    "inventoryTitle": "Inventario",
+    "inventoryDescription": "Cantidades que aparecerán en el contrato.",
+    "parkingTitle": "Estacionamiento",
+    "customTitle": "Cláusulas adicionales",
+    "customDescription": "Se insertan antes de las firmas. Opcional.",
+    "manageLibrary": "Administrar biblioteca",
+    "clauseTitle": "Título de la cláusula",
+    "clauseTitlePlaceholder": "Ej. Mascotas",
+    "clauseBody": "Texto de la cláusula",
+    "clauseBodyPlaceholder": "Escribe el texto de la cláusula…",
+    "saveClause": "Guardar cláusula",
+    "cancel": "Cancelar",
+    "editClause": "Editar cláusula {title}",
+    "removeClause": "Eliminar cláusula {title}",
+    "fromLibrary": "Añadir desde tu biblioteca",
+    "add": "Añadir",
+    "addAgain": "Añadir otra vez",
+    "newClause": "Nueva cláusula",
+    "addClause": "Añadir cláusula"
+  },
+  "review": {
+    "none": "—",
+    "edit": "Editar",
+    "editStep": "Editar {step}",
+    "unit": "Unidad {unit}",
+    "occupants": "{count, plural, one {# ocupante} other {# ocupantes}}",
+    "term": "Término",
+    "termValue": "{start} – {end} ({months, plural, one {# mes} other {# meses}})",
+    "dueDay": "Día {day} de cada mes",
+    "lateFeeFixed": "{fixed} desde el día {day}",
+    "lateFeeDaily": "{daily} por día desde el día {day}",
+    "lateFeeBoth": "{fixed} + {daily} por día desde el día {day}",
+    "parking": "{count, plural, one {# espacio} other {# espacios}}",
+    "noParking": "No incluido",
+    "lawTitle": "Ley aplicable",
+    "law": {
+      "pr": "Para propiedades en Puerto Rico, el contrato se rige por el Código Civil de Puerto Rico de 2020.",
+      "us_mainland": "El contrato se rige por la ley del estado donde ubica la propiedad.",
+      "other": "El contrato se rige por la ley de la jurisdicción donde ubica la propiedad."
+    },
+    "prIncludes": {
+      "daco": "Incluye aviso de derechos DACO",
+      "nonRenewal": "Aviso de no renovación con 60 días (acordado)",
+      "depositReturn": "Devolución del depósito en 30 días (acordado)"
+    },
+    "lawDisclaimer": "Esto no es asesoría legal. Te recomendamos que un abogado revise el contrato.",
+    "deliveryTitle": "Envío",
+    "yourCopy": "Tu copia",
+    "yourCopyHint": "Te enviaremos una copia a este email.",
+    "tenantCopy": "Copia del inquilino",
+    "noEmailNamed": "{name} no tiene email registrado",
+    "noTenant": "Aún no has seleccionado un inquilino",
+    "actionsTitle": "Acciones"
+  },
+  "signatures": {
+    "title": "Firma en persona (opcional)",
+    "description": "Úsala solo si las partes están contigo ahora mismo.",
+    "landlord": "Firma del arrendador",
+    "tenant": "Firma del inquilino",
+    "tenantNamed": "Firma del inquilino: {name}",
+    "coTenant": "Firma del co-inquilino {n}",
+    "coTenantNamed": "Firma del co-inquilino: {name}",
+    "allSignedNote": "Si todas las partes firman aquí, el contrato queda firmado al guardarlo y ya no se podrá editar."
+  },
+  "signaturePad": {
+    "clear": "Borrar",
+    "hint": "Firma dentro del recuadro",
+    "signed": "Firma capturada"
+  },
+  "lease": {
+    "blank": "__________",
+    "title": {
+      "lease": "CONTRATO DE ARRENDAMIENTO",
+      "rental": "CONTRATO DE ALQUILER",
+      "addendum": "ADENDA AL CONTRATO DE ARRENDAMIENTO"
+    },
+    "parties": "De una parte, la PARTE ARRENDADORA; y de la otra parte, {tenants}, en adelante la PARTE ARRENDATARIA. Ambas partes acuerdan lo siguiente:",
+    "clauseHeading": "{n}. {title}",
+    "property": {
+      "title": "Propiedad",
+      "body": "La PARTE ARRENDADORA arrienda a la PARTE ARRENDATARIA la propiedad {name}, ubicada en {address}",
+      "unit": ", unidad {unit}"
+    },
+    "term": {
+      "title": "Término",
+      "body": "El arrendamiento tendrá una duración de {hasMonths, select, yes {{months, plural, one {# mes} other {# meses}}} other {__________}}, desde el {start} hasta el {end}."
+    },
+    "rent": {
+      "title": "Renta",
+      "body": "La renta mensual será de {rent}, pagadera no más tarde del día {day} de cada mes.",
+      "verbal": "Cantidad en letras: {verbal}."
+    },
+    "deposit": {
+      "title": "Depósito",
+      "body": "La PARTE ARRENDATARIA entrega un depósito de {deposit}.",
+      "none": "No se requiere depósito."
+    },
+    "lateFee": {
+      "title": "Recargos por atraso",
+      "fixed": "Si la renta no se paga a tiempo, a partir del día {day} del mes se cobrará un recargo de {fixed}.",
+      "daily": "Si la renta no se paga a tiempo, a partir del día {day} del mes se cobrará un recargo de {daily} por cada día de atraso.",
+      "both": "Si la renta no se paga a tiempo, a partir del día {day} del mes se cobrará un recargo de {fixed}, más {daily} por cada día de atraso.",
+      "none": "No se pactan recargos por atraso."
+    },
+    "occupants": {
+      "title": "Ocupantes",
+      "body": "La propiedad será ocupada por {count, plural, one {# persona} other {# personas}}",
+      "names": ": {names}"
+    },
+    "keys": {
+      "title": "Llaves",
+      "body": "La PARTE ARRENDATARIA recibe {count, plural, one {# llave} other {# llaves}}."
+    },
+    "parking": {
+      "title": "Estacionamiento",
+      "body": "Incluye {count, plural, one {# espacio} other {# espacios}} de estacionamiento",
+      "spot": " (núm. {spot})"
+    },
+    "furnishings": {
+      "title": "Enseres y mobiliario",
+      "body": "La propiedad se entrega con: {items}."
+    },
+    "items": {
+      "room_count": "{count, plural, one {# habitación} other {# habitaciones}}",
+      "bathroom_count": "{count, plural, one {# baño} other {# baños}}",
+      "fan_count": "{count, plural, one {# abanico de techo} other {# abanicos de techo}}",
+      "stool_count": "{count, plural, one {# banqueta} other {# banquetas}}",
+      "stove_count": "{count, plural, one {# estufa} other {# estufas}}",
+      "fridge": "nevera",
+      "microwave": "microondas",
+      "ac": "aire acondicionado",
+      "mini_blinds": "persianas (mini blinds)",
+      "mirror_doors": "puertas de clóset con espejo",
+      "renovated_bathroom": "baño remodelado",
+      "sofa": "sofá",
+      "futon": "futón",
+      "wall_art": "cuadros decorativos"
+    },
+    "law": {
+      "title": "Ley aplicable",
+      "pr": "Este contrato se rige por el Código Civil de Puerto Rico de 2020.",
+      "us_mainland": "Este contrato se rige por las leyes del estado donde ubica la propiedad.",
+      "other": "Este contrato se rige por las leyes de la jurisdicción donde ubica la propiedad."
+    },
+    "signatures": {
+      "landlord": "PARTE ARRENDADORA",
+      "tenant": "PARTE ARRENDATARIA: {name}"
+    },
+    "disclaimer": "Vista previa de referencia. El documento final se genera con la plantilla seleccionada y puede incluir cláusulas adicionales."
+  }
+}

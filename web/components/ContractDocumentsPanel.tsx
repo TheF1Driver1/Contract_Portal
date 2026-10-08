@@ -1,75 +1,76 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import {
-  Paperclip,
-  FileText,
-  Plus,
-  Trash2,
-  Loader2,
-  Upload,
-  Pencil,
-  Check,
-  X,
-  BookOpen,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { BookOpen, Check, FileText, Loader2, Paperclip, Pencil, Plus, Trash2, Upload } from "lucide-react";
 import type { ContractAttachment, ContractCustomSection, UserSectionTemplate } from "@/lib/types";
+import { ConfirmDialog } from "@/components/contracts/ConfirmDialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Props {
   contractId: string;
 }
 
-type Tab = "attachments" | "sections";
-
+/** Attachments (PDF uploads) and custom clauses for one contract. */
 export default function ContractDocumentsPanel({ contractId }: Props) {
-  const [tab, setTab] = useState<Tab>("attachments");
-
+  const t = useTranslations("contracts.documents");
   return (
-    <div className="space-y-4">
-      {/* Tab switcher */}
-      <div className="flex gap-1 rounded-xl p-1" style={{ background: "var(--surface-container)" }}>
-        {(["attachments", "sections"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
-            style={{
-              background: tab === t ? "var(--surface-card)" : "transparent",
-              color: tab === t ? "var(--text-primary)" : "var(--text-muted)",
-              boxShadow: tab === t ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-            }}
-          >
-            {t === "attachments" ? <Paperclip className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
-            {t.charAt(0).toUpperCase() + t.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {tab === "attachments" && <AttachmentsTab contractId={contractId} />}
-      {tab === "sections"    && <SectionsTab    contractId={contractId} />}
-    </div>
+    <Tabs defaultValue="attachments">
+      <TabsList className="w-full sm:w-fit">
+        <TabsTrigger value="attachments">
+          <Paperclip />
+          {t("attachments")}
+        </TabsTrigger>
+        <TabsTrigger value="sections">
+          <FileText />
+          {t("sections")}
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="attachments" className="pt-2">
+        <AttachmentsTab contractId={contractId} />
+      </TabsContent>
+      <TabsContent value="sections" className="pt-2">
+        <SectionsTab contractId={contractId} />
+      </TabsContent>
+    </Tabs>
   );
 }
 
 // ── Attachments ───────────────────────────────────────────────────────────────
 
 function AttachmentsTab({ contractId }: { contractId: string }) {
+  const t = useTranslations("contracts.documents");
   const [attachments, setAttachments] = useState<ContractAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch(`/api/contracts/${contractId}/attachments`)
-      .then(async (r) => { if (r.ok) setAttachments(await r.json()); })
+      .then(async (r) => {
+        if (r.ok) setAttachments(await r.json());
+      })
       .catch(() => {});
   }, [contractId]);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.type !== "application/pdf") { setError("Only PDF files accepted"); return; }
-    if (file.size > 10 * 1024 * 1024) { setError("Max file size is 10 MB"); return; }
+    if (file.type !== "application/pdf") {
+      setError(t("onlyPdf"));
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError(t("maxSize"));
+      return;
+    }
     setError("");
     setUploading(true);
     try {
@@ -77,10 +78,16 @@ function AttachmentsTab({ contractId }: { contractId: string }) {
       fd.append("file", file);
       const res = await fetch(`/api/contracts/${contractId}/attachments`, { method: "POST", body: fd });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? "Upload failed"); return; }
+      if (!res.ok) {
+        setError(data.error ?? t("uploadFailed"));
+        toast.error(t("uploadFailed"));
+        return;
+      }
       setAttachments((prev) => [...prev, data]);
+      toast.success(t("uploaded"));
     } catch (e) {
       setError((e as Error).message);
+      toast.error(t("uploadFailed"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -88,60 +95,60 @@ function AttachmentsTab({ contractId }: { contractId: string }) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Remove this attachment?")) return;
-    const res = await fetch(`/api/contracts/${contractId}/attachments/${id}`, { method: "DELETE" });
-    if (res.ok) setAttachments((prev) => prev.filter((a) => a.id !== id));
+    const res = await fetch(`/api/contracts/${contractId}/attachments/${id}`, { method: "DELETE" }).catch(() => null);
+    if (res?.ok) {
+      setAttachments((prev) => prev.filter((a) => a.id !== id));
+      toast.success(t("attachmentRemoved"));
+      setConfirmId(null);
+    } else {
+      toast.error(t("removeFailed"));
+    }
   }
 
   return (
     <div className="space-y-3">
-      {attachments.length === 0 && (
-        <p className="text-sm text-center py-4" style={{ color: "var(--text-muted)" }}>
-          No attachments yet
-        </p>
+      {attachments.length === 0 && <p className="py-3 text-center text-sm text-muted-foreground">{t("noAttachments")}</p>}
+
+      {attachments.length > 0 && (
+        <ul className="divide-y rounded-lg border">
+          {attachments.map((att) => (
+            <li key={att.id} className="flex items-center justify-between gap-3 px-3 py-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                {att.signed_url ? (
+                  <a
+                    href={att.signed_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-sm font-medium text-foreground underline-offset-2 hover:underline"
+                  >
+                    {att.name}
+                  </a>
+                ) : (
+                  <span className="truncate text-sm font-medium text-foreground">{att.name}</span>
+                )}
+                {att.file_size ? (
+                  <span className="tabular shrink-0 text-xs text-muted-foreground">
+                    {t("kb", { size: Math.round(att.file_size / 1024) })}
+                  </span>
+                ) : null}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setConfirmId(att.id)}
+                aria-label={t("removeAttachmentNamed", { name: att.name })}
+                className="text-danger hover:text-danger"
+              >
+                <Trash2 />
+              </Button>
+            </li>
+          ))}
+        </ul>
       )}
 
-      {attachments.map((att) => (
-        <div
-          key={att.id}
-          className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
-          style={{ background: "var(--surface-low)" }}
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            <Paperclip className="h-3.5 w-3.5 shrink-0" style={{ color: "#10b981" }} />
-            {att.signed_url ? (
-              <a
-                href={att.signed_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-medium truncate underline-offset-2 hover:underline"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {att.name}
-              </a>
-            ) : (
-              <span className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                {att.name}
-              </span>
-            )}
-            {att.file_size && (
-              <span className="text-xs shrink-0" style={{ color: "var(--text-muted)" }}>
-                {(att.file_size / 1024).toFixed(0)} KB
-              </span>
-            )}
-          </div>
-          <button
-            onClick={() => handleDelete(att.id)}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-            style={{ background: "rgba(255,59,48,0.1)" }}
-          >
-            <Trash2 className="h-3.5 w-3.5" style={{ color: "#ff3b30" }} />
-          </button>
-        </div>
-      ))}
-
       {error && (
-        <p className="text-xs rounded-lg p-2" style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}>
+        <p role="alert" className="rounded-md bg-danger-soft p-2 text-sm text-danger">
           {error}
         </p>
       )}
@@ -152,20 +159,25 @@ function AttachmentsTab({ contractId }: { contractId: string }) {
         accept=".pdf,application/pdf"
         className="hidden"
         onChange={handleUpload}
+        aria-label={t("uploadPdf")}
       />
-      <button
+      <Button
+        variant="outline"
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
-        className="flex items-center gap-2 text-sm font-medium rounded-xl px-4 py-2.5 w-full justify-center border-2 border-dashed transition-colors disabled:opacity-50"
-        style={{
-          borderColor: "var(--surface-container)",
-          color: "var(--text-muted)",
-          background: "transparent",
-        }}
+        className="h-11 w-full border-dashed"
       >
-        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-        {uploading ? "Uploading…" : "Upload PDF"}
-      </button>
+        {uploading ? <Loader2 className="animate-spin" /> : <Upload />}
+        {uploading ? t("uploading") : t("uploadPdf")}
+      </Button>
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        onOpenChange={(v) => !v && setConfirmId(null)}
+        title={t("removeAttachmentTitle")}
+        confirmLabel={t("remove")}
+        onConfirm={() => (confirmId ? handleDelete(confirmId) : undefined)}
+      />
     </div>
   );
 }
@@ -173,23 +185,30 @@ function AttachmentsTab({ contractId }: { contractId: string }) {
 // ── Sections ──────────────────────────────────────────────────────────────────
 
 function SectionsTab({ contractId }: { contractId: string }) {
-  const [sections,  setSections]  = useState<ContractCustomSection[]>([]);
+  const t = useTranslations("contracts.documents");
+  const tc = useTranslations("common");
+  const [sections, setSections] = useState<ContractCustomSection[]>([]);
   const [templates, setTemplates] = useState<UserSectionTemplate[]>([]);
   const [showTemplates, setShowTemplates] = useState(false);
-  const [newTitle, setNewTitle]   = useState("");
-  const [newBody,  setNewBody]    = useState("");
-  const [adding,   setAdding]     = useState(false);
-  const [editId,   setEditId]     = useState<string | null>(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [newBody, setNewBody] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [editBody,  setEditBody]  = useState("");
-  const [saving,    setSaving]    = useState(false);
+  const [editBody, setEditBody] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/contracts/${contractId}/sections`)
-      .then(async (r) => { if (r.ok) setSections(await r.json()); })
+      .then(async (r) => {
+        if (r.ok) setSections(await r.json());
+      })
       .catch(() => {});
     fetch("/api/user-sections")
-      .then(async (r) => { if (r.ok) setTemplates(await r.json()); })
+      .then(async (r) => {
+        if (r.ok) setTemplates(await r.json());
+      })
       .catch(() => {});
   }, [contractId]);
 
@@ -207,7 +226,12 @@ function SectionsTab({ contractId }: { contractId: string }) {
         setSections((prev) => [...prev, data]);
         setNewTitle("");
         setNewBody("");
+        toast.success(t("sectionAdded"));
+      } else {
+        toast.error(tc("saveFailed"));
       }
+    } catch {
+      toast.error(tc("saveFailed"));
     } finally {
       setAdding(false);
     }
@@ -225,16 +249,26 @@ function SectionsTab({ contractId }: { contractId: string }) {
       if (res.ok) {
         setSections((prev) => prev.map((s) => (s.id === id ? data : s)));
         setEditId(null);
+        toast.success(tc("saved"));
+      } else {
+        toast.error(tc("saveFailed"));
       }
+    } catch {
+      toast.error(tc("saveFailed"));
     } finally {
       setSaving(false);
     }
   }
 
   async function deleteSection(id: string) {
-    if (!confirm("Delete this section?")) return;
-    const res = await fetch(`/api/contracts/${contractId}/sections/${id}`, { method: "DELETE" });
-    if (res.ok) setSections((prev) => prev.filter((s) => s.id !== id));
+    const res = await fetch(`/api/contracts/${contractId}/sections/${id}`, { method: "DELETE" }).catch(() => null);
+    if (res?.ok) {
+      setSections((prev) => prev.filter((s) => s.id !== id));
+      toast.success(tc("deleted"));
+      setConfirmId(null);
+    } else {
+      toast.error(t("removeFailed"));
+    }
   }
 
   function startEdit(sec: ContractCustomSection) {
@@ -245,160 +279,122 @@ function SectionsTab({ contractId }: { contractId: string }) {
 
   return (
     <div className="space-y-3">
-      {/* Existing sections */}
       {sections.length === 0 && !showTemplates && (
-        <p className="text-sm text-center py-4" style={{ color: "var(--text-muted)" }}>
-          No custom sections yet
-        </p>
+        <p className="py-3 text-center text-sm text-muted-foreground">{t("noSections")}</p>
       )}
 
       {sections.map((sec) => (
-        <div
-          key={sec.id}
-          className="rounded-xl p-4 space-y-2"
-          style={{ background: "var(--surface-low)" }}
-        >
+        <div key={sec.id} className="space-y-2 rounded-lg border p-3">
           {editId === sec.id ? (
             <>
-              <input
-                className="input-tonal w-full text-sm font-semibold"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                placeholder="Section title"
-              />
-              <textarea
-                className="input-tonal w-full text-sm resize-none"
-                rows={4}
-                value={editBody}
-                onChange={(e) => setEditBody(e.target.value)}
-                placeholder="Section content…"
-              />
+              <div className="space-y-1.5">
+                <Label htmlFor={`sec-title-${sec.id}`}>{t("sectionTitle")}</Label>
+                <Input id={`sec-title-${sec.id}`} value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`sec-body-${sec.id}`}>{t("sectionBody")}</Label>
+                <Textarea id={`sec-body-${sec.id}`} rows={4} value={editBody} onChange={(e) => setEditBody(e.target.value)} />
+              </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => saveEdit(sec.id)}
-                  disabled={saving}
-                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg"
-                  style={{ background: "#10b981", color: "#fff" }}
-                >
-                  {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-                  Save
-                </button>
-                <button
-                  onClick={() => setEditId(null)}
-                  className="text-xs font-medium px-3 py-1.5 rounded-lg"
-                  style={{ background: "var(--surface-container)", color: "var(--text-muted)" }}
-                >
-                  Cancel
-                </button>
+                <Button size="sm" onClick={() => saveEdit(sec.id)} disabled={saving}>
+                  {saving ? <Loader2 className="animate-spin" /> : <Check />}
+                  {tc("save")}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditId(null)}>
+                  {tc("cancel")}
+                </Button>
               </div>
             </>
           ) : (
             <>
               <div className="flex items-start justify-between gap-2">
-                <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                  {sec.title}
-                </p>
-                <div className="flex gap-1 shrink-0">
-                  <button
-                    onClick={() => startEdit(sec)}
-                    className="flex h-6 w-6 items-center justify-center rounded-md"
-                    style={{ background: "var(--surface-container)" }}
+                <h4 className="text-sm font-semibold text-foreground">{sec.title}</h4>
+                <div className="flex shrink-0 gap-1">
+                  <Button variant="ghost" size="icon-sm" onClick={() => startEdit(sec)} aria-label={t("editSectionNamed", { name: sec.title })}>
+                    <Pencil />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setConfirmId(sec.id)}
+                    aria-label={t("deleteSectionNamed", { name: sec.title })}
+                    className="text-danger hover:text-danger"
                   >
-                    <Pencil className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
-                  </button>
-                  <button
-                    onClick={() => deleteSection(sec.id)}
-                    className="flex h-6 w-6 items-center justify-center rounded-md"
-                    style={{ background: "rgba(255,59,48,0.1)" }}
-                  >
-                    <Trash2 className="h-3 w-3" style={{ color: "#ff3b30" }} />
-                  </button>
+                    <Trash2 />
+                  </Button>
                 </div>
               </div>
-              <p className="text-sm whitespace-pre-wrap" style={{ color: "var(--text-secondary)" }}>
-                {sec.body || <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Empty</span>}
+              <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                {sec.body || <span className="italic text-subtle-foreground">{t("emptySection")}</span>}
               </p>
             </>
           )}
         </div>
       ))}
 
-      {/* Template picker */}
       {showTemplates && templates.length > 0 && (
-        <div className="rounded-xl p-4 space-y-2" style={{ background: "var(--surface-low)" }}>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-            Add from template
-          </p>
-          {templates.map((t) => (
-            <button
-              key={t.id}
-              onClick={async () => {
-                await addSection(t.title, t.body);
-                setShowTemplates(false);
-              }}
-              className="w-full text-left rounded-lg px-3 py-2 text-sm transition-colors"
-              style={{ background: "var(--surface-card)", color: "var(--text-primary)" }}
-            >
-              {t.title}
-            </button>
-          ))}
-          <button
-            onClick={() => setShowTemplates(false)}
-            className="text-xs font-medium"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Cancel
-          </button>
+        <div className="space-y-2 rounded-lg border bg-surface-muted p-3">
+          <h4 className="text-sm font-semibold">{t("fromTemplateTitle")}</h4>
+          <ul className="space-y-1">
+            {templates.map((tpl) => (
+              <li key={tpl.id}>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={async () => {
+                    await addSection(tpl.title, tpl.body);
+                    setShowTemplates(false);
+                  }}
+                >
+                  {tpl.title}
+                </Button>
+              </li>
+            ))}
+          </ul>
+          <Button variant="ghost" size="sm" onClick={() => setShowTemplates(false)}>
+            {tc("cancel")}
+          </Button>
         </div>
       )}
 
-      {/* Add section form */}
-      <div className="rounded-xl p-4 space-y-3" style={{ border: "1.5px dashed var(--surface-container)" }}>
-        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-          New section
-        </p>
-        <input
-          className="input-tonal w-full text-sm"
-          placeholder="Section title"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-        />
-        <textarea
-          className="input-tonal w-full text-sm resize-none"
-          rows={3}
-          placeholder="Section content…"
-          value={newBody}
-          onChange={(e) => setNewBody(e.target.value)}
-        />
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => addSection(newTitle, newBody)}
-            disabled={adding || !newTitle.trim()}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50"
-            style={{ background: "#10b981", color: "#fff" }}
-          >
-            {adding ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-            Add Section
-          </button>
+      <div className="space-y-3 rounded-lg border border-dashed p-3">
+        <h4 className="text-sm font-semibold">{t("newSection")}</h4>
+        <div className="space-y-1.5">
+          <Label htmlFor="new-sec-title">{t("sectionTitle")}</Label>
+          <Input id="new-sec-title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="new-sec-body">{t("sectionBody")}</Label>
+          <Textarea id="new-sec-body" rows={3} value={newBody} onChange={(e) => setNewBody(e.target.value)} />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" onClick={() => addSection(newTitle, newBody)} disabled={adding || !newTitle.trim()}>
+            {adding ? <Loader2 className="animate-spin" /> : <Plus />}
+            {t("addSection")}
+          </Button>
           {templates.length > 0 && (
-            <button
-              onClick={() => setShowTemplates((v) => !v)}
-              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg"
-              style={{ background: "var(--surface-container)", color: "var(--text-muted)" }}
-            >
-              <BookOpen className="h-3 w-3" />
-              From template
-            </button>
+            <Button size="sm" variant="outline" onClick={() => setShowTemplates((v) => !v)}>
+              <BookOpen />
+              {t("fromTemplate")}
+            </Button>
           )}
         </div>
       </div>
 
-      <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-        Sections appear in the generated PDF before the signature block.{" "}
-        <a href="/settings/sections" className="underline" style={{ color: "#10b981" }}>
-          Manage templates →
-        </a>
+      <p className="text-xs text-muted-foreground">
+        {t("sectionsHint")}{" "}
+        <Link href="/settings/sections" className="font-medium text-primary underline-offset-2 hover:underline">
+          {t("manageTemplates")}
+        </Link>
       </p>
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        onOpenChange={(v) => !v && setConfirmId(null)}
+        title={t("deleteSectionTitle")}
+        confirmLabel={tc("delete")}
+        onConfirm={() => (confirmId ? deleteSection(confirmId) : undefined)}
+      />
     </div>
   );
 }

@@ -40,7 +40,7 @@ export function FormSheet({
           <SheetTitle>{title}</SheetTitle>
           {description && <SheetDescription>{description}</SheetDescription>}
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto px-4 py-5">{children}</div>
+        <div className="flex-1 overflow-y-auto px-4 py-5" tabIndex={-1}>{children}</div>
         {footer && <SheetFooter className="border-t sm:flex-row sm:justify-end">{footer}</SheetFooter>}
       </SheetContent>
     </Sheet>

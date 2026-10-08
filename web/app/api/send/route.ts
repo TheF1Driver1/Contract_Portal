@@ -1,3 +1,4 @@
+import { trackEvent } from "@/lib/analytics";
 import { requireFeature } from "@/lib/entitlements";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
@@ -171,6 +172,7 @@ export async function POST(req: Request) {
     .from("contracts")
     .update({ status: "sent", sent_at: new Date().toISOString() })
     .eq("id", contractId);
+  await trackEvent("contract_sent", { email: results.email === "sent", sms: results.sms === "sent" });
 
   return NextResponse.json({ success: true, results });
 }

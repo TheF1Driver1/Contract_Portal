@@ -1,28 +1,45 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Loader2, Check, X, BookOpen } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { BookOpen, Check, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import type { UserSectionTemplate } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/app/EmptyState";
+import { SectionHeader } from "@/components/settings/SectionHeader";
+import { ConfirmDialog } from "@/components/settings/ConfirmDialog";
 
 export default function SectionTemplatesPage() {
+  const t = useTranslations("settings.sectionsPage");
+  const tc = useTranslations("common");
   const [templates, setTemplates] = useState<UserSectionTemplate[]>([]);
-  const [newTitle,  setNewTitle]  = useState("");
-  const [newBody,   setNewBody]   = useState("");
-  const [adding,    setAdding]    = useState(false);
-  const [addError,  setAddError]  = useState("");
-  const [editId,    setEditId]    = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [newTitle, setNewTitle] = useState("");
+  const [newBody, setNewBody] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [editBody,  setEditBody]  = useState("");
-  const [saving,    setSaving]    = useState(false);
+  const [editBody, setEditBody] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<UserSectionTemplate | null>(null);
 
   useEffect(() => {
     fetch("/api/user-sections")
       .then((r) => r.json())
-      .then(setTemplates)
-      .catch(() => {});
+      .then((data) => setTemplates(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  async function add() {
+  async function add(e: React.FormEvent) {
+    e.preventDefault();
     if (!newTitle.trim()) return;
     setAdding(true);
     setAddError("");
@@ -37,11 +54,12 @@ export default function SectionTemplatesPage() {
         setTemplates((prev) => [data, ...prev]);
         setNewTitle("");
         setNewBody("");
+        toast.success(t("added"));
       } else {
         setAddError(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
       }
-    } catch (e) {
-      setAddError((e as Error).message);
+    } catch (err) {
+      setAddError((err as Error).message);
     } finally {
       setAdding(false);
     }
@@ -57,146 +75,158 @@ export default function SectionTemplatesPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setTemplates((prev) => prev.map((t) => (t.id === id ? data : t)));
+        setTemplates((prev) => prev.map((x) => (x.id === id ? data : x)));
         setEditId(null);
+        toast.success(tc("saved"));
+      } else {
+        toast.error(tc("saveFailed"));
       }
+    } catch {
+      toast.error(tc("saveFailed"));
     } finally {
       setSaving(false);
     }
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this template?")) return;
-    const res = await fetch(`/api/user-sections/${id}`, { method: "DELETE" });
-    if (res.ok) setTemplates((prev) => prev.filter((t) => t.id !== id));
+    const res = await fetch(`/api/user-sections/${id}`, { method: "DELETE" }).catch(() => null);
+    if (res?.ok) {
+      setTemplates((prev) => prev.filter((x) => x.id !== id));
+      toast.success(tc("deleted"));
+    } else {
+      toast.error(t("deleteError"));
+    }
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
-          Settings
-        </p>
-        <h1 className="font-display text-4xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
-          Section Templates
-        </h1>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-          Create reusable contract clauses you can quickly add to any contract
-        </p>
-      </div>
+    <div className="max-w-3xl space-y-6">
+      <SectionHeader title={t("title")} description={t("description")} />
 
-      {/* New template form */}
-      <div className="surface-card space-y-4">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4" style={{ color: "#10b981" }} />
-          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>New Template</p>
-        </div>
-        <div className="space-y-3">
-          <input
-            className="input-tonal w-full"
-            placeholder="Section title (e.g. Pet Policy)"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-          />
-          <textarea
-            className="input-tonal w-full resize-none"
-            rows={4}
-            placeholder="Section content…"
-            value={newBody}
-            onChange={(e) => setNewBody(e.target.value)}
-          />
-          <button
-            onClick={add}
-            disabled={adding || !newTitle.trim()}
-            className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl disabled:opacity-50"
-            style={{ background: "#10b981", color: "#fff" }}
-          >
-            {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Add Template
-          </button>
-          {addError && (
-            <p className="text-xs rounded-lg px-3 py-2" style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}>
-              {addError}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Template list */}
-      <div className="space-y-3">
-        {templates.length === 0 && (
-          <div className="surface-card text-center py-8">
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>No templates yet</p>
-          </div>
-        )}
-
-        {templates.map((t) => (
-          <div key={t.id} className="surface-card space-y-3">
-            {editId === t.id ? (
-              <>
-                <input
-                  className="input-tonal w-full font-semibold"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                />
-                <textarea
-                  className="input-tonal w-full resize-none"
-                  rows={5}
-                  value={editBody}
-                  onChange={(e) => setEditBody(e.target.value)}
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => saveEdit(t.id)}
-                    disabled={saving}
-                    className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-xl"
-                    style={{ background: "#10b981", color: "#fff" }}
-                  >
-                    {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditId(null)}
-                    className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl"
-                    style={{ background: "var(--surface-container)", color: "var(--text-muted)" }}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                    Cancel
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{t.title}</p>
-                  <div className="flex gap-1 shrink-0">
-                    <button
-                      onClick={() => { setEditId(t.id); setEditTitle(t.title); setEditBody(t.body); }}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg"
-                      style={{ background: "var(--surface-container)" }}
-                    >
-                      <Pencil className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
-                    </button>
-                    <button
-                      onClick={() => remove(t.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg"
-                      style={{ background: "rgba(255,59,48,0.1)" }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" style={{ color: "#ff3b30" }} />
-                    </button>
-                  </div>
-                </div>
-                {t.body && (
-                  <p className="text-sm whitespace-pre-wrap" style={{ color: "var(--text-secondary)" }}>
-                    {t.body}
-                  </p>
-                )}
-              </>
+      <Card className="gap-4 py-4 md:py-5">
+        <CardHeader className="px-4 md:px-5">
+          <CardTitle className="text-base">
+            <h3>{t("newTitle")}</h3>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 md:px-5">
+          <form onSubmit={add} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="section-title">{t("titleLabel")}</Label>
+              <Input
+                id="section-title"
+                placeholder={t("titlePlaceholder")}
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                className="h-10 sm:h-9"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="section-body">{t("bodyLabel")}</Label>
+              <Textarea
+                id="section-body"
+                rows={4}
+                placeholder={t("bodyPlaceholder")}
+                value={newBody}
+                onChange={(e) => setNewBody(e.target.value)}
+              />
+            </div>
+            {addError && (
+              <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{addError}</p>
             )}
+            <Button type="submit" disabled={adding || !newTitle.trim()} className="h-10 sm:h-9">
+              {adding ? <Loader2 className="animate-spin" aria-hidden /> : <Plus aria-hidden />}
+              {t("addButton")}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <section aria-labelledby="sections-list" className="space-y-3">
+        <h3 id="sections-list" className="text-base font-semibold text-foreground">{t("listTitle")}</h3>
+
+        {loading ? (
+          <div className="space-y-3">
+            {[0, 1].map((i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
           </div>
-        ))}
-      </div>
+        ) : templates.length === 0 ? (
+          <EmptyState icon={BookOpen} title={t("emptyTitle")} description={t("emptyBody")} />
+        ) : (
+          <ul className="space-y-3">
+            {templates.map((x) => (
+              <li key={x.id} className="rounded-xl border border-border bg-surface p-4 md:p-5">
+                {editId === x.id ? (
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor={`edit-title-${x.id}`}>{t("titleLabel")}</Label>
+                      <Input
+                        id={`edit-title-${x.id}`}
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="h-10 font-semibold sm:h-9"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`edit-body-${x.id}`}>{t("bodyLabel")}</Label>
+                      <Textarea
+                        id={`edit-body-${x.id}`}
+                        rows={5}
+                        value={editBody}
+                        onChange={(e) => setEditBody(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={() => saveEdit(x.id)} disabled={saving} className="h-10 sm:h-9">
+                        {saving ? <Loader2 className="animate-spin" aria-hidden /> : <Check aria-hidden />}
+                        {tc("save")}
+                      </Button>
+                      <Button variant="outline" onClick={() => setEditId(null)} className="h-10 sm:h-9">
+                        <X aria-hidden />
+                        {tc("cancel")}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="pt-2 text-sm font-semibold text-foreground">{x.title}</h4>
+                      <div className="flex shrink-0 gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-10 sm:size-9"
+                          onClick={() => { setEditId(x.id); setEditTitle(x.title); setEditBody(x.body); }}
+                          aria-label={t("editAria", { title: x.title })}
+                        >
+                          <Pencil aria-hidden />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-10 text-danger hover:bg-danger-soft hover:text-danger sm:size-9"
+                          onClick={() => setDeleteTarget(x)}
+                          aria-label={t("deleteAria", { title: x.title })}
+                        >
+                          <Trash2 aria-hidden />
+                        </Button>
+                      </div>
+                    </div>
+                    {x.body && <p className="mt-2 text-sm whitespace-pre-wrap text-muted-foreground">{x.body}</p>}
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title={t("deleteTitle")}
+        description={deleteTarget ? t("deleteBody", { title: deleteTarget.title }) : undefined}
+        confirmLabel={tc("delete")}
+        onConfirm={() => (deleteTarget ? remove(deleteTarget.id) : undefined)}
+      />
     </div>
   );
 }

@@ -52,6 +52,12 @@ export async function POST(req: NextRequest) {
   const parsed = ExpenseCreateSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
+  // The property must be one this user can see (RLS: owner or co-owner).
+  if (parsed.data.property_id) {
+    const { data: prop } = await supabase.from("properties").select("id").eq("id", parsed.data.property_id).maybeSingle();
+    if (!prop) return NextResponse.json({ error: "Propiedad no encontrada." }, { status: 404 });
+  }
+
   const { data, error } = await supabase
     .from("property_expenses")
     .insert({ ...parsed.data, user_id: user.id })

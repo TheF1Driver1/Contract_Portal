@@ -53,9 +53,19 @@ type PendingTables = {
   }>;
 };
 
+type GenTables = Generated["public"]["Tables"];
+
+// Columns added by merge-time migrations (019).
+type TenantsPatched = {
+  Row: GenTables["tenants"]["Row"] & { preferred_locale: string };
+  Insert: GenTables["tenants"]["Insert"] & { preferred_locale?: string };
+  Update: GenTables["tenants"]["Update"] & { preferred_locale?: string };
+  Relationships: GenTables["tenants"]["Relationships"];
+};
+
 export type Database = Omit<Generated, "public"> & {
   public: Omit<Generated["public"], "Tables"> & {
-    Tables: Generated["public"]["Tables"] & PendingTables;
+    Tables: Omit<GenTables, "tenants"> & { tenants: TenantsPatched } & PendingTables;
   };
 };
 

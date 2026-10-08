@@ -1,1 +1,45 @@
-{}
+{
+  "eyebrow": "Portal del inquilino",
+  "title": "Mis contratos",
+  "description": "Aquí ves tus contratos de arrendamiento y los que tienes pendientes por firmar.",
+  "signOut": "Cerrar sesión",
+  "homeLink": "Ir a mis contratos",
+  "count": "{count, plural, one {# contrato} other {# contratos}}",
+  "rent": "Renta mensual",
+  "period": "Vigencia",
+  "unit": "Unidad {unit}",
+  "propertyFallback": "Propiedad",
+  "actions": {
+    "sign": "Firmar contrato",
+    "download": "Descargar",
+    "view": "Ver contrato"
+  },
+  "empty": {
+    "title": "Todavía no tienes contratos",
+    "description": "Cuando tu arrendador te envíe un contrato, te llegará un enlace por correo para firmarlo."
+  },
+  "signing": {
+    "title": "Revisa y firma tu contrato",
+    "description": "Revisa los detalles y dibuja tu firma para completar tu contrato de arrendamiento.",
+    "details": "Detalles del contrato",
+    "property": "Propiedad",
+    "unit": "Unidad",
+    "tenant": "Inquilino",
+    "rent": "Renta mensual",
+    "start": "Comienza",
+    "end": "Termina",
+    "deposit": "Fianza (depósito)",
+    "signatureTitle": "Tu firma",
+    "signatureLabel": "Firma del inquilino",
+    "consent": "Al firmar, aceptas los términos de este contrato de arrendamiento.",
+    "signHint": "Dibuja tu firma arriba para poder enviarla.",
+    "submit": "Enviar firma",
+    "submitFailed": "No pudimos enviar tu firma. Intenta de nuevo.",
+    "doneTitle": "¡Contrato firmado!",
+    "doneDescription": "Recibimos tu firma. Tu arrendador verá el contrato como firmado.",
+    "signedTitle": "Contrato firmado",
+    "signedDescription": "Ya firmaste este contrato de arrendamiento.",
+    "yourSignature": "Tu firma",
+    "back": "Volver a mis contratos"
+  }
+}

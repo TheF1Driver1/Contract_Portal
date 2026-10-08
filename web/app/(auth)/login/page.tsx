@@ -3,10 +3,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase";
-import { Loader2, ArrowRight } from "lucide-react";
+import { safeRedirect } from "@/lib/safe-redirect";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { PasswordInput } from "@/components/auth/PasswordInput";
+import { FormError } from "@/components/auth/FormError";
+import { authErrorKey } from "@/components/auth/auth-errors";
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const supabase = createBrowserClient();
   const [email, setEmail] = useState("");
@@ -22,123 +32,77 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError(error.message);
+      setError(t(`errors.${authErrorKey(error)}`));
       setLoading(false);
     } else {
-      router.push("/dashboard");
+      router.push(safeRedirect(new URLSearchParams(window.location.search).get("redirect")));
       router.refresh();
     }
   }
 
   return (
-    <main className="min-h-screen w-full relative overflow-hidden">
-      {/* Background layers */}
-      {/* Foreground — hero left + form right */}
-      <div className="pointer-events-none relative z-10 flex items-center h-screen">
-        {/* Left hero text */}
-        <div className="hidden md:flex w-1/2 flex-col justify-center px-12 lg:px-20 gap-5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-            Real Estate Management
-          </p>
-          <h2 className="font-display text-5xl lg:text-6xl font-bold leading-tight bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]">
-            Your portfolio.<br />Managed<br />beautifully.
-          </h2>
-          <p className="text-neutral-500 text-base leading-relaxed max-w-sm">
-            Contracts, tenants, and market intelligence — all in one clean, powerful dashboard.
-          </p>
+    <AuthShell
+      title={t("loginPage.title")}
+      description={t("loginPage.description")}
+      footer={
+        <>
+          {t("noAccount")}{" "}
+          <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
+            {t("signUpLink")}
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="email">{t("email")}</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder={t("emailPlaceholder")}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-10"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "login-error" : undefined}
+          />
         </div>
 
-        {/* Right form */}
-        <div className="pointer-events-none w-full md:w-1/2 flex flex-col justify-center px-10 lg:px-16">
-          <div className="mb-8">
-            <h1 className="font-display text-3xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]">
-              Welcome back
-            </h1>
-            <p className="mt-2 text-sm text-neutral-500">
-              Sign in to your account to continue
-            </p>
-          </div>
-
-          <form onSubmit={handleLogin} className="pointer-events-auto space-y-5">
-            <div className="space-y-1.5">
-              <label
-                className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500"
-                htmlFor="email"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-hidden focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label
-                  className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500"
-                  htmlFor="password"
-                >
-                  Password
-                </label>
-                  <Link
-                  href="/forgot-password"
-                  className="text-xs text-neutral-400 cursor-pointer hover:text-white transition-colors"
-                  >
-                  Forgot?
-                  </Link>
-              </div>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-hidden focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#8fe3a8] px-4 py-2.5 text-sm font-semibold text-[#06281c] hover:bg-[#a5ecbb] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  Sign In
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          <p className="pointer-events-auto mt-6 text-center text-sm text-neutral-600">
-            No account?{" "}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="password">{t("password")}</Label>
             <Link
-              href="/signup"
-              className="font-semibold text-neutral-300 hover:text-white transition-colors"
+              href="/forgot-password"
+              className="text-xs font-medium text-primary underline-offset-4 hover:underline"
             >
-              Sign up
+              {t("forgotLink")}
             </Link>
-          </p>
+          </div>
+          <PasswordInput
+            id="password"
+            name="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "login-error" : undefined}
+          />
         </div>
-      </div>
-    </main>
+
+        <FormError id="login-error">{error}</FormError>
+
+        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          {loading && <Loader2 className="animate-spin" aria-hidden />}
+          {t("signInButton")}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

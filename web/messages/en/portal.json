@@ -1,1 +1,45 @@
-{}
+{
+  "eyebrow": "Tenant portal",
+  "title": "My contracts",
+  "description": "Here are your lease agreements and any that are waiting for your signature.",
+  "signOut": "Sign out",
+  "homeLink": "Go to my contracts",
+  "count": "{count, plural, one {# contract} other {# contracts}}",
+  "rent": "Monthly rent",
+  "period": "Term",
+  "unit": "Unit {unit}",
+  "propertyFallback": "Property",
+  "actions": {
+    "sign": "Sign contract",
+    "download": "Download",
+    "view": "View contract"
+  },
+  "empty": {
+    "title": "You don't have any contracts yet",
+    "description": "When your landlord sends you a contract, you'll get an email link to sign it."
+  },
+  "signing": {
+    "title": "Review and sign your lease",
+    "description": "Review the details and draw your signature to complete your lease agreement.",
+    "details": "Lease details",
+    "property": "Property",
+    "unit": "Unit",
+    "tenant": "Tenant",
+    "rent": "Monthly rent",
+    "start": "Starts",
+    "end": "Ends",
+    "deposit": "Security deposit",
+    "signatureTitle": "Your signature",
+    "signatureLabel": "Tenant signature",
+    "consent": "By signing, you agree to the terms of this lease agreement.",
+    "signHint": "Draw your signature above to submit it.",
+    "submit": "Submit signature",
+    "submitFailed": "We couldn't submit your signature. Please try again.",
+    "doneTitle": "Lease signed!",
+    "doneDescription": "We received your signature. Your landlord will see the contract as signed.",
+    "signedTitle": "Contract signed",
+    "signedDescription": "You have already signed this lease agreement.",
+    "yourSignature": "Your signature",
+    "back": "Back to my contracts"
+  }
+}

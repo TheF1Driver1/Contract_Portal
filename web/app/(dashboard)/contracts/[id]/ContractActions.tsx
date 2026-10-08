@@ -1,11 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { Download, Loader2, Trash2, Mail, Pencil, Link2, Check } from "lucide-react";
-import type { Contract, Tenant } from "@/lib/types";
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import {
+  Download,
+  FileText,
+  Link2,
+  Loader2,
+  Mail,
+  MessageSquare,
+  MoreHorizontal,
+  Pencil,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
+import type { Contract, Tenant } from "@/lib/types";
 import RenewalModal from "@/components/RenewalModal";
 import SendEmailModal from "@/components/SendEmailModal";
+import { ConfirmDialog } from "@/components/contracts/ConfirmDialog";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+type Format = "docx" | "pdf";
 
 export default function ContractActions({
   contract,
@@ -16,16 +41,23 @@ export default function ContractActions({
   availableTenants?: Tenant[];
   landlordEmail?: string;
 }) {
-  const [generatingDocx, setGeneratingDocx] = useState(false);
-  const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [showEmail, setShowEmail] = useState(false);
-  const [sendingInvite, setSendingInvite] = useState(false);
-  const [inviteSent, setInviteSent] = useState(false);
-  const [inviteError, setInviteError] = useState("");
+  const t = useTranslations("contracts.actions");
   const router = useRouter();
+  const [generating, setGenerating] = useState<Format | null>(null);
+  const [showEmail, setShowEmail] = useState(false);
+  const [showRenewal, setShowRenewal] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [sendingInvite, setSendingInvite] = useState(false);
+  const [sendingSms, setSendingSms] = useState(false);
 
-  async function handleDownload(format: "docx" | "pdf") {
-    format === "pdf" ? setGeneratingPdf(true) : setGeneratingDocx(true);
+  const status = contract.status as string;
+  const showRenew = status === "signed" || status === "expired";
+  const canSendInvite = status !== "signed" && status !== "expired";
+  const tenantHasEmail = !!contract.tenant?.email;
+  const tenantHasPhone = !!contract.tenant?.phone;
+
+  async function handleDownload(format: Format) {
+    setGenerating(format);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -42,122 +74,219 @@ export default function ContractActions({
       a.download = `contract_${contract.id}.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
+      toast.success(t("downloaded"));
     } catch (e) {
-      alert("Failed to generate document: " + (e as Error).message);
+      toast.error(t("generateFailed"), { description: (e as Error).message });
     } finally {
-      setGeneratingDocx(false);
-      setGeneratingPdf(false);
+      setGenerating(null);
     }
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this contract? This cannot be undone.")) return;
-    const res = await fetch(`/api/contracts/${contract.id}`, { method: "DELETE" });
-    if (!res.ok) { alert("Failed to delete contract. Please try again."); return; }
+    const res = await fetch(`/api/contracts/${contract.id}`, { method: "DELETE" }).catch(() => null);
+    if (!res?.ok) {
+      toast.error(t("deleteFailed"));
+      return;
+    }
+    toast.success(t("deleted"));
+    setConfirmDelete(false);
     router.refresh();
     router.push("/contracts");
   }
 
   async function handleSendInvite() {
+    if (!tenantHasEmail) {
+      toast.error(t("needEmail"));
+      return;
+    }
     setSendingInvite(true);
-    setInviteError("");
     try {
       const res = await fetch(`/api/contracts/${contract.id}/invite`, { method: "POST" });
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setInviteError(json.error ?? "Failed to send invite");
+        toast.error(t("inviteFailed"), { description: typeof json.error === "string" ? json.error : undefined });
       } else {
-        setInviteSent(true);
+        toast.success(t("inviteSent", { email: contract.tenant?.email ?? "" }));
         router.refresh();
-        setTimeout(() => setInviteSent(false), 4000);
       }
+    } catch (e) {
+      toast.error(t("inviteFailed"), { description: (e as Error).message });
     } finally {
       setSendingInvite(false);
     }
   }
 
-  const showRenew = contract.status === "signed" || contract.status === "expired";
-  const canSendInvite = contract.status !== "signed" && contract.status !== "expired";
-  const tenantHasEmail = !!(contract as { tenant?: { email?: string | null } }).tenant?.email;
+  async function handleQuickSms() {
+    if (!tenantHasPhone) {
+      toast.error(t("needPhone"));
+      return;
+    }
+    setSendingSms(true);
+    try {
+      const res = await fetch(`/api/contracts/${contract.id}/quick-sms`, { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(t("smsFailed"), { description: typeof json.error === "string" ? json.error : undefined });
+      } else {
+        toast.success(t("smsSent", { phone: json.phone ?? contract.tenant?.phone ?? "" }));
+        router.refresh();
+      }
+    } catch (e) {
+      toast.error(t("smsFailed"), { description: (e as Error).message });
+    } finally {
+      setSendingSms(false);
+    }
+  }
+
+  const spin = <Loader2 className="animate-spin" />;
+
+  const inviteButton = (label: string, variant: "default" | "outline") => (
+    <Button
+      variant={variant}
+      onClick={handleSendInvite}
+      disabled={sendingInvite || !tenantHasEmail}
+      title={!tenantHasEmail ? t("needEmail") : undefined}
+    >
+      {sendingInvite ? spin : <Link2 />}
+      {label}
+    </Button>
+  );
+
+  const pdfButton = (variant: "default" | "outline") => (
+    <Button variant={variant} onClick={() => handleDownload("pdf")} disabled={generating !== null}>
+      {generating === "pdf" ? spin : <Download />}
+      {t("downloadPdf")}
+    </Button>
+  );
+
+  const renewButton = (variant: "default" | "outline") => (
+    <Button variant={variant} onClick={() => setShowRenewal(true)}>
+      <RefreshCw />
+      {t("renew")}
+    </Button>
+  );
+
+  // Primary actions depend on the contract's stage.
+  let primary: ReactNode;
+  if (status === "draft") {
+    primary = (
+      <>
+        <Button asChild variant="outline">
+          <Link href={`/contracts/new?edit=${contract.id}`}>
+            <Pencil />
+            {t("edit")}
+          </Link>
+        </Button>
+        {inviteButton(t("send"), "default")}
+      </>
+    );
+  } else if (status === "sent") {
+    primary = (
+      <>
+        <Button variant="outline" onClick={handleQuickSms} disabled={sendingSms || !tenantHasPhone} title={!tenantHasPhone ? t("needPhone") : undefined}>
+          {sendingSms ? spin : <MessageSquare />}
+          {t("remindSms")}
+        </Button>
+        {inviteButton(t("resend"), "default")}
+      </>
+    );
+  } else if (status === "signed") {
+    primary = (
+      <>
+        {renewButton("outline")}
+        {pdfButton("default")}
+      </>
+    );
+  } else if (status === "expired") {
+    primary = (
+      <>
+        {pdfButton("outline")}
+        {renewButton("default")}
+      </>
+    );
+  } else {
+    primary = pdfButton("default");
+  }
 
   return (
     <>
-    {showEmail && (
+      <div className="flex flex-wrap items-center gap-2">
+        {primary}
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" aria-label={t("more")}>
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuItem onSelect={() => setShowEmail(true)}>
+              <Mail />
+              {t("email")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleQuickSms} disabled={sendingSms || !tenantHasPhone}>
+              <MessageSquare />
+              {tenantHasPhone ? t("sms") : t("needPhone")}
+            </DropdownMenuItem>
+            {canSendInvite && (
+              <DropdownMenuItem onSelect={handleSendInvite} disabled={sendingInvite || !tenantHasEmail}>
+                <Link2 />
+                {tenantHasEmail ? t("signingLink") : t("needEmail")}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => handleDownload("pdf")} disabled={generating !== null}>
+              <Download />
+              {t("downloadPdf")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => handleDownload("docx")} disabled={generating !== null}>
+              <FileText />
+              {t("downloadDocx")}
+            </DropdownMenuItem>
+            {status === "draft" && (
+              <DropdownMenuItem asChild>
+                <Link href={`/contracts/new?edit=${contract.id}`}>
+                  <Pencil />
+                  {t("edit")}
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {showRenew && (
+              <DropdownMenuItem onSelect={() => setShowRenewal(true)}>
+                <RefreshCw />
+                {t("renew")}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
+              <Trash2 />
+              {t("delete")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <SendEmailModal
         contract={contract}
         landlordEmail={landlordEmail}
-        onClose={() => setShowEmail(false)}
+        open={showEmail}
+        onOpenChange={setShowEmail}
       />
-    )}
-    <div className="flex flex-wrap items-center gap-2">
-      {contract.status === "draft" && (
-        <a
-          href={`/contracts/new?edit=${contract.id}`}
-          className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-          Edit
-        </a>
-      )}
       {showRenew && (
-        <RenewalModal contract={contract} availableTenants={availableTenants} />
+        <RenewalModal
+          contract={contract}
+          availableTenants={availableTenants}
+          open={showRenewal}
+          onOpenChange={setShowRenewal}
+        />
       )}
-      <button
-        className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
-        onClick={() => setShowEmail(true)}
-      >
-        <Mail className="h-3.5 w-3.5" />
-        Email
-      </button>
-      {canSendInvite && (
-        <div className="relative">
-          <button
-            className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-            onClick={handleSendInvite}
-            disabled={sendingInvite || !tenantHasEmail}
-            title={!tenantHasEmail ? "Add tenant email first" : inviteSent ? "Invite sent!" : "Send signing link to tenant"}
-          >
-            {sendingInvite ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : inviteSent ? (
-              <Check className="h-3.5 w-3.5 text-green-400" />
-            ) : (
-              <Link2 className="h-3.5 w-3.5" />
-            )}
-            {inviteSent ? "Sent!" : "Send Signing Link"}
-          </button>
-          {inviteError && (
-            <p className="absolute top-full mt-1 left-0 text-xs text-red-400 whitespace-nowrap">
-              {inviteError}
-            </p>
-          )}
-        </div>
-      )}
-      <button
-        className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-        onClick={() => handleDownload("docx")}
-        disabled={generatingDocx}
-      >
-        {generatingDocx ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-        DOCX
-      </button>
-      <button
-        className="btn-tonal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-        onClick={() => handleDownload("pdf")}
-        disabled={generatingPdf}
-      >
-        {generatingPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-        PDF
-      </button>
-      <button
-        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
-        style={{ background: "rgba(255,59,48,0.12)", color: "#ff3b30" }}
-        onClick={handleDelete}
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-        Delete
-      </button>
-    </div>
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title={t("deleteTitle")}
+        description={t("deleteDescription")}
+        confirmLabel={t("delete")}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }

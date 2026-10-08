@@ -1,3 +1,4 @@
+import { trackEvent } from "@/lib/analytics";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import {
@@ -106,6 +107,7 @@ export async function POST(req: NextRequest) {
     await admin.from("profiles").update({ plan }).eq("id", ownerId);
 
     if (plan !== "free" && existing?.plan !== plan) {
+      await trackEvent("subscribed", { plan });
       await notifyOwner(admin, ownerId, (email) => sendSubscriptionActivatedEmail(email, plan, APP_URL));
     } else if (plan === "free" && existing?.plan && existing.plan !== "free") {
       await notifyOwner(admin, ownerId, (email) => sendSubscriptionCancelledEmail(email, APP_URL));

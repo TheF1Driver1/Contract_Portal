@@ -1,147 +1,57 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { NextIntlClientProvider } from "next-intl";
 import ContractBuilder from "@/components/ContractBuilder";
+import common from "@/messages/es/common.json";
+import builder from "@/messages/es/builder.json";
 import type { Property, Tenant } from "@/lib/types";
 
-// --- Mocks ---
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
-
-vi.mock("@/lib/supabase", () => ({
-  createBrowserClient: () => ({
-    from: () => ({
-      insert: () => ({ select: () => ({ single: async () => ({ data: { id: "new-id" }, error: null }) }) }),
-      update: () => ({ eq: async () => ({ error: null }) }),
-    }),
-    auth: { getUser: async () => ({ data: { user: { id: "u1" } } }) },
-  }),
-}));
-
-// SignaturePad uses canvas — stub it out
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("@/lib/actions/contracts", () => ({ saveContract: vi.fn(async () => ({ ok: true, id: "c1" })) }));
+vi.mock("sonner", () => ({ toast: Object.assign(vi.fn(), { error: vi.fn(), success: vi.fn(), warning: vi.fn() }) }));
 vi.mock("@/components/SignaturePad", () => ({
-  default: ({ label, onChange }: { label: string; onChange: (v: string) => void }) => (
-    <div>
-      <span>{label}</span>
-      <button onClick={() => onChange("data:image/png;base64,fake")}>Sign</button>
-    </div>
-  ),
+  default: ({ label }: { label: string }) => <div>{label}</div>,
 }));
+globalThis.fetch = vi.fn(async () => new Response("[]")) as unknown as typeof fetch;
+Element.prototype.scrollIntoView = vi.fn();
 
-// --- Fixtures ---
-
-const properties: Property[] = [
-  { id: "p1", owner_id: "u1", name: "Sabana Gardens", address: "456 Oak", unit: null, city: "San Juan", state: "PR", zip: "00901", country: null, jurisdiction: "pr" as const, unit_count: 5, bathroom_count: 1, parking_available: false, parking_count: null, created_at: "" },
-];
-
-const tenants: Tenant[] = [
-  { id: "t1", owner_id: "u1", full_name: "Jane Smith", email: "jane@example.com", phone: null, ssn_last4: "4567", license_number: "D123", current_address: "123 Main", current_street: null, current_unit: null, current_city: null, current_state: null, current_zip: null, current_country: null, previous_street: null, previous_unit: null, previous_city: null, previous_state: null, previous_zip: null, previous_country: null, date_of_birth: null, employer_name: null, employer_phone: null, monthly_income: null, emergency_contact_name: null, emergency_contact_phone: null, created_at: "" },
-];
+const properties = [
+  { id: "p1", owner_id: "u1", name: "Sabana Gardens", address: "456 Oak", unit: null, city: "San Juan", state: "PR", zip: "00901", country: null, jurisdiction: "pr", unit_count: 5, bathroom_count: 1, parking_available: false, parking_count: null, created_at: "" },
+] as Property[];
+const tenants = [{ id: "t1", owner_id: "u1", full_name: "Jane Smith", email: "jane@example.com" }] as Tenant[];
 
 function setup() {
-  return render(<ContractBuilder properties={properties} tenants={tenants} templates={[]} userId="u1" landlordEmail="landlord@example.com" />);
+  return render(
+    <NextIntlClientProvider locale="es" messages={{ common, builder }} timeZone="America/Puerto_Rico">
+      <ContractBuilder properties={properties} tenants={tenants} templates={[]} userId="u1" landlordEmail="l@example.com" />
+    </NextIntlClientProvider>
+  );
 }
 
-// --- Tests ---
-
-describe("ContractBuilder step navigation", () => {
-  it("renders step 0 (Contract Details) by default", () => {
+describe("ContractBuilder 4-step flow", () => {
+  it("starts on Partes y propiedad with all 4 steps listed", () => {
     setup();
-    expect(screen.getByText("Contract Details")).toBeInTheDocument();
+    for (const s of ["Partes y propiedad", "Términos", "Cláusulas", "Revisar y enviar"]) {
+      expect(screen.getAllByText(s).length).toBeGreaterThan(0);
+    }
+    expect(screen.getByText("Paso 1 de 4")).toBeInTheDocument();
   });
 
-  it("shows all 5 step tabs", () => {
+  it("blocks Siguiente until property and tenant are chosen", async () => {
     setup();
-    ["Details", "Property", "Payment", "Signatures", "Send"].forEach((label) => {
-      expect(screen.getByText(label)).toBeInTheDocument();
-    });
+    await userEvent.click(screen.getByRole("button", { name: /siguiente/i }));
+    expect(await screen.findByText("Selecciona la propiedad.")).toBeInTheDocument();
+    expect(screen.getByText("Paso 1 de 4")).toBeInTheDocument();
   });
 
-  it("Back button disabled on step 0", () => {
+  it("Atrás is disabled on the first step", () => {
     setup();
-    expect(screen.getByRole("button", { name: /back/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /atrás/i })).toBeDisabled();
   });
 
-  it("clicking Property tab advances to step 1 content", async () => {
+  it("renders the lease preview with Spanish governing law", () => {
     setup();
-    await userEvent.click(getStepButton("Property"));
-    expect(screen.getByText("Property & Amenities")).toBeInTheDocument();
-  });
-
-  it("Back returns to step 0 from step 1", async () => {
-    setup();
-    await userEvent.click(getStepButton("Property"));
-    await userEvent.click(screen.getByRole("button", { name: /back/i }));
-    expect(screen.getByText("Contract Details")).toBeInTheDocument();
-  });
-
-  it("clicking step tab jumps directly to that step", async () => {
-    setup();
-    await userEvent.click(getStepButton("Payment"));
-    expect(screen.getByText("Payment Terms")).toBeInTheDocument();
-  });
-
-  it("Continue not shown on last step", async () => {
-    setup();
-    await userEvent.click(getStepButton("Send"));
-    expect(screen.queryByRole("button", { name: /continue/i })).not.toBeInTheDocument();
-  });
-
-  it("last step shows Send Contract submit button", async () => {
-    setup();
-    await userEvent.click(getStepButton("Send"));
-    expect(screen.getByRole("button", { name: /save & send contract/i })).toBeInTheDocument();
-  });
-});
-
-function getStepButton(label: string) {
-  return screen.getAllByRole("button").find(b => {
-    const spans = b.querySelectorAll("span");
-    return Array.from(spans).some(s => s.textContent?.trim() === label);
-  })!;
-}
-
-describe("ContractBuilder step 4 (Send) conditional fields", () => {
-  async function goToSendStep() {
-    setup();
-    await userEvent.click(getStepButton("Send"));
-  }
-
-  it("Send step shows Save & Send Contract button", async () => {
-    await goToSendStep();
-    expect(screen.getByRole("button", { name: /save & send contract/i })).toBeInTheDocument();
-  });
-
-  it("SMS phone input hidden when SMS checkbox unchecked", async () => {
-    await goToSendStep();
-    expect(screen.queryByPlaceholderText("+1 787 555 0100")).not.toBeInTheDocument();
-  });
-
-  it("email address input always visible for landlord copy", async () => {
-    await goToSendStep();
-    const emailInputs = screen.getAllByRole("textbox");
-    expect(emailInputs.some(i => (i as HTMLInputElement).type === "email")).toBe(true);
-  });
-});
-
-describe("ContractBuilder step 3 (Signatures)", () => {
-  async function goToSignaturesStep() {
-    setup();
-    await userEvent.click(getStepButton("Signatures"));
-  }
-
-  it("renders signature pads for landlord and tenant", async () => {
-    await goToSignaturesStep();
-    expect(screen.getByText("Landlord Signature")).toBeInTheDocument();
-    expect(screen.getByText("Tenant Signature")).toBeInTheDocument();
-  });
-
-  it("PDF and DOCX download buttons present on signatures step", async () => {
-    await goToSignaturesStep();
-    const buttons = screen.getAllByRole("button");
-    expect(buttons.some(b => b.textContent?.trim() === "PDF")).toBe(true);
-    expect(buttons.some(b => b.textContent?.trim() === "DOCX")).toBe(true);
+    expect(screen.getAllByText(/Código Civil de Puerto Rico de 2020/).length).toBeGreaterThan(0);
   });
 });

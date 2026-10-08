@@ -1,9 +1,9 @@
 import { getRequestConfig } from "next-intl/server";
 import { cookies } from "next/headers";
 import { NAMESPACES } from "./namespaces";
+import { baseLocale, intlLocale, type Locale } from "./locales";
 
-export const LOCALES = ["es", "en"] as const;
-export type Locale = (typeof LOCALES)[number];
+export { LOCALES, intlLocale, baseLocale, type Locale } from "./locales";
 
 export async function loadMessages(locale: Locale) {
   const entries = await Promise.all(
@@ -12,13 +12,18 @@ export async function loadMessages(locale: Locale) {
   return Object.fromEntries(entries);
 }
 
-export default getRequestConfig(async () => {
-  const cookieStore = await cookies();
-  const raw = cookieStore.get("NEXT_LOCALE")?.value;
-  const locale: Locale = raw === "en" ? "en" : "es";
+export default getRequestConfig(async ({ locale: explicit }) => {
+  // Marketing pages pass an explicit locale (/ vs /en); the app follows the cookie.
+  let locale: Locale;
+  if (explicit) {
+    locale = baseLocale(explicit);
+  } else {
+    const raw = (await cookies()).get("NEXT_LOCALE")?.value;
+    locale = raw === "en" ? "en" : "es";
+  }
 
   return {
-    locale,
+    locale: intlLocale(locale),
     messages: await loadMessages(locale),
     timeZone: "America/Puerto_Rico",
     formats: {

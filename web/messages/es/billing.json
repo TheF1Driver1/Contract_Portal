@@ -31,5 +31,70 @@
     "sms": "Envío por SMS",
     "scheduleE": "Exportación Schedule E",
     "managers": "administradores de propiedad"
+  },
+  "description": "Administra tu suscripción y método de pago.",
+  "unlimited": "Ilimitado",
+  "manageHint": "Cambia tu método de pago, descarga facturas o cancela.",
+  "compareTitle": "Compara los planes",
+  "yourPlan": "Tu plan",
+  "selected": "Seleccionado",
+  "upgradeTo": "Mejorar a {plan}",
+  "enterpriseCta": "Ver detalles",
+  "managersTitle": "Administradores de propiedad",
+  "managersBody": "Invita a tu equipo a manejar propiedades por ti.",
+  "legal": "Los precios están en USD. Puedes cancelar en cualquier momento. Al mejorar tu plan, se cobra la diferencia prorrateada por lo que queda del período de facturación actual.",
+  "usage": {
+    "properties": "Propiedades",
+    "contracts": "Contratos",
+    "sms": "SMS",
+    "scheduleE": "Schedule E",
+    "managers": "Administradores",
+    "limitReached": "Límite alcanzado",
+    "perMonth": "{count} al mes",
+    "upTo": "Hasta {max}",
+    "included": "Incluido",
+    "notIncluded": "No incluido"
+  },
+  "compare": {
+    "oneProperty": "1 propiedad",
+    "threeContracts": "3 contratos al mes",
+    "fiveProperties": "Hasta 5 propiedades",
+    "unlimitedContracts": "Contratos ilimitados",
+    "sms": "Envío por SMS",
+    "expenseCsv": "Exportación de gastos (CSV)",
+    "prContract": "Contrato para Puerto Rico (Código Civil 2020)",
+    "market": "Análisis de mercado y lista de seguimiento",
+    "unlimitedProperties": "Propiedades ilimitadas",
+    "scheduleE": "Reportes de impuestos (Schedule E)",
+    "portfolio": "Panel de portafolio",
+    "threeManagers": "Hasta 3 administradores de propiedad",
+    "prioritySupport": "Soporte prioritario (48h SLA)",
+    "unlimitedManagers": "Administradores ilimitados"
+  },
+  "success": {
+    "loadingTitle": "Procesando tu suscripción…",
+    "loadingBody": "Esto solo tomará un momento.",
+    "doneTitle": "¡Suscripción activada!",
+    "doneBody": "Tu plan está actualizado. Ya puedes usar todas sus funciones.",
+    "nextSteps": "Próximos pasos",
+    "goDashboard": "Ir al panel",
+    "steps": {
+      "property": {
+        "title": "Añade tus propiedades",
+        "body": "Registra cada unidad que alquilas."
+      },
+      "contract": {
+        "title": "Crea un contrato",
+        "body": "Genera un contrato de arrendamiento y envíalo para firmar."
+      },
+      "reminders": {
+        "title": "Configura recordatorios",
+        "body": "Recibe avisos antes de que venzan tus contratos."
+      },
+      "billing": {
+        "title": "Revisa tu plan",
+        "body": "Mira lo que incluye y administra tu facturación."
+      }
+    }
   }
 }

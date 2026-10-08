@@ -1,12 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { createPortal } from "react-dom";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { ArrowLeft, ArrowRight, Check, Loader2, Minus, Plus, Send } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase";
-import { RefreshCw, X, Loader2, Plus, Minus, Check } from "lucide-react";
 import type { Contract, ContractOccupant, Tenant } from "@/lib/types";
 import SignaturePad from "@/components/SignaturePad";
+import { FormSheet } from "@/components/app/FormSheet";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface OccupantEntry {
   id: string;
@@ -24,18 +33,18 @@ interface OccupantEntry {
 interface Props {
   contract: Contract & { occupants?: ContractOccupant[] };
   availableTenants: Tenant[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-function addMonths(dateStr: string, months: number): string {
-  const d = new Date(dateStr);
-  d.setMonth(d.getMonth() + months);
-  return d.toISOString().slice(0, 10);
-}
+const STEPS = ["terms", "details", "sign", "send"] as const;
+const LATE_FEE_TYPES = ["fixed", "daily", "both"] as const;
 
-const STEPS = ["Terms", "Details", "Sign", "Send"] as const;
-
-export default function RenewalModal({ contract, availableTenants }: Props) {
-  const [open, setOpen] = useState(false);
+/** Four-step renewal wizard: terms → details → signatures → send. */
+export default function RenewalModal({ contract, availableTenants, open, onOpenChange }: Props) {
+  const t = useTranslations("contracts.renewal");
+  const tc = useTranslations("common");
+  const f = useFormatter();
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const router = useRouter();
   const supabase = createBrowserClient();
@@ -152,7 +161,7 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
   function goToStep1() {
     const included = occupants.filter((o) => o.include);
     if (included.length === 0) {
-      setError("At least one tenant must be included.");
+      setError(t("errNoTenant"));
       return;
     }
     setError("");
@@ -171,11 +180,11 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
     const coTenants = includedOccupants.slice(1);
 
     const missing: string[] = [];
-    if (!landlordSig) missing.push("Landlord");
+    if (!landlordSig) missing.push(t("landlord"));
     if (!tenantSig) missing.push(primaryOccupant.full_name);
     coTenants.forEach((o, i) => { if (!coTenantSigs[i]) missing.push(o.full_name); });
     if (missing.length > 0) {
-      setError(`Missing signatures: ${missing.join(", ")}`);
+      setError(t("errMissingSigs", { names: missing.join(", ") }));
       return;
     }
 
@@ -246,7 +255,8 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
       .single();
 
     if (contractErr || !newContract) {
-      setError(contractErr?.message ?? "Failed to create renewal");
+      setError(contractErr?.message ?? t("errCreate"));
+      toast.error(t("errCreate"), { description: contractErr?.message });
       setSaving(false);
       return;
     }
@@ -283,11 +293,12 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
     setNewContractId(newContract.id);
     setSaving(false);
     setStep(3);
+    toast.success(t("created"));
   }
 
   async function handleSend() {
     setSaving(true);
-    await fetch("/api/send", {
+    const res = await fetch("/api/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -295,494 +306,421 @@ export default function RenewalModal({ contract, availableTenants }: Props) {
         ...(sendEmail ? { landlordEmail: sendEmail } : {}),
         ...(sendPhone ? { phone: sendPhone } : {}),
       }),
-    });
+    }).catch(() => null);
+    if (res?.ok) toast.success(t("sendDone"));
+    else toast.error(t("sendFailed"));
     setSaving(false);
-    setOpen(false);
+    onOpenChange(false);
     router.push(`/contracts/${newContractId}`);
   }
 
-  const lbl = { color: "var(--text-secondary)" } as const;
-  const unusedTenants = availableTenants.filter((t) => !occupants.find((o) => o.tenant_id === t.id));
+  const unusedTenants = availableTenants.filter((x) => !occupants.find((o) => o.tenant_id === x.id));
   const includedOccupants = occupants.filter((o) => o.include);
   const includedCoTenants = includedOccupants.slice(1);
 
-  const amenityToggle = (label: string, value: boolean, onChange: (v: boolean) => void) => (
-    <label
-      className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 cursor-pointer"
-      style={{
-        background: value ? "rgba(16, 185, 129,0.06)" : "var(--surface-container)",
-        border: `1px solid ${value ? "rgba(16, 185, 129,0.20)" : "transparent"}`,
-      }}
+  // The sheet can't be dismissed once the renewal is saved (step 3); use Skip or Send.
+  function handleOpenChange(next: boolean) {
+    if (!next && step === 3) return;
+    if (!next) {
+      setStep(0);
+      setError("");
+    }
+    onOpenChange(next);
+  }
+
+  const amenityToggle = (id: string, label: string, value: boolean, onChange: (v: boolean) => void) => (
+    <div
+      className={cn(
+        "flex min-h-10 items-center gap-2.5 rounded-lg border px-3 py-2",
+        value ? "border-border-strong bg-primary-soft" : "bg-surface"
+      )}
     >
-      <input
-        type="checkbox"
-        className="h-4 w-4 rounded accent-tertiary-container"
-        checked={value}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      <span className="text-sm" style={{ color: value ? "var(--text-primary)" : "var(--text-secondary)" }}>
+      <Checkbox id={`renew-${id}`} checked={value} onCheckedChange={(v) => onChange(v === true)} />
+      <Label htmlFor={`renew-${id}`} className="flex-1 cursor-pointer font-normal">
         {label}
-      </span>
-    </label>
+      </Label>
+    </div>
   );
 
-  return (
-    <>
-      <button
-        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
-        style={{ background: "rgba(34,197,94,0.12)", color: "#22c55e" }}
-        onClick={() => { setStep(0); setError(""); setOpen(true); }}
-      >
-        <RefreshCw className="h-3.5 w-3.5" />
-        Renew
-      </button>
+  const numberField = (id: string, label: string, value: number, onChange: (v: number) => void, min = 0) => (
+    <div className="space-y-1.5">
+      <Label htmlFor={`renew-${id}`}>{label}</Label>
+      <Input
+        id={`renew-${id}`}
+        type="number"
+        inputMode="numeric"
+        min={min}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value) || min)}
+        className="tabular"
+      />
+    </div>
+  );
 
-      {open && createPortal(
-        <div
-          className="fixed inset-0 z-9999 flex items-center justify-center p-4 animate-fade-in"
-          style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }}
-          onClick={() => step < 3 && setOpen(false)}
+  const errorBox = error ? (
+    <p role="alert" className="rounded-md bg-danger-soft p-2 text-sm text-danger">
+      {error}
+    </p>
+  ) : null;
+
+  let footer: ReactNode = null;
+  if (step === 0) {
+    footer = (
+      <>
+        <Button variant="outline" onClick={() => handleOpenChange(false)}>
+          {tc("cancel")}
+        </Button>
+        <Button onClick={goToStep1}>
+          {t("continue")}
+          <ArrowRight />
+        </Button>
+      </>
+    );
+  } else if (step === 1) {
+    footer = (
+      <>
+        <Button variant="outline" onClick={() => setStep(0)}>
+          <ArrowLeft />
+          {tc("back")}
+        </Button>
+        <Button onClick={() => setStep(2)}>
+          {t("continue")}
+          <ArrowRight />
+        </Button>
+      </>
+    );
+  } else if (step === 2) {
+    footer = (
+      <>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setError("");
+            setStep(1);
+          }}
         >
-          <div
-            className="surface-card w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto space-y-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                  Renew Contract
-                </h2>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                  {contract.property?.name} · {contract.tenant?.full_name}
-                </p>
+          <ArrowLeft />
+          {tc("back")}
+        </Button>
+        <Button onClick={finalize} disabled={saving}>
+          {saving ? <Loader2 className="animate-spin" /> : <Check />}
+          {t("finalize")}
+        </Button>
+      </>
+    );
+  } else {
+    footer = (
+      <>
+        <Button
+          variant="outline"
+          onClick={() => {
+            onOpenChange(false);
+            router.push(`/contracts/${newContractId}`);
+          }}
+        >
+          {t("skip")}
+        </Button>
+        <Button onClick={handleSend} disabled={saving || !sendEmail}>
+          {saving ? <Loader2 className="animate-spin" /> : <Send />}
+          {t("sendContract")}
+        </Button>
+      </>
+    );
+  }
+
+  return (
+    <FormSheet
+      open={open}
+      onOpenChange={handleOpenChange}
+      wide
+      title={t("title")}
+      description={[contract.property?.name, contract.tenant?.full_name].filter(Boolean).join(" · ")}
+      footer={footer}
+    >
+      <div className="space-y-6">
+        {/* Step indicator */}
+        <ol className="flex items-center gap-2" aria-label={t("stepsLabel")}>
+          {STEPS.map((key, i) => {
+            const done = i < step;
+            const active = i === step;
+            return (
+              <li key={key} className="flex flex-1 items-center gap-2 last:flex-none" aria-current={active ? "step" : undefined}>
+                <span className="flex flex-col items-center gap-1">
+                  <span
+                    className={cn(
+                      "flex size-7 items-center justify-center rounded-full border text-xs font-semibold",
+                      done && "border-transparent bg-success-soft text-success",
+                      active && "border-primary bg-primary-soft text-primary-soft-foreground",
+                      !done && !active && "bg-surface-muted text-muted-foreground"
+                    )}
+                  >
+                    {done ? <Check className="size-3.5" aria-hidden /> : i + 1}
+                  </span>
+                  <span className={cn("text-xs", active ? "font-medium text-foreground" : "text-muted-foreground")}>
+                    {t(`steps.${key}`)}
+                  </span>
+                </span>
+                {i < STEPS.length - 1 && (
+                  <span className={cn("mb-5 h-px flex-1", i < step ? "bg-success" : "bg-border")} aria-hidden />
+                )}
+              </li>
+            );
+          })}
+        </ol>
+
+        {/* ── STEP 0: Terms ── */}
+        {step === 0 && (
+          <div className="space-y-5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="renew-start">{t("startDate")}</Label>
+                <Input id="renew-start" type="date" value={leaseStart} onChange={(e) => setLeaseStart(e.target.value)} />
               </div>
-              {step < 3 && (
-                <button
-                  onClick={() => setOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl"
-                  style={{ background: "var(--surface-container)" }}
-                >
-                  <X className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
-                </button>
-              )}
+              <div className="space-y-1.5">
+                <Label htmlFor="renew-months">{t("months")}</Label>
+                <Input
+                  id="renew-months"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={120}
+                  value={leaseMonths}
+                  onChange={(e) => setLeaseMonths(parseInt(e.target.value) || 12)}
+                  className="tabular"
+                />
+              </div>
+            </div>
+            <p className="rounded-lg bg-surface-muted px-3 py-2 text-sm text-muted-foreground">
+              {t("newEnd")}{" "}
+              <span className="font-medium text-foreground">
+                {f.dateTime(new Date(`${leaseEnd}T12:00:00`), { dateStyle: "medium" })}
+              </span>
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="renew-rent">{t("rent")}</Label>
+                <Input
+                  id="renew-rent"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step={0.01}
+                  value={rentAmount}
+                  onChange={(e) => setRentAmount(e.target.value)}
+                  className="tabular"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="renew-deposit">{t("deposit")}</Label>
+                <Input
+                  id="renew-deposit"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step={0.01}
+                  value={securityDeposit}
+                  onChange={(e) => setSecurityDeposit(e.target.value)}
+                  className="tabular"
+                />
+              </div>
             </div>
 
-            {/* Step indicator */}
-            <div className="flex items-center gap-0">
-              {STEPS.map((label, i) => {
-                const done = i < step;
-                const active = i === step;
-                return (
-                  <div key={label} className="flex items-center flex-1 last:flex-none">
-                    <div className="flex flex-col items-center gap-1">
-                      <div
-                        className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all"
-                        style={{
-                          background: done ? "rgba(34,197,94,0.15)" : active ? "rgba(16, 185, 129,0.15)" : "var(--surface-container)",
-                          color: done ? "#22c55e" : active ? "#10b981" : "var(--text-muted)",
-                          border: `1.5px solid ${done ? "rgba(34,197,94,0.35)" : active ? "rgba(16, 185, 129,0.35)" : "transparent"}`,
-                        }}
-                      >
-                        {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
-                      </div>
-                      <span className="text-[10px] font-medium" style={{ color: active ? "var(--text-primary)" : "var(--text-muted)" }}>
-                        {label}
-                      </span>
-                    </div>
-                    {i < STEPS.length - 1 && (
-                      <div
-                        className="flex-1 h-px mx-2 mb-4"
-                        style={{ background: i < step ? "rgba(34,197,94,0.35)" : "var(--surface-container)" }}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* ── STEP 0: Terms ── */}
-            {step === 0 && (
-              <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium" style={lbl}>New Start Date</label>
-                    <input
-                      className="input-tonal"
-                      type="date"
-                      value={leaseStart}
-                      onChange={(e) => setLeaseStart(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium" style={lbl}>Duration (months)</label>
-                    <input
-                      className="input-tonal"
-                      type="number"
-                      min={1}
-                      max={120}
-                      value={leaseMonths}
-                      onChange={(e) => setLeaseMonths(parseInt(e.target.value) || 12)}
-                    />
-                  </div>
-                </div>
-                <div
-                  className="rounded-xl px-4 py-2.5 text-xs"
-                  style={{ background: "var(--surface-container)", color: "var(--text-muted)" }}
-                >
-                  New lease end: <span className="font-medium" style={{ color: "var(--text-primary)" }}>{leaseEnd}</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium" style={lbl}>Monthly Rent ($)</label>
-                    <input
-                      className="input-tonal"
-                      type="number"
-                      min={0}
-                      step={0.01}
-                      value={rentAmount}
-                      onChange={(e) => setRentAmount(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium" style={lbl}>Security Deposit ($)</label>
-                    <input
-                      className="input-tonal"
-                      type="number"
-                      min={0}
-                      step={0.01}
-                      value={securityDeposit}
-                      onChange={(e) => setSecurityDeposit(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium" style={lbl}>Late Fee Type</label>
-                  <div className="flex gap-2">
-                    {(["fixed", "daily", "both"] as const).map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        className="flex-1 rounded-xl py-1.5 text-xs font-medium capitalize"
-                        style={{
-                          background: lateFeeType === t ? "rgba(16, 185, 129,0.15)" : "var(--surface-container)",
-                          color: lateFeeType === t ? "#10b981" : "var(--text-secondary)",
-                          border: `1px solid ${lateFeeType === t ? "rgba(16, 185, 129,0.30)" : "transparent"}`,
-                        }}
-                        onClick={() => setLateFeeType(t)}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                  {(lateFeeType === "fixed" || lateFeeType === "both") && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium" style={lbl}>Fixed Fee ($)</label>
-                      <input className="input-tonal" type="number" min={0} value={lateFeeFixed} onChange={(e) => setLateFeeFixed(e.target.value)} />
-                    </div>
-                  )}
-                  {(lateFeeType === "daily" || lateFeeType === "both") && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium" style={lbl}>Daily Fee ($)</label>
-                      <input className="input-tonal" type="number" min={0} value={lateFeeDaily} onChange={(e) => setLateFeeDaily(e.target.value)} />
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium" style={lbl}>Tenants</label>
-                    {unusedTenants.length > 0 && (
-                      <button
-                        type="button"
-                        className="flex items-center gap-1 text-xs font-medium hover:opacity-70"
-                        style={{ color: "#10b981" }}
-                        onClick={() => setAddingTenant((v) => !v)}
-                      >
-                        {addingTenant ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-                        {addingTenant ? "Cancel" : "Add Tenant"}
-                      </button>
-                    )}
-                  </div>
-
-                  {addingTenant && (
-                    <div className="flex gap-2">
-                      <select
-                        className="input-tonal flex-1 text-sm"
-                        value={newTenantId}
-                        onChange={(e) => setNewTenantId(e.target.value)}
-                      >
-                        <option value="">Select tenant…</option>
-                        {unusedTenants.map((t) => (
-                          <option key={t.id} value={t.id}>{t.full_name}</option>
-                        ))}
-                      </select>
-                      <button
-                        className="btn-primary-gradient px-3"
-                        disabled={!newTenantId}
-                        onClick={addNewTenant}
-                      >
-                        Add
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    {occupants.map((o) => {
-                      const firstIncludedId = occupants.find((x) => x.include)?.id;
-                      const isPrimary = o.include && o.id === firstIncludedId;
-                      return (
-                        <label
-                          key={o.id}
-                          className="flex items-center gap-3 rounded-xl p-3 cursor-pointer"
-                          style={{
-                            background: o.include ? "rgba(16, 185, 129,0.06)" : "var(--surface-container)",
-                            border: `1px solid ${o.include ? "rgba(16, 185, 129,0.20)" : "transparent"}`,
-                            opacity: o.include ? 1 : 0.55,
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded accent-tertiary-container"
-                            checked={o.include}
-                            onChange={() => toggleOccupant(o.id)}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                              {o.full_name}
-                              {isPrimary && (
-                                <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ background: "rgba(16, 185, 129,0.12)", color: "#10b981" }}>
-                                  Primary
-                                </span>
-                              )}
-                            </p>
-                            {o.email && <p className="text-xs" style={{ color: "var(--text-muted)" }}>{o.email}</p>}
-                            {o.current_address && <p className="text-xs" style={{ color: "var(--text-muted)" }}>{o.current_address}</p>}
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {error && <p className="text-xs" style={{ color: "#ef4444" }}>{error}</p>}
-
-                <div className="flex gap-3 pt-1">
-                  <button type="button" className="btn-tonal flex-1 justify-center" onClick={() => setOpen(false)}>
-                    Cancel
-                  </button>
-                  <button className="btn-primary-gradient flex-1 justify-center" onClick={goToStep1}>
-                    Continue →
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* ── STEP 1: Details ── */}
-            {step === 1 && (
-              <>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs font-semibold mb-2" style={{ color: "var(--text-secondary)" }}>UNIT & COUNTS</p>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium" style={lbl}>Unit #</label>
-                        <input
-                          className="input-tonal"
-                          type="text"
-                          value={unitNumber}
-                          onChange={(e) => setUnitNumber(e.target.value)}
-                          placeholder="e.g. 2B"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium" style={lbl}>Bedrooms</label>
-                        <input className="input-tonal" type="number" min={0} value={roomCount} onChange={(e) => setRoomCount(parseInt(e.target.value) || 0)} />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium" style={lbl}>Ceiling Fans</label>
-                        <input className="input-tonal" type="number" min={0} value={fanCount} onChange={(e) => setFanCount(parseInt(e.target.value) || 0)} />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium" style={lbl}>Bar Stools</label>
-                        <input className="input-tonal" type="number" min={0} value={stoolCount} onChange={(e) => setStoolCount(parseInt(e.target.value) || 0)} />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium" style={lbl}>Stoves</label>
-                        <input className="input-tonal" type="number" min={0} value={stoveCount} onChange={(e) => setStoveCount(parseInt(e.target.value) || 0)} />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium" style={lbl}>Keys</label>
-                        <input className="input-tonal" type="number" min={1} value={keyCount} onChange={(e) => setKeyCount(parseInt(e.target.value) || 1)} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-semibold mb-2" style={{ color: "var(--text-secondary)" }}>AMENITIES INCLUDED</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {amenityToggle("Air Conditioning", hasAC, setHasAC)}
-                      {amenityToggle("Refrigerator", hasFridge, setHasFridge)}
-                      {amenityToggle("Microwave", hasMicrowave, setHasMicrowave)}
-                      {amenityToggle("Sofa", hasSofa, setHasSofa)}
-                      {amenityToggle("Futon", hasFuton, setHasFuton)}
-                      {amenityToggle("Mini Blinds", hasMiniBlinds, setHasMiniBlinds)}
-                      {amenityToggle("Mirror Closet Doors", hasMirrorDoors, setHasMirrorDoors)}
-                      {amenityToggle("Renovated Bathroom", hasRenovatedBath, setHasRenovatedBath)}
-                      {amenityToggle("Wall Art", hasWallArt, setHasWallArt)}
-                      {amenityToggle("Parking Included", hasParking, setHasParking)}
-                    </div>
-                    {hasParking && (
-                      <div className="mt-2 space-y-1.5">
-                        <label className="text-xs font-medium" style={lbl}>Parking Spot ID</label>
-                        <input
-                          className="input-tonal"
-                          type="text"
-                          value={parkingSpot}
-                          onChange={(e) => setParkingSpot(e.target.value)}
-                          placeholder="e.g. A-12"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-1">
-                  <button type="button" className="btn-tonal flex-1 justify-center" onClick={() => setStep(0)}>
-                    ← Back
-                  </button>
-                  <button className="btn-primary-gradient flex-1 justify-center" onClick={() => setStep(2)}>
-                    Continue →
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* ── STEP 2: Sign ── */}
-            {step === 2 && (
-              <>
-                <div className="space-y-5">
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    All parties must sign before the renewal contract is created.
-                  </p>
-
-                  <SignaturePad
-                    label="Landlord Signature"
-                    value={landlordSig}
-                    onChange={setLandlordSig}
-                  />
-
-                  {includedOccupants[0] && (
-                    <>
-                      <div className="border-t" style={{ borderColor: "var(--surface-container)" }} />
-                      <SignaturePad
-                        label={`Tenant — ${includedOccupants[0].full_name}`}
-                        value={tenantSig}
-                        onChange={setTenantSig}
-                      />
-                    </>
-                  )}
-
-                  {includedCoTenants.map((o, i) => (
-                    <div key={o.id}>
-                      <div className="border-t mb-5" style={{ borderColor: "var(--surface-container)" }} />
-                      <SignaturePad
-                        label={`Co-Tenant — ${o.full_name}`}
-                        value={coTenantSigs[i] ?? ""}
-                        onChange={(v) =>
-                          setCoTenantSigs((prev) => {
-                            const next = [...prev];
-                            next[i] = v;
-                            return next;
-                          })
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {error && <p className="text-xs" style={{ color: "#ef4444" }}>{error}</p>}
-
-                <div className="flex gap-3 pt-1">
-                  <button type="button" className="btn-tonal flex-1 justify-center" onClick={() => { setError(""); setStep(1); }}>
-                    ← Back
-                  </button>
-                  <button
-                    className="btn-primary-gradient flex-1 justify-center"
-                    onClick={finalize}
-                    disabled={saving}
-                  >
-                    {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-                    Save & Finalize
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* ── STEP 3: Send ── */}
-            {step === 3 && (
-              <>
-                <div
-                  className="rounded-xl px-4 py-3 text-sm"
-                  style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.20)", color: "#22c55e" }}
-                >
-                  Contract created and signed successfully.
-                </div>
-
-                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Send the signed contract to the tenant via email.
-                </p>
-
-                <div className="space-y-3">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium" style={lbl}>Tenant Email</label>
-                    <input
-                      className="input-tonal"
-                      type="email"
-                      value={sendEmail}
-                      onChange={(e) => setSendEmail(e.target.value)}
-                      placeholder="tenant@email.com"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium" style={lbl}>Phone (optional, for SMS)</label>
-                    <input
-                      className="input-tonal"
-                      type="tel"
-                      value={sendPhone}
-                      onChange={(e) => setSendPhone(e.target.value)}
-                      placeholder="+1 (555) 000-0000"
-                    />
-                  </div>
-                </div>
-
-                {error && <p className="text-xs" style={{ color: "#ef4444" }}>{error}</p>}
-
-                <div className="flex gap-3 pt-1">
-                  <button
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-medium">{t("lateFeeType")}</legend>
+              <div className="grid grid-cols-3 gap-2" role="radiogroup">
+                {LATE_FEE_TYPES.map((x) => (
+                  <Button
+                    key={x}
                     type="button"
-                    className="btn-tonal flex-1 justify-center"
-                    onClick={() => { setOpen(false); router.push(`/contracts/${newContractId}`); }}
+                    role="radio"
+                    aria-checked={lateFeeType === x}
+                    variant={lateFeeType === x ? "secondary" : "outline"}
+                    className={cn(lateFeeType === x && "border border-primary bg-primary-soft text-primary-soft-foreground")}
+                    onClick={() => setLateFeeType(x)}
                   >
-                    Skip
-                  </button>
-                  <button
-                    className="btn-primary-gradient flex-1 justify-center"
-                    onClick={handleSend}
-                    disabled={saving || !sendEmail}
-                  >
-                    {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-                    Send Contract →
-                  </button>
+                    {t(`lateFee.${x}`)}
+                  </Button>
+                ))}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(lateFeeType === "fixed" || lateFeeType === "both") && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="renew-fee-fixed">{t("fixedFee")}</Label>
+                    <Input id="renew-fee-fixed" type="number" inputMode="decimal" min={0} value={lateFeeFixed} onChange={(e) => setLateFeeFixed(e.target.value)} className="tabular" />
+                  </div>
+                )}
+                {(lateFeeType === "daily" || lateFeeType === "both") && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="renew-fee-daily">{t("dailyFee")}</Label>
+                    <Input id="renew-fee-daily" type="number" inputMode="decimal" min={0} value={lateFeeDaily} onChange={(e) => setLateFeeDaily(e.target.value)} className="tabular" />
+                  </div>
+                )}
+              </div>
+            </fieldset>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">{t("tenants")}</h3>
+                {unusedTenants.length > 0 && (
+                  <Button variant="ghost" size="sm" onClick={() => setAddingTenant((v) => !v)}>
+                    {addingTenant ? <Minus /> : <Plus />}
+                    {addingTenant ? tc("cancel") : t("addTenant")}
+                  </Button>
+                )}
+              </div>
+
+              {addingTenant && (
+                <div className="flex gap-2">
+                  <Select value={newTenantId} onValueChange={setNewTenantId}>
+                    <SelectTrigger className="flex-1" aria-label={t("selectTenant")}>
+                      <SelectValue placeholder={t("selectTenant")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {unusedTenants.map((x) => (
+                        <SelectItem key={x.id} value={x.id}>
+                          {x.full_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button disabled={!newTenantId} onClick={addNewTenant}>
+                    {tc("add")}
+                  </Button>
                 </div>
+              )}
+
+              <ul className="space-y-2">
+                {occupants.map((o) => {
+                  const firstIncludedId = occupants.find((x) => x.include)?.id;
+                  const isPrimary = o.include && o.id === firstIncludedId;
+                  return (
+                    <li
+                      key={o.id}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg border p-3",
+                        o.include ? "border-border-strong bg-primary-soft" : "bg-surface-muted opacity-70"
+                      )}
+                    >
+                      <Checkbox id={`renew-occ-${o.id}`} checked={o.include} onCheckedChange={() => toggleOccupant(o.id)} />
+                      <Label htmlFor={`renew-occ-${o.id}`} className="block min-w-0 flex-1 cursor-pointer font-normal">
+                        <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                          {o.full_name}
+                          {isPrimary && (
+                            <span className="rounded-md bg-surface px-1.5 py-0.5 text-xs font-semibold text-primary">
+                              {t("primary")}
+                            </span>
+                          )}
+                        </span>
+                        {o.email && <span className="block text-xs text-muted-foreground">{o.email}</span>}
+                        {o.current_address && <span className="block text-xs text-muted-foreground">{o.current_address}</span>}
+                      </Label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {errorBox}
+          </div>
+        )}
+
+        {/* ── STEP 1: Details ── */}
+        {step === 1 && (
+          <div className="space-y-6">
+            <section className="space-y-3">
+              <h3 className="text-sm font-semibold">{t("unitCounts")}</h3>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="renew-unit">{t("unit")}</Label>
+                  <Input id="renew-unit" type="text" value={unitNumber} onChange={(e) => setUnitNumber(e.target.value)} placeholder={t("unitPlaceholder")} />
+                </div>
+                {numberField("rooms", t("bedrooms"), roomCount, setRoomCount)}
+                {numberField("fans", t("fans"), fanCount, setFanCount)}
+                {numberField("stools", t("stools"), stoolCount, setStoolCount)}
+                {numberField("stoves", t("stoves"), stoveCount, setStoveCount)}
+                {numberField("keys", t("keys"), keyCount, setKeyCount, 1)}
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h3 className="text-sm font-semibold">{t("amenities")}</h3>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {amenityToggle("ac", t("amenity.ac"), hasAC, setHasAC)}
+                {amenityToggle("fridge", t("amenity.fridge"), hasFridge, setHasFridge)}
+                {amenityToggle("microwave", t("amenity.microwave"), hasMicrowave, setHasMicrowave)}
+                {amenityToggle("sofa", t("amenity.sofa"), hasSofa, setHasSofa)}
+                {amenityToggle("futon", t("amenity.futon"), hasFuton, setHasFuton)}
+                {amenityToggle("blinds", t("amenity.mini_blinds"), hasMiniBlinds, setHasMiniBlinds)}
+                {amenityToggle("mirror", t("amenity.mirror_doors"), hasMirrorDoors, setHasMirrorDoors)}
+                {amenityToggle("bath", t("amenity.renovated_bathroom"), hasRenovatedBath, setHasRenovatedBath)}
+                {amenityToggle("art", t("amenity.wall_art"), hasWallArt, setHasWallArt)}
+                {amenityToggle("parking", t("amenity.parking"), hasParking, setHasParking)}
+              </div>
+              {hasParking && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="renew-spot">{t("parkingSpot")}</Label>
+                  <Input id="renew-spot" type="text" value={parkingSpot} onChange={(e) => setParkingSpot(e.target.value)} placeholder={t("parkingPlaceholder")} />
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+
+        {/* ── STEP 2: Sign ── */}
+        {step === 2 && (
+          <div className="space-y-5">
+            <p className="text-sm text-muted-foreground">{t("signHint")}</p>
+            <SignaturePad label={t("landlordSignature")} value={landlordSig} onChange={setLandlordSig} />
+            {includedOccupants[0] && (
+              <>
+                <Separator />
+                <SignaturePad
+                  label={t("tenantSignature", { name: includedOccupants[0].full_name })}
+                  value={tenantSig}
+                  onChange={setTenantSig}
+                />
               </>
             )}
+            {includedCoTenants.map((o, i) => (
+              <div key={o.id} className="space-y-5">
+                <Separator />
+                <SignaturePad
+                  label={t("coTenantSignature", { name: o.full_name })}
+                  value={coTenantSigs[i] ?? ""}
+                  onChange={(v) =>
+                    setCoTenantSigs((prev) => {
+                      const next = [...prev];
+                      next[i] = v;
+                      return next;
+                    })
+                  }
+                />
+              </div>
+            ))}
+            {errorBox}
           </div>
-        </div>,
-        document.body
-      )}
-    </>
+        )}
+
+        {/* ── STEP 3: Send ── */}
+        {step === 3 && (
+          <div className="space-y-4">
+            <p role="status" className="rounded-lg bg-success-soft px-3 py-2 text-sm text-success">
+              {t("createdBanner")}
+            </p>
+            <p className="text-sm text-muted-foreground">{t("sendHint")}</p>
+            <div className="space-y-1.5">
+              <Label htmlFor="renew-send-email">{t("tenantEmail")}</Label>
+              <Input id="renew-send-email" type="email" value={sendEmail} onChange={(e) => setSendEmail(e.target.value)} placeholder="inquilino@email.com" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="renew-send-phone">{t("phone")}</Label>
+              <Input id="renew-send-phone" type="tel" value={sendPhone} onChange={(e) => setSendPhone(e.target.value)} placeholder="+1 (787) 000-0000" />
+            </div>
+            {errorBox}
+          </div>
+        )}
+      </div>
+    </FormSheet>
   );
 }

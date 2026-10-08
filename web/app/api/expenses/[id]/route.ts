@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const ExpenseUpdateSchema = z.object({
+  property_id: z.string().uuid().optional(),
   category: z.enum(['maintenance','utilities','insurance','taxes','hoa','repairs','management','advertising','mortgage','other']).optional(),
   amount: z.number().positive().optional(),
   expense_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -24,6 +25,12 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   const body = await req.json();
   const parsed = ExpenseUpdateSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+
+  // The property must be one this user can see (RLS: owner or co-owner).
+  if (parsed.data.property_id) {
+    const { data: prop } = await supabase.from("properties").select("id").eq("id", parsed.data.property_id).maybeSingle();
+    if (!prop) return NextResponse.json({ error: "Propiedad no encontrada." }, { status: 404 });
+  }
 
   const { data, error } = await supabase
     .from("property_expenses")

@@ -1,18 +1,82 @@
 {
   "title": "Expenses",
-  "new": "Add Expense",
+  "description": "Track your property expenses for your bookkeeping.",
+  "new": "Add expense",
   "categories": {
     "maintenance": "Maintenance",
     "utilities": "Utilities",
     "insurance": "Insurance",
-    "taxes": "Taxes",
-    "hoa": "HOA",
+    "taxes": "Property tax/CRIM",
+    "hoa": "HOA/condo maintenance fee",
     "repairs": "Repairs",
     "management": "Management",
     "advertising": "Advertising",
-    "mortgage": "Mortgage",
+    "mortgage": "Mortgage interest",
     "other": "Other"
   },
-  "scheduleE": "Export Schedule E",
-  "exportCSV": "Export CSV"
+  "scheduleE": "Schedule E report",
+  "exportCSV": "Export CSV",
+  "exportLocked": "Export CSV (Propietario plan)",
+  "year": "Year",
+  "summary": {
+    "label": "{year} summary",
+    "total": "Total",
+    "deductible": "Deductible",
+    "count": "{count, plural, one {# expense} other {# expenses}}"
+  },
+  "columns": {
+    "date": "Date",
+    "property": "Property",
+    "category": "Category",
+    "vendor": "Vendor",
+    "description": "Description",
+    "amount": "Amount",
+    "deductible": "Deductible",
+    "receipt": "Receipt",
+    "actions": "Actions"
+  },
+  "deductibleYes": "Deductible",
+  "deductibleNo": "Not deductible",
+  "viewReceipt": "View receipt",
+  "noReceipt": "No receipt",
+  "searchPlaceholder": "Search expenses…",
+  "empty": {
+    "title": "No expenses in {year}",
+    "description": "Log your property expenses so everything is ready when you talk to your accountant."
+  },
+  "form": {
+    "addTitle": "Add expense",
+    "editTitle": "Edit expense",
+    "description": "Amounts are saved in US dollars (USD).",
+    "property": "Property",
+    "noProperties": "Add a property first so you can log expenses.",
+    "addProperty": "Add property",
+    "category": "Category",
+    "amount": "Amount ($)",
+    "date": "Date",
+    "vendor": "Vendor",
+    "notes": "Description",
+    "optional": "Optional",
+    "deductible": "Tax deductible",
+    "deductibleHint": "Confirm with your accountant.",
+    "add": "Add expense",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "added": "Expense added",
+    "updated": "Expense updated",
+    "failed": "Couldn't save the expense"
+  },
+  "delete": {
+    "title": "Delete this expense?",
+    "description": "{category} for {amount} on {date} will be deleted. This can't be undone.",
+    "confirm": "Delete",
+    "deleting": "Deleting…",
+    "done": "Expense deleted",
+    "failed": "Couldn't delete the expense"
+  },
+  "editLabel": "Edit expense: {name}",
+  "deleteLabel": "Delete expense: {name}",
+  "csv": {
+    "filename": "expenses-{year}.csv"
+  }
 }

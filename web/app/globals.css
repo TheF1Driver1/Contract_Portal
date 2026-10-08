@@ -18,7 +18,7 @@
   --surface-hover: #e9ecf1;
   --foreground: #0f172a;
   --muted-foreground: #475569;   /* 7.6:1 on surface */
-  --subtle-foreground: #64748b;  /* 4.8:1 on surface */
+  --subtle-foreground: #556070;  /* >= 5.5:1 on surface and background */
   --border: #e2e6ec;
   --border-strong: #cbd2dc;
   --input: #cbd2dc;
@@ -32,9 +32,9 @@
   --ring: #0f766e;
 
   /* Status */
-  --success: #15803d;
+  --success: #166534;
   --success-soft: #e7f6ec;
-  --warning: #b45309;
+  --warning: #a34a06;
   --warning-soft: #fdf3e2;
   --danger: #b91c1c;
   --danger-soft: #fdecec;
@@ -357,13 +357,6 @@
   animation: spin 0.8s linear infinite;
 }
 
-.signature-canvas {
-  background: var(--surface);
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius);
-  cursor: crosshair;
-  touch-action: none;
-}
 
 input[type="date"][data-empty],
 input[type="date"][data-empty]::-webkit-datetime-edit { color: var(--subtle-foreground); }

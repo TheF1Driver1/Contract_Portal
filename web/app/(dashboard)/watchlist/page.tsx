@@ -1,22 +1,18 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, ArrowRight, ExternalLink, Calculator } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { getFormatter, getTranslations } from "next-intl/server";
+import { Heart, ArrowRight, ExternalLink, Calculator, Home } from "lucide-react";
 import type { WatchlistItem } from "@/lib/types";
-
-function motivationBadge(score: number | null | undefined) {
-  if (score == null || score === 0) return null
-  const { label, cls } =
-    score >= 61 ? { label: `⚡ ${score}`, cls: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" } :
-    score >= 41 ? { label: `⚡ ${score}`, cls: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" } :
-    score >= 21 ? { label: `⚡ ${score}`, cls: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" } :
-    { label: null, cls: "" }
-  if (!label) return null
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>{label}</span>
-}
+import { PageHeader } from "@/components/app/PageHeader";
+import { EmptyState } from "@/components/app/EmptyState";
+import { LabsTitle } from "@/components/market/LabsTitle";
+import { MotivationBadge } from "@/components/market/MotivationBadge";
+import { Button } from "@/components/ui/button";
 
 export default async function WatchlistPage() {
+  const t = await getTranslations("market");
+  const f = await getFormatter();
   const supabase = await createClient();
   const {
     data: { user },
@@ -42,135 +38,101 @@ export default async function WatchlistPage() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* ── Header ── */}
-      <div className="animate-slide-up">
-        <p
-          className="text-[10px] font-semibold uppercase tracking-widest mb-1"
-          style={{ color: "var(--text-muted)" }}
-        >
-          Saved
-        </p>
-        <h1
-          className="font-display text-4xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]"
-          style={{ letterSpacing: "-0.03em" }}
-        >
-          Watchlist
-        </h1>
+    <div className="space-y-6">
+      <div>
+        <PageHeader
+          title={<LabsTitle title={t("watchlist.title")} labs={t("labs")} />}
+          description={t("watchlist.description", { count: items.length })}
+          actions={
+            items.length > 0 && (
+              <Button asChild variant="outline">
+                <Link href="/market">
+                  {t("watchlist.browse")}
+                  <ArrowRight aria-hidden />
+                </Link>
+              </Button>
+            )
+          }
+        />
+        <p className="-mt-3 text-xs text-subtle-foreground">{t("labsNote")}</p>
       </div>
 
       {items.length === 0 ? (
-        <div
-          className="surface-card p-12 flex flex-col items-center gap-4 text-center animate-slide-up"
-          style={{ animationDelay: "0.06s", animationFillMode: "both" }}
-        >
-          <div
-            className="flex h-14 w-14 items-center justify-center rounded-2xl"
-            style={{ background: "var(--surface-container)" }}
-          >
-            <Heart className="h-6 w-6" style={{ color: "var(--text-muted)" }} strokeWidth={1.5} />
-          </div>
-          <div>
-            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-              No saved properties
-            </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-              Browse market listings and save properties you&apos;re interested in
-            </p>
-          </div>
-          <Link href="/market" className="btn-primary-gradient flex items-center gap-1.5">
-            Browse Market
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
+        <EmptyState
+          icon={Heart}
+          title={t("watchlist.emptyTitle")}
+          description={t("watchlist.emptyDescription")}
+          action={
+            <Button asChild>
+              <Link href="/market">
+                {t("watchlist.browse")}
+                <ArrowRight aria-hidden />
+              </Link>
+            </Button>
+          }
+        />
       ) : (
-        <div
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-slide-up"
-          style={{ animationDelay: "0.06s", animationFillMode: "both" }}
-        >
-          {items.map((item, i) => (
-            <div
-              key={item.id}
-              className="surface-card overflow-hidden group"
-              style={{ animationDelay: `${i * 0.05}s`, animationFillMode: "both" }}
-            >
-              {/* ── Image ── */}
-              <div className="relative h-44 overflow-hidden" style={{ background: "var(--surface-container)" }}>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((item) => (
+            <li key={item.id} className="flex flex-col overflow-hidden rounded-xl border bg-surface">
+              <div className="relative h-40 bg-surface-muted">
                 {item.img_src ? (
                   <Image
                     src={item.img_src}
-                    alt={item.street ?? "Property"}
+                    alt={item.street ?? t("detail.property")}
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Heart className="h-8 w-8" style={{ color: "var(--text-muted)" }} strokeWidth={1} />
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Home className="size-8 text-subtle-foreground" strokeWidth={1.5} aria-hidden />
                   </div>
                 )}
-
-                {/* Motivation badge — top-left */}
-                <div className="absolute top-3 left-3">
-                  {motivationBadge(scoreMap[item.zillow_id])}
+                <div className="absolute left-3 top-3">
+                  <MotivationBadge score={scoreMap[item.zillow_id]} compact className="shadow-sm" />
                 </div>
-
-                {/* Zillow link — top-right icon */}
                 {item.detail_url && (
-                  <a
-                    href={item.detail_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full glass transition-opacity duration-200 hover:opacity-80"
-                    aria-label="View on Zillow"
+                  <Button
+                    asChild
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-3 top-3 size-10 rounded-full border bg-surface shadow-sm"
                   >
-                    <ExternalLink className="h-3.5 w-3.5" style={{ color: "var(--text-primary)" }} />
-                  </a>
+                    <a href={item.detail_url} target="_blank" rel="noopener noreferrer" aria-label={t("detail.viewListing")}>
+                      <ExternalLink aria-hidden />
+                    </a>
+                  </Button>
                 )}
-
-                {/* Bottom gradient overlay */}
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/25 to-transparent pointer-events-none" />
               </div>
 
-              {/* ── Content ── */}
-              <div className="p-4 space-y-3">
-                <div>
-                  <p
-                    className="text-sm font-semibold truncate"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {item.street ?? "—"}
-                  </p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+              <div className="flex flex-1 flex-col gap-3 p-4">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-foreground">{item.street ?? "—"}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {[item.city, item.state].filter(Boolean).join(", ")}
                   </p>
                 </div>
 
-                <div className="flex items-end justify-between">
-                  <p
-                    className="text-xl font-bold"
-                    style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}
-                  >
-                    {item.price ? formatCurrency(item.price) : "—"}
+                <div className="flex items-end justify-between gap-2">
+                  <p className="tabular text-lg font-semibold text-foreground">
+                    {item.price ? f.number(item.price, "money") : "—"}
                   </p>
-                  <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-                    {item.beds != null && <span>{item.beds} bd</span>}
-                    {item.baths != null && <span>{item.baths} ba</span>}
-                  </div>
+                  <p className="tabular text-xs text-muted-foreground">
+                    {t("bedsBaths", { beds: item.beds ?? "—", baths: item.baths ?? "—" })}
+                  </p>
                 </div>
 
-                {/* ── Analyze CTA ── */}
-                <Link
-                  href={`/watchlist/${item.id}/analyze`}
-                  className="btn-primary-gradient flex items-center justify-center gap-2 w-full"
-                >
-                  <Calculator className="h-3.5 w-3.5" />
-                  Analyze Investment
-                </Link>
+                <Button asChild className="mt-auto min-h-10 w-full">
+                  <Link href={`/watchlist/${item.id}/analyze`}>
+                    <Calculator aria-hidden />
+                    {t("watchlist.analyze")}
+                  </Link>
+                </Button>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

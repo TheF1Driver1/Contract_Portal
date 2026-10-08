@@ -2,18 +2,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SectionsLoading() {
   return (
-    <div className="space-y-8">
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-10 w-44" />
-        </div>
-        <Skeleton className="h-9 w-36 rounded-xl" />
+    <div className="max-w-3xl space-y-6" aria-busy="true">
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-4 w-72 max-w-full" />
       </div>
-      <div className="surface-card p-6 space-y-3">
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-14 rounded-xl" />
-        ))}
+      <div className="space-y-4 rounded-xl border border-border bg-surface p-4 md:p-5">
+        <Skeleton className="h-5 w-36" />
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-9 w-32" />
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-5 w-32" />
+        {[0, 1, 2].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
       </div>
     </div>
   );

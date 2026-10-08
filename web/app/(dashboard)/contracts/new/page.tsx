@@ -2,7 +2,10 @@ import { createClient } from "@/lib/supabase-server";
 import ContractBuilder from "@/components/ContractBuilder";
 import { redirect } from "next/navigation";
 import type { Property, Tenant, ContractTemplate, Contract } from "@/lib/types";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { AlertTriangle } from "lucide-react";
+import { PageHeader } from "@/components/app/PageHeader";
 
 export default async function NewContractPage(
   props: {
@@ -40,35 +43,35 @@ export default async function NewContractPage(
 
   const landlordEmail = (profile as { email?: string } | null)?.email ?? user.email ?? "";
   const isEditing = !!draftContract;
+  const t = await getTranslations("builder.page");
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
-          Contracts
-        </p>
-        <h1 className="font-display text-4xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
-          {isEditing ? "Edit Contract" : "New Contract"}
-        </h1>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-          {isEditing ? "Resume editing your draft contract" : "Fill out the form to generate a rental contract"}
-        </p>
-      </div>
+      <PageHeader
+        title={isEditing ? t("editTitle") : t("newTitle")}
+        description={isEditing ? t("editDescription") : t("newDescription")}
+      />
 
-      {/* Pre-flight warnings */}
       {(!properties?.length || !tenants?.length) && (
-        <div
-          className="flex items-start gap-3 rounded-2xl p-4 text-sm"
-          style={{ background: "rgba(255,149,0,0.1)", color: "var(--text-primary)" }}
-        >
-          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#ff9500" }} />
-          <div className="space-y-1">
+        <div role="status" className="flex items-start gap-3 rounded-xl border border-border bg-warning-soft p-4 text-sm text-foreground">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+          <div className="space-y-2">
+            <p className="font-semibold">{t("missingTitle")}</p>
             {!properties?.length && (
-              <p>Add at least one <strong>property</strong> before creating a contract.</p>
+              <p>
+                {t("missingProperty")}{" "}
+                <Link href="/properties" className="font-medium text-primary underline-offset-4 hover:underline">
+                  {t("addProperty")}
+                </Link>
+              </p>
             )}
             {!tenants?.length && (
-              <p>Add at least one <strong>tenant</strong> before creating a contract.</p>
+              <p>
+                {t("missingTenant")}{" "}
+                <Link href="/tenants" className="font-medium text-primary underline-offset-4 hover:underline">
+                  {t("addTenant")}
+                </Link>
+              </p>
             )}
           </div>
         </div>

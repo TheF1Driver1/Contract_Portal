@@ -32,11 +32,12 @@ export default defineConfig([{
       "components/ui/**",          // vendored shadcn primitives
       "components/*Chart*.tsx",    // charts may set series colors
       "components/*Map*.tsx",
+      "components/ContractPDF.tsx",  // react-pdf needs literal colors
       "app/opengraph-image.tsx",
       "app/**/opengraph-image.tsx",
     ],
     rules: {
-      "no-restricted-syntax": ["warn",
+      "no-restricted-syntax": ["error",
         {
           selector: "JSXAttribute[name.name='style'] > JSXExpressionContainer > ObjectExpression",
           message: "Use Tailwind utilities and design tokens instead of inline style objects.",

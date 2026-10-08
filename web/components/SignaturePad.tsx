@@ -1,8 +1,14 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useId } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Eraser } from "lucide-react";
+
+// The canvas stays white in both themes so signatures remain legible and
+// export with a white background; ink is near-black.
+const PAPER = "white";
+const INK = "black";
 
 interface SignaturePadProps {
   label: string;
@@ -14,6 +20,8 @@ export default function SignaturePad({ label, value, onChange }: SignaturePadPro
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
+  const t = useTranslations("builder.signaturePad");
+  const labelId = useId();
 
   // Restore from value
   useEffect(() => {
@@ -22,7 +30,7 @@ export default function SignaturePad({ label, value, onChange }: SignaturePadPro
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (value) {
@@ -30,6 +38,7 @@ export default function SignaturePad({ label, value, onChange }: SignaturePadPro
       img.onload = () => ctx.drawImage(img, 0, 0);
       img.src = value;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- restore once on mount
   }, []);
 
   function getPos(e: React.MouseEvent | React.TouchEvent) {
@@ -67,7 +76,7 @@ export default function SignaturePad({ label, value, onChange }: SignaturePadPro
     ctx.beginPath();
     ctx.moveTo(lastPos.current!.x, lastPos.current!.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = "#1a1a1a";
+    ctx.strokeStyle = INK;
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -87,26 +96,28 @@ export default function SignaturePad({ label, value, onChange }: SignaturePadPro
   function clear() {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     onChange("");
   }
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium">{label}</p>
-        <Button type="button" variant="ghost" size="sm" onClick={clear}>
-          <Eraser className="h-3.5 w-3.5 mr-1" />
-          Clear
+      <div className="flex items-center justify-between gap-2">
+        <p id={labelId} className="text-sm font-medium text-foreground">{label}</p>
+        <Button type="button" variant="ghost" size="sm" className="h-10 md:h-8" onClick={clear}>
+          <Eraser />
+          {t("clear")}
         </Button>
       </div>
       <canvas
         ref={canvasRef}
         width={500}
         height={160}
-        className="signature-canvas w-full"
-        style={{ touchAction: "none" }}
+        role="img"
+        aria-labelledby={labelId}
+        aria-describedby={`${labelId}-hint`}
+        className="block w-full cursor-crosshair touch-none rounded-lg border border-dashed border-border-strong bg-white"
         onMouseDown={startDraw}
         onMouseMove={draw}
         onMouseUp={endDraw}
@@ -115,9 +126,9 @@ export default function SignaturePad({ label, value, onChange }: SignaturePadPro
         onTouchMove={draw}
         onTouchEnd={endDraw}
       />
-      {!value && (
-        <p className="text-xs text-muted-foreground">Draw your signature above</p>
-      )}
+      <p id={`${labelId}-hint`} className="text-xs text-muted-foreground">
+        {value ? t("signed") : t("hint")}
+      </p>
     </div>
   );
 }

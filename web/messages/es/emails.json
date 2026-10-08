@@ -1,0 +1,23 @@
+{
+  "footerAuto": "Este mensaje lo envió ContractOS en nombre de tu arrendador. Si no lo esperabas, puedes ignorarlo.",
+  "invite": {
+    "subject": "Firma tu contrato de arrendamiento: {property}",
+    "heading": "Tienes un contrato para firmar",
+    "greeting": "Hola {name}:",
+    "greetingNoName": "Hola:",
+    "bodyFrom": "{landlord} te envió el contrato de arrendamiento de {property} para que lo revises y firmes.",
+    "body": "Te enviaron el contrato de arrendamiento de {property} para que lo revises y firmes.",
+    "how": "Ábrelo desde tu celular o computadora. Podrás leer cada página antes de firmar.",
+    "cta": "Revisar y firmar",
+    "expires": "Este enlace vence en 7 días."
+  },
+  "expiry": {
+    "subject": "El contrato de {property} vence en {days, plural, one {# día} other {# días}}",
+    "heading": "Recordatorio de vencimiento",
+    "greeting": "Hola:",
+    "body": "El contrato de {property}{tenant, select, none {} other { ({tenant})}} vence en {days, plural, one {# día} other {# días}}. Es buen momento para renovarlo o coordinar la entrega.",
+    "cta": "Ver contrato",
+    "footer": "Recibes este aviso por tus recordatorios de vencimiento. Puedes cambiarlos en Ajustes › Recordatorios.",
+    "sms": "ContractOS: el contrato de {property}{tenant, select, none {} other { ({tenant})}} vence en {days, plural, one {# día} other {# días}}. {url}"
+  }
+}

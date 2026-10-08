@@ -1,20 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
 import SignaturePad from "@/components/SignaturePad";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, PenLine } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/auth/FormError";
 import type { Contract } from "@/lib/types";
 
-function fmt(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-}
-
-function fmtCurrency(n: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 text-sm text-foreground">{children}</dd>
+    </div>
+  );
 }
 
 export default function TenantSigningClient({ contract }: { contract: Contract }) {
+  const t = useTranslations("portal");
+  const f = useFormatter();
   const router = useRouter();
   const [signature, setSignature] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -23,6 +30,9 @@ export default function TenantSigningClient({ contract }: { contract: Contract }
 
   const property = contract.property;
   const tenant = contract.tenant;
+
+  const day = (d: string | null | undefined) =>
+    d ? f.dateTime(new Date(`${d.slice(0, 10)}T12:00:00`), { dateStyle: "long" }) : "—";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,12 +45,12 @@ export default function TenantSigningClient({ contract }: { contract: Contract }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tenant_signature: signature }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed to submit signature");
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(typeof json.error === "string" ? json.error : "");
       setDone(true);
       router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
+    } catch {
+      setError(t("signing.submitFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -48,100 +58,79 @@ export default function TenantSigningClient({ contract }: { contract: Contract }
 
   if (done) {
     return (
-      <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/15">
-          <CheckCircle2 className="h-6 w-6 text-green-400" />
-        </div>
-        <h1 className="text-xl font-semibold text-white">Lease Signed Successfully</h1>
-        <p className="mt-2 text-sm text-neutral-400">
-          Your signature has been submitted. Your landlord has been notified.
-        </p>
+      <div className="mb-10 rounded-xl border border-border bg-surface p-5 text-center md:p-8" role="status">
+        <span className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-success-soft text-success">
+          <CheckCircle2 className="size-6" aria-hidden />
+        </span>
+        <h1 className="text-xl font-semibold text-foreground">{t("signing.doneTitle")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("signing.doneDescription")}</p>
+        <Button asChild size="lg" className="mt-6 w-full sm:w-auto">
+          <Link href="/portal">{t("signing.back")}</Link>
+        </Button>
       </div>
     );
   }
 
+  const address = property ? [property.address, property.city, property.state].filter(Boolean).join(", ") : "";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">Tenant Portal</p>
-        <h1 className="mt-2 text-2xl font-bold text-white">Review &amp; Sign Your Lease</h1>
-        <p className="mt-1 text-sm text-neutral-400">
-          Review the details below and draw your signature to complete the agreement.
-        </p>
+    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+      <div className="space-y-1">
+        <p className="text-xs font-medium text-muted-foreground">{t("eyebrow")}</p>
+        <h1 className="text-2xl font-semibold text-foreground">{t("signing.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("signing.description")}</p>
       </div>
 
       {/* Contract summary */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm space-y-4">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-neutral-500">Lease Details</h2>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+      <section aria-labelledby="lease-details" className="rounded-xl border border-border bg-surface p-4 md:p-5">
+        <h2 id="lease-details" className="mb-4 text-base font-semibold text-foreground">
+          {t("signing.details")}
+        </h2>
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           {property && (
-            <>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Property</p>
-                <p className="mt-0.5 text-white">{property.name}</p>
-                <p className="text-neutral-400 text-xs">{property.address}, {property.city}, {property.state}</p>
-              </div>
-              {contract.unit_number && (
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Unit</p>
-                  <p className="mt-0.5 text-white">{contract.unit_number}</p>
-                </div>
-              )}
-            </>
+            <Field label={t("signing.property")}>
+              <span className="font-medium">{property.name}</span>
+              {address && <span className="block text-xs text-muted-foreground">{address}</span>}
+            </Field>
           )}
-          {tenant && (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Tenant</p>
-              <p className="mt-0.5 text-white">{tenant.full_name}</p>
-            </div>
-          )}
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Monthly Rent</p>
-            <p className="mt-0.5 text-white font-semibold">{fmtCurrency(contract.rent_amount)}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Lease Start</p>
-            <p className="mt-0.5 text-white">{fmt(contract.lease_start)}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Lease End</p>
-            <p className="mt-0.5 text-white">{fmt(contract.lease_end)}</p>
-          </div>
+          {contract.unit_number && <Field label={t("signing.unit")}>{contract.unit_number}</Field>}
+          {tenant && <Field label={t("signing.tenant")}>{tenant.full_name}</Field>}
+          <Field label={t("signing.rent")}>
+            <span className="tabular font-semibold">{f.number(contract.rent_amount, "money")}</span>
+          </Field>
+          <Field label={t("signing.start")}>{day(contract.lease_start)}</Field>
+          <Field label={t("signing.end")}>{day(contract.lease_end)}</Field>
           {contract.security_deposit > 0 && (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Security Deposit</p>
-              <p className="mt-0.5 text-white">{fmtCurrency(contract.security_deposit)}</p>
-            </div>
+            <Field label={t("signing.deposit")}>
+              <span className="tabular">{f.number(contract.security_deposit, "money")}</span>
+            </Field>
           )}
-        </div>
-      </div>
+        </dl>
+      </section>
 
       {/* Signature */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">Your Signature</h2>
-        <SignaturePad label="Tenant Signature" value={signature} onChange={setSignature} />
-        <p className="mt-2 text-xs text-neutral-500">
-          By signing above, you agree to the terms of the lease agreement.
-        </p>
-      </div>
-
-      {error && (
-        <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          {error}
+      <section aria-labelledby="signature-title" className="rounded-xl border border-border bg-surface p-4 md:p-5">
+        <h2 id="signature-title" className="mb-3 text-base font-semibold text-foreground">
+          {t("signing.signatureTitle")}
+        </h2>
+        <div className="w-full">
+          <SignaturePad label={t("signing.signatureLabel")} value={signature} onChange={setSignature} />
         </div>
-      )}
+        <p className="mt-3 text-sm text-muted-foreground">{t("signing.consent")}</p>
+      </section>
 
-      <button
-        type="submit"
-        disabled={!signature || submitting}
-        className="w-full flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black hover:bg-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        {submitting ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          "Submit Signature"
+      <FormError>{error}</FormError>
+
+      {/* Sticky submit bar, thumb-reachable on phones */}
+      <div className="sticky bottom-0 z-10 -mx-4 border-t border-border bg-background px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:static md:mx-0 md:border-0 md:px-0 md:pb-10">
+        {!signature && (
+          <p className="mb-2 text-center text-xs text-muted-foreground md:text-left">{t("signing.signHint")}</p>
         )}
-      </button>
+        <Button type="submit" size="lg" className="h-12 w-full text-base md:h-10 md:text-sm" disabled={!signature || submitting}>
+          {submitting ? <Loader2 className="animate-spin" aria-hidden /> : <PenLine aria-hidden />}
+          {t("signing.submit")}
+        </Button>
+      </div>
     </form>
   );
 }

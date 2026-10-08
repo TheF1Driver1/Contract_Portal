@@ -14,8 +14,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ContractOS — Landlord Contract Manager",
-  description: "Modern contract management for landlords",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://prcontract.online"),
+  title: { default: "ContractOS", template: "%s · ContractOS" },
+  description: "Contratos de arrendamiento para Puerto Rico, firmados en minutos.",
+  applicationName: "ContractOS",
 };
 
 export default async function RootLayout({

@@ -1,18 +1,82 @@
 {
   "title": "Gastos",
-  "new": "Agregar gasto",
+  "description": "Lleva el control de los gastos de tus propiedades para tu contabilidad.",
+  "new": "Añadir gasto",
   "categories": {
     "maintenance": "Mantenimiento",
-    "utilities": "Servicios",
+    "utilities": "Utilidades",
     "insurance": "Seguro",
-    "taxes": "Impuestos",
-    "hoa": "Cuota HOA",
+    "taxes": "Contribuciones/CRIM",
+    "hoa": "HOA/mantenimiento de condominio",
     "repairs": "Reparaciones",
     "management": "Administración",
     "advertising": "Publicidad",
-    "mortgage": "Hipoteca",
-    "other": "Otro"
+    "mortgage": "Intereses de hipoteca",
+    "other": "Otros"
   },
-  "scheduleE": "Exportar Schedule E",
-  "exportCSV": "Exportar CSV"
+  "scheduleE": "Reporte Schedule E",
+  "exportCSV": "Exportar CSV",
+  "exportLocked": "Exportar CSV (plan Propietario)",
+  "year": "Año",
+  "summary": {
+    "label": "Resumen de {year}",
+    "total": "Total",
+    "deductible": "Deducible",
+    "count": "{count, plural, one {# gasto} other {# gastos}}"
+  },
+  "columns": {
+    "date": "Fecha",
+    "property": "Propiedad",
+    "category": "Categoría",
+    "vendor": "Suplidor",
+    "description": "Descripción",
+    "amount": "Monto",
+    "deductible": "Deducible",
+    "receipt": "Recibo",
+    "actions": "Acciones"
+  },
+  "deductibleYes": "Deducible",
+  "deductibleNo": "No deducible",
+  "viewReceipt": "Ver recibo",
+  "noReceipt": "Sin recibo",
+  "searchPlaceholder": "Buscar gastos…",
+  "empty": {
+    "title": "No hay gastos en {year}",
+    "description": "Registra los gastos de tus propiedades para tener todo listo cuando hables con tu contador/a."
+  },
+  "form": {
+    "addTitle": "Añadir gasto",
+    "editTitle": "Editar gasto",
+    "description": "Los montos se guardan en dólares (USD).",
+    "property": "Propiedad",
+    "noProperties": "Primero añade una propiedad para poder registrar gastos.",
+    "addProperty": "Añadir propiedad",
+    "category": "Categoría",
+    "amount": "Monto ($)",
+    "date": "Fecha",
+    "vendor": "Suplidor",
+    "notes": "Descripción",
+    "optional": "Opcional",
+    "deductible": "Es deducible",
+    "deductibleHint": "Confírmalo con tu contador/a.",
+    "add": "Añadir gasto",
+    "save": "Guardar cambios",
+    "saving": "Guardando…",
+    "added": "Gasto añadido",
+    "updated": "Gasto actualizado",
+    "failed": "No se pudo guardar el gasto"
+  },
+  "delete": {
+    "title": "¿Eliminar este gasto?",
+    "description": "Se eliminará {category} de {amount} del {date}. Esta acción no se puede deshacer.",
+    "confirm": "Eliminar",
+    "deleting": "Eliminando…",
+    "done": "Gasto eliminado",
+    "failed": "No se pudo eliminar el gasto"
+  },
+  "editLabel": "Editar gasto: {name}",
+  "deleteLabel": "Eliminar gasto: {name}",
+  "csv": {
+    "filename": "gastos-{year}.csv"
+  }
 }

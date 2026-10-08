@@ -2,8 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/supabase";
+import { useTranslations } from "next-intl";
 import { Loader2, ArrowRight, Building2 } from "lucide-react";
+import { createBrowserClient } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { PasswordInput } from "@/components/auth/PasswordInput";
+import { FormError } from "@/components/auth/FormError";
+import { authErrorKey } from "@/components/auth/auth-errors";
 
 interface Props {
   token: string;
@@ -15,6 +24,8 @@ interface Props {
 
 type Tab = "signup" | "signin";
 
+class RedeemError extends Error {}
+
 export default function InviteSignupClient({
   token,
   tenantEmail,
@@ -22,6 +33,8 @@ export default function InviteSignupClient({
   contractId: _contractId,
   propertyName,
 }: Props) {
+  const t = useTranslations("invite");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const supabase = createBrowserClient();
 
@@ -33,11 +46,16 @@ export default function InviteSignupClient({
 
   async function redeem() {
     const res = await fetch(`/api/invite/${token}/redeem`, { method: "POST" });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error ?? "Failed to redeem invite");
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new RedeemError(json.error ?? "Failed to redeem invite");
     // The role claim in the access token changed (landlord -> tenant); refresh it.
     await supabase.auth.refreshSession();
     return json.contractId as string;
+  }
+
+  function showError(err: unknown) {
+    setError(err instanceof RedeemError ? t("tenant.redeemFailed") : tAuth(`errors.${authErrorKey(err)}`));
+    setLoading(false);
   }
 
   async function handleSignup(e: React.FormEvent) {
@@ -55,8 +73,7 @@ export default function InviteSignupClient({
       const cId = await redeem();
       router.push(`/portal/sign/${cId}`);
     } catch (err) {
-      setError((err as Error).message);
-      setLoading(false);
+      showError(err);
     }
   }
 
@@ -74,121 +91,107 @@ export default function InviteSignupClient({
       const cId = await redeem();
       router.push(`/portal/sign/${cId}`);
     } catch (err) {
-      setError((err as Error).message);
-      setLoading(false);
+      showError(err);
     }
   }
 
+  const describedBy = error ? "invite-error" : undefined;
+
   return (
-    <div className="w-full max-w-md">
-      {/* Context card */}
-      <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/15">
-            <Building2 className="h-4.5 w-4.5 text-blue-400" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">Lease Agreement</p>
-            <p className="mt-1 text-sm text-white">
-              You&apos;ve been invited to sign your lease for{" "}
-              <span className="font-semibold">{propertyName}</span>
-              {tenantName ? `, ${tenantName}` : ""}.
+    <AuthShell
+      wide
+      media={
+        <div className="flex items-start gap-3 rounded-lg bg-primary-soft p-3 text-primary-soft-foreground">
+          <Building2 className="mt-0.5 size-5 shrink-0" aria-hidden />
+          <div className="min-w-0 text-sm">
+            <p className="text-xs font-medium">{t("tenant.contextLabel")}</p>
+            <p className="mt-0.5">
+              {tenantName ? `${t("tenant.greeting", { name: tenantName })} ` : ""}
+              {t.rich("tenant.context", {
+                property: propertyName,
+                b: (chunks) => <strong className="font-semibold">{chunks}</strong>,
+              })}
             </p>
           </div>
         </div>
-      </div>
+      }
+      title={tab === "signup" ? t("tenant.titleSignup") : t("tenant.titleSignin")}
+      description={t("tenant.description")}
+    >
+      <Tabs
+        value={tab}
+        onValueChange={(v) => {
+          setTab(v as Tab);
+          setError("");
+        }}
+        className="mb-5"
+      >
+        <TabsList className="grid h-10 w-full grid-cols-2">
+          <TabsTrigger value="signup">{t("tenant.tabSignup")}</TabsTrigger>
+          <TabsTrigger value="signin">{t("tenant.tabSignin")}</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-      {/* Auth form */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
-        {/* Tabs */}
-        <div className="mb-6 flex rounded-lg bg-white/5 p-1">
-          <button
-            type="button"
-            onClick={() => { setTab("signup"); setError(""); }}
-            className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              tab === "signup" ? "bg-white text-black" : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            Create Account
-          </button>
-          <button
-            type="button"
-            onClick={() => { setTab("signin"); setError(""); }}
-            className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              tab === "signin" ? "bg-white text-black" : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            Sign In
-          </button>
+      <form onSubmit={tab === "signup" ? handleSignup : handleSignin} className="space-y-4">
+        {tab === "signup" && (
+          <div className="space-y-1.5">
+            <Label htmlFor="invite-name">{t("tenant.fullName")}</Label>
+            <Input
+              id="invite-name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              placeholder={t("tenant.fullNamePlaceholder")}
+              className="h-10"
+            />
+          </div>
+        )}
+
+        <div className="space-y-1.5">
+          <Label htmlFor="invite-email">{t("tenant.email")}</Label>
+          <Input
+            id="invite-email"
+            name="email"
+            type="email"
+            autoComplete="username"
+            value={tenantEmail}
+            readOnly
+            aria-readonly
+            className="h-10 bg-surface-muted text-muted-foreground"
+          />
         </div>
 
-        <form onSubmit={tab === "signup" ? handleSignup : handleSignin} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="invite-password">{t("tenant.password")}</Label>
+          <PasswordInput
+            key={tab}
+            id="invite-password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            autoComplete={tab === "signup" ? "new-password" : "current-password"}
+            aria-describedby={tab === "signup" ? (describedBy ? `invite-password-hint ${describedBy}` : "invite-password-hint") : describedBy}
+          />
           {tab === "signup" && (
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-hidden focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
-                placeholder="Your full name"
-              />
-            </div>
+            <p id="invite-password-hint" className="text-xs text-muted-foreground">
+              {t("tenant.passwordHint")}
+            </p>
           )}
+        </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-              Email
-            </label>
-            <input
-              type="email"
-              value={tenantEmail}
-              readOnly
-              className="w-full rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-2.5 text-sm text-neutral-500 outline-hidden cursor-not-allowed"
-            />
-          </div>
+        <FormError id="invite-error">{error}</FormError>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              placeholder="••••••••"
-              autoComplete={tab === "signup" ? "new-password" : "current-password"}
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-hidden focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
-            />
-          </div>
-
-          {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#8fe3a8] px-4 py-2.5 text-sm font-semibold text-[#06281c] hover:bg-[#a5ecbb] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                {tab === "signup" ? "Create Account & Continue" : "Sign In & Continue"}
-                <ArrowRight className="h-4 w-4" />
-              </>
-            )}
-          </button>
-        </form>
-      </div>
-    </div>
+        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          {loading ? <Loader2 className="animate-spin" aria-hidden /> : null}
+          {tab === "signup" ? t("tenant.submitSignup") : t("tenant.submitSignin")}
+          {!loading && <ArrowRight aria-hidden />}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

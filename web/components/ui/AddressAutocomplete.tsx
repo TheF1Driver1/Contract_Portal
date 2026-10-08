@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useId } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export interface AddressParts {
   street: string;
@@ -20,6 +22,7 @@ interface Suggestion {
 }
 
 interface Props {
+  id?: string;
   label?: string;
   placeholder?: string;
   value: string;
@@ -29,6 +32,7 @@ interface Props {
 }
 
 export default function AddressAutocomplete({
+  id,
   label,
   placeholder = "Start typing an address…",
   value,
@@ -36,6 +40,9 @@ export default function AddressAutocomplete({
   onSelect,
   required,
 }: Props) {
+  const autoId = useId();
+  const inputId = id ?? autoId;
+  const listId = `${inputId}-suggestions`;
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -82,15 +89,13 @@ export default function AddressAutocomplete({
     if (blurRef.current) clearTimeout(blurRef.current);
   }, []);
 
+  const expanded = open && suggestions.length > 0;
+
   return (
     <div className="relative space-y-1.5">
-      {label && (
-        <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-          {label}
-        </label>
-      )}
-      <input
-        className="input-tonal"
+      {label && <Label htmlFor={inputId}>{label}</Label>}
+      <Input
+        id={inputId}
         placeholder={placeholder}
         value={value}
         onChange={handleChange}
@@ -98,28 +103,34 @@ export default function AddressAutocomplete({
         onFocus={handleFocus}
         autoComplete="off"
         required={required}
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={expanded}
+        aria-controls={listId}
       />
-      {open && suggestions.length > 0 && (
+      {expanded && (
         <ul
-          className="absolute z-50 w-full rounded-xl overflow-hidden shadow-lg border"
-          style={{
-            background: "var(--surface-card)",
-            borderColor: "var(--surface-container)",
-            top: "calc(100% + 4px)",
-          }}
+          id={listId}
+          role="listbox"
+          className="absolute top-full z-50 mt-1 w-full overflow-hidden rounded-lg border border-border bg-surface shadow-md"
         >
           {suggestions.map((s, i) => (
-            <li key={i}>
+            <li key={i} role="option" aria-selected={false}>
               <button
                 type="button"
-                className="w-full text-left px-3 py-2 text-xs transition-colors hover:bg-[rgba(16, 185, 129,0.08)]"
-                style={{ color: "var(--text-secondary)" }}
+                className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-surface-hover focus-visible:bg-surface-hover focus-visible:outline-none"
                 onMouseDown={() => handleSelect(s)}
               >
-                <span className="font-medium" style={{ color: "var(--text-primary)" }}>
+                <span className="font-medium text-foreground">
                   {s.street || s.display_name.split(",")[0]}
                 </span>
-                {s.city && <span className="ml-1 text-[10px]">{s.city}{s.state ? `, ${s.state}` : ""}{s.zip ? ` ${s.zip}` : ""}</span>}
+                {s.city && (
+                  <span className="ml-1 text-xs">
+                    {s.city}
+                    {s.state ? `, ${s.state}` : ""}
+                    {s.zip ? ` ${s.zip}` : ""}
+                  </span>
+                )}
               </button>
             </li>
           ))}

@@ -1,29 +1,42 @@
-import { createClient } from "@/lib/supabase-server";
-import { notFound, redirect } from "next/navigation";
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
-import type { Contract } from "@/lib/types";
-import { ArrowLeft, User, Building2, DollarSign, Calendar, Key, AlertTriangle, Users, Bell, FileText } from "lucide-react";
-import type { ContractOccupant, ContractNotificationLog } from "@/lib/types";
+import { notFound, redirect } from "next/navigation";
+import { getFormatter, getTranslations } from "next-intl/server";
+import { ArrowLeft, Bell, Building2, Calendar, FileText, PenLine, Users } from "lucide-react";
+import { createClient } from "@/lib/supabase-server";
+import { daysUntil } from "@/lib/utils";
+import type { Contract, ContractNotificationLog, ContractOccupant } from "@/lib/types";
+import { StatusBadge } from "@/components/app/StatusBadge";
+import { Button } from "@/components/ui/button";
+import ContractDocumentsPanel from "@/components/ContractDocumentsPanel";
 import ContractActions from "./ContractActions";
 import NotificationPanel from "./NotificationPanel";
 import ContractSignatures from "./ContractSignatures";
-import ContractDocumentsPanel from "@/components/ContractDocumentsPanel";
 
-const STATUS_PILL: Record<string, string> = {
-  signed:  "pill-active",
-  sent:    "pill-sent",
-  draft:   "pill-draft",
-  expired: "pill-expired",
-  cancelled: "pill-expired",
-};
+const AMENITY_KEYS = [
+  "ac",
+  "fridge",
+  "microwave",
+  "sofa",
+  "futon",
+  "mini_blinds",
+  "mirror_doors",
+  "renovated_bathroom",
+  "wall_art",
+  "parking",
+  "room_count",
+  "fan_count",
+  "stool_count",
+  "stove_count",
+  "key_count",
+  "parking_spot",
+] as const;
 
-export default async function ContractDetailPage(
-  props: {
-    params: Promise<{ id: string }>;
-  }
-) {
+export default async function ContractDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
+  const t = await getTranslations("contracts.detail");
+  const tr = await getTranslations("contracts.renewal");
+  const f = await getFormatter();
   const supabase = await createClient();
   const {
     data: { user },
@@ -57,187 +70,206 @@ export default async function ContractDetailPage(
   const logs = (notifLogs ?? []) as ContractNotificationLog[];
   const landlordEmail = (profile as { email?: string } | null)?.email ?? user.email ?? "";
 
+  const day = (d: string | null | undefined) =>
+    d ? f.dateTime(new Date(d.length === 10 ? `${d}T12:00:00` : d), { dateStyle: "medium" }) : null;
+  const money = (n: number | null | undefined) => f.number(Number(n) || 0, "money");
+  const ssn = (s: string | null | undefined) => (s ? `xxx-xx-${s}` : null);
+
+  const amenityLabel = (k: string, v: string | number | boolean) => {
+    const known = (AMENITY_KEYS as readonly string[]).includes(k);
+    if (k.endsWith("_count") || k === "parking_spot") {
+      const label = known ? t(`amenityCount.${k}` as "amenityCount.room_count") : k.replace(/_/g, " ");
+      return `${label}: ${v}`;
+    }
+    const label = known ? tr(`amenity.${k}` as "amenity.ac") : k.replace(/_/g, " ");
+    return typeof v === "number" && v > 1 ? `${v}× ${label}` : label;
+  };
+  const amenities = Object.entries(c.amenities ?? {}).filter(([, v]) => v !== false && v !== 0 && v !== null && v !== "");
+
+  const title = [c.tenant?.full_name, c.property?.name].filter(Boolean).join(" · ") || t("untitled");
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <Link
-            href="/contracts"
-            className="btn-tonal mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-          >
-            <ArrowLeft className="h-4 w-4" />
+      <div className="space-y-4">
+        <Button asChild variant="ghost" size="sm" className="-ml-2">
+          <Link href="/contracts">
+            <ArrowLeft />
+            {t("back")}
           </Link>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-              Contract
-            </p>
+        </Button>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-display text-3xl font-bold tracking-tight" style={{ letterSpacing: "-0.03em" }}>
-                {c.tenant?.full_name}
-              </h1>
-              <span className={STATUS_PILL[c.status] ?? "pill-draft"}>{c.status}</span>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+              <StatusBadge status={c.status} />
             </div>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>{c.property?.name}</p>
-          </div>
-        </div>
-        <ContractActions contract={c} availableTenants={tenantsData ?? []} landlordEmail={landlordEmail} />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Tenant */}
-        <div className="surface-card space-y-3">
-          <SectionLabel icon={<User className="h-3.5 w-3.5" />} label="Tenant" />
-          <InfoRow label="Name"           value={c.tenant?.full_name} />
-          <InfoRow label="Email"          value={c.tenant?.email} />
-          <InfoRow label="Phone"          value={c.tenant?.phone} />
-          <InfoRow label="License #"      value={c.tenant?.license_number} />
-          <InfoRow label="SSN (last 4)"   value={c.tenant?.ssn_last4 ? `xxx-xx-${c.tenant.ssn_last4}` : null} />
-          <InfoRow label="Address"        value={c.tenant?.current_address} />
-          <InfoRow
-            label="Occupants"
-            value={c.occupant_names?.length ? c.occupant_names.join(", ") : String(c.occupant_count)}
-          />
-        </div>
-
-        {/* Co-Tenants */}
-        {coTenants.map((ct, i) => (
-          <div key={ct.id} className="surface-card space-y-3">
-            <SectionLabel icon={<Users className="h-3.5 w-3.5" />} label={`Co-Tenant ${i + 2}`} />
-            <InfoRow label="Name"        value={ct.full_name} />
-            <InfoRow label="Email"       value={ct.email} />
-            <InfoRow label="Phone"       value={ct.phone} />
-            <InfoRow label="License #"   value={ct.license_number} />
-            <InfoRow label="SSN (last 4)" value={ct.ssn_last4 ? `xxx-xx-${ct.ssn_last4}` : null} />
-            <InfoRow label="Address"     value={ct.current_address} />
-            <InfoRow label="Signed"      value={ct.signed_at ? formatDate(ct.signed_at) : null} />
-          </div>
-        ))}
-
-        {/* Property */}
-        <div className="surface-card space-y-3">
-          <SectionLabel icon={<Building2 className="h-3.5 w-3.5" />} label="Property" />
-          <InfoRow label="Name"    value={c.property?.name} />
-          <InfoRow label="Address" value={c.property?.address} />
-          <InfoRow label="City"    value={`${c.property?.city ?? ""}, ${c.property?.state ?? ""}`} />
-          <InfoRow label="Unit"    value={c.unit_number} />
-          {c.amenities && Object.keys(c.amenities).length > 0 && (
-            <div className="pt-1">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                Amenities
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {Object.entries(c.amenities).map(([k, v]) => {
-                  if (v === false || v === 0) return null;
-                  const label = k.replace(/_/g, " ");
-                  return (
-                    <span
-                      key={k}
-                      className="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize"
-                      style={{ background: "var(--surface-container)", color: "var(--text-primary)" }}
-                    >
-                      {typeof v === "number" && v > 1 ? `${v}× ` : ""}{label}
-                    </span>
-                  );
-                })}
+            <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+              <div className="flex gap-1.5">
+                <dt className="text-muted-foreground">{t("term")}</dt>
+                <dd className="font-medium text-foreground">
+                  {day(c.lease_start)} – {day(c.lease_end)}
+                </dd>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Payment */}
-        <div className="surface-card space-y-3">
-          <SectionLabel icon={<DollarSign className="h-3.5 w-3.5" />} label="Payment" />
-          <InfoRow label="Monthly Rent"     value={formatCurrency(c.rent_amount)} />
-          <InfoRow label="Security Deposit" value={formatCurrency(c.security_deposit)} />
-          <InfoRow label="Due Day"          value={`${c.payment_due_day}th of month`} />
-          <InfoRow label="Late After"       value={`Day ${c.late_fee_day}`} />
-          <InfoRow label="Keys"             value={String(c.key_count)} icon={<Key className="h-3 w-3" />} />
-        </div>
-
-        {/* Lease */}
-        <div className="surface-card space-y-3">
-          <SectionLabel icon={<Calendar className="h-3.5 w-3.5" />} label="Lease" />
-          <InfoRow label="Start"    value={formatDate(c.lease_start)} />
-          <InfoRow label="End"      value={formatDate(c.lease_end)} />
-          <InfoRow label="Duration" value={`${c.lease_months} months`} />
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-sm" style={{ color: "var(--text-muted)" }}>Days Remaining</span>
-            {daysLeft < 0 ? (
-              <span className="pill-expired">Expired</span>
-            ) : daysLeft <= 30 ? (
-              <span className="pill-sent flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" />
-                {daysLeft} days
-              </span>
-            ) : (
-              <span className="text-sm font-semibold">{daysLeft} days</span>
-            )}
+              <div className="flex gap-1.5">
+                <dt className="text-muted-foreground">{t("rent")}</dt>
+                <dd className="tabular font-medium text-foreground">
+                  {money(c.rent_amount)}
+                  {t("perMonth")}
+                </dd>
+              </div>
+              <div className="flex gap-1.5">
+                <dt className="text-muted-foreground">{t("remaining")}</dt>
+                <dd className={daysLeft >= 0 && daysLeft <= 30 ? "font-medium text-warning" : "font-medium text-foreground"}>
+                  {daysLeft < 0 ? t("endedAgo", { count: -daysLeft }) : t("daysLeft", { count: daysLeft })}
+                </dd>
+              </div>
+            </dl>
           </div>
-          {c.signed_at  && <InfoRow label="Signed"  value={formatDate(c.signed_at)} />}
-          {c.sent_at    && <InfoRow label="Sent"    value={formatDate(c.sent_at)} />}
-          {c.opened_at  && <InfoRow label="Opened"  value={formatDate(c.opened_at)} />}
+          <ContractActions contract={c} availableTenants={tenantsData ?? []} landlordEmail={landlordEmail} />
         </div>
       </div>
 
-      {/* Notifications */}
-      <div className="surface-card space-y-3">
-        <SectionLabel icon={<Bell className="h-3.5 w-3.5" />} label="Notifications" />
-        <NotificationPanel
-          contractId={c.id}
-          initialSuppressed={c.suppress_notifications ?? false}
-          initialLogs={logs}
-        />
-      </div>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          {/* Terms */}
+          <Section icon={<Calendar />} title={t("sections.terms")}>
+            <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              <Info label={t("start")} value={day(c.lease_start)} />
+              <Info label={t("end")} value={day(c.lease_end)} />
+              <Info label={t("duration")} value={t("months", { count: c.lease_months })} />
+              <Info label={t("monthlyRent")} value={money(c.rent_amount)} tabular />
+              <Info label={t("deposit")} value={money(c.security_deposit)} tabular />
+              <Info label={t("dueDay")} value={t("dueDayValue", { day: c.payment_due_day })} />
+              <Info label={t("lateAfter")} value={t("lateAfterValue", { day: c.late_fee_day })} />
+              <Info label={t("keys")} value={String(c.key_count ?? 0)} tabular />
+              <Info label={t("unit")} value={c.unit_number} />
+              <Info label={t("sentAt")} value={day(c.sent_at)} />
+              <Info label={t("openedAt")} value={day(c.opened_at)} />
+              <Info label={t("signedAt")} value={day(c.signed_at)} />
+            </dl>
+            {amenities.length > 0 && (
+              <div className="mt-4 border-t pt-4">
+                <h3 className="mb-2 text-sm font-semibold text-foreground">{t("amenities")}</h3>
+                <ul className="flex flex-wrap gap-1.5">
+                  {amenities.map(([k, v]) => (
+                    <li key={k} className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
+                      {amenityLabel(k, v)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Section>
 
-      {/* Documents & Sections */}
-      <div className="surface-card space-y-3">
-        <SectionLabel icon={<FileText className="h-3.5 w-3.5" />} label="Documents" />
-        <ContractDocumentsPanel contractId={c.id} />
-      </div>
+          {/* Parties */}
+          <Section icon={<Users />} title={t("sections.parties")}>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-foreground">{t("tenant")}</h3>
+                <dl className="space-y-2">
+                  <Info label={t("name")} value={c.tenant?.full_name} />
+                  <Info label={t("email")} value={c.tenant?.email} />
+                  <Info label={t("phone")} value={c.tenant?.phone} />
+                  <Info label={t("license")} value={c.tenant?.license_number} />
+                  <Info label={t("ssn")} value={ssn(c.tenant?.ssn_last4)} />
+                  <Info label={t("address")} value={c.tenant?.current_address} />
+                  <Info
+                    label={t("occupants")}
+                    value={c.occupant_names?.length ? c.occupant_names.join(", ") : String(c.occupant_count ?? "")}
+                  />
+                </dl>
+              </div>
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                  <Building2 className="size-4 text-muted-foreground" aria-hidden />
+                  {t("property")}
+                </h3>
+                <dl className="space-y-2">
+                  <Info label={t("name")} value={c.property?.name} />
+                  <Info label={t("address")} value={c.property?.address} />
+                  <Info
+                    label={t("city")}
+                    value={[c.property?.city, c.property?.state].filter(Boolean).join(", ") || null}
+                  />
+                  <Info label={t("unit")} value={c.unit_number} />
+                </dl>
+              </div>
+              {coTenants.map((ct, i) => (
+                <div key={ct.id} className="space-y-3">
+                  <h3 className="text-sm font-semibold text-foreground">{t("coTenant", { n: i + 2 })}</h3>
+                  <dl className="space-y-2">
+                    <Info label={t("name")} value={ct.full_name} />
+                    <Info label={t("email")} value={ct.email} />
+                    <Info label={t("phone")} value={ct.phone} />
+                    <Info label={t("license")} value={ct.license_number} />
+                    <Info label={t("ssn")} value={ssn(ct.ssn_last4)} />
+                    <Info label={t("address")} value={ct.current_address} />
+                    <Info label={t("signedAt")} value={day(ct.signed_at)} />
+                  </dl>
+                </div>
+              ))}
+            </div>
+          </Section>
 
-      {/* Signatures */}
-      <ContractSignatures
-        contractId={c.id}
-        tenantName={c.tenant?.full_name}
-        landlordSignature={c.landlord_signature}
-        tenantSignature={c.tenant_signature}
-        coTenantSignatures={coTenants
-          .map((ct, i) => ({ id: ct.id, label: `Co-Tenant ${i + 2} — ${ct.full_name}`, signature: ct.signature }))
-          .filter((ct): ct is { id: string; label: string; signature: string } => !!ct.signature)}
-      />
+          {/* Documents */}
+          <Section icon={<FileText />} title={t("sections.documents")}>
+            <ContractDocumentsPanel contractId={c.id} />
+          </Section>
+        </div>
+
+        <div className="space-y-6">
+          {/* Signatures */}
+          <Section icon={<PenLine />} title={t("sections.signatures")}>
+            <ContractSignatures
+              contractId={c.id}
+              tenantName={c.tenant?.full_name}
+              landlordSignature={c.landlord_signature}
+              tenantSignature={c.tenant_signature}
+              coTenantSignatures={coTenants
+                .map((ct, i) => ({
+                  id: ct.id,
+                  label: `${t("coTenant", { n: i + 2 })} · ${ct.full_name}`,
+                  signature: ct.signature,
+                }))
+                .filter((ct): ct is { id: string; label: string; signature: string } => !!ct.signature)}
+            />
+          </Section>
+
+          {/* Notifications */}
+          <Section icon={<Bell />} title={t("sections.notifications")}>
+            <NotificationPanel
+              contractId={c.id}
+              initialSuppressed={c.suppress_notifications ?? false}
+              initialLogs={logs}
+            />
+          </Section>
+        </div>
+      </div>
     </div>
   );
 }
 
-function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
+function Section({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-1.5 pb-1 border-b" style={{ borderColor: "var(--surface-container)" }}>
-      <span style={{ color: "var(--accent-color)" }}>{icon}</span>
-      <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-        {label}
-      </p>
-    </div>
+    <section className="rounded-xl border bg-surface p-4 md:p-5">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground [&_svg]:size-4 [&_svg]:text-muted-foreground">
+        {icon}
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }
 
-function InfoRow({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value?: string | null;
-  icon?: React.ReactNode;
-}) {
+function Info({ label, value, tabular }: { label: string; value?: string | null; tabular?: boolean }) {
   if (!value) return null;
   return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-sm" style={{ color: "var(--text-muted)" }}>{label}</span>
-      <span className="flex items-center gap-1 text-right text-sm font-semibold">
-        {icon}
+    <div className="flex items-baseline justify-between gap-4 text-sm">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className={tabular ? "tabular text-right font-medium text-foreground" : "text-right font-medium text-foreground"}>
         {value}
-      </span>
+      </dd>
     </div>
   );
 }

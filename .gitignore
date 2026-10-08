@@ -1,6 +1,8 @@
 # AI / IDE tool directories
 .agent/
-.github/
+.github/*
+!.github/workflows/
+!.github/dependabot.yml
 .claude/
 .codebuddy/
 .codex/

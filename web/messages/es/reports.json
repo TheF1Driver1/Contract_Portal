@@ -1,1 +1,62 @@
-{}
+{
+  "eyebrow": "Reportes",
+  "title": "Schedule E",
+  "description": "Resumen de ingresos y gastos por propiedad para compartir con tu contador/a.",
+  "year": "Año",
+  "download": "Descargar PDF de {year}",
+  "generating": "Generando…",
+  "downloaded": "PDF descargado",
+  "downloadFailed": "No se pudo generar el reporte",
+  "noProperties": "Necesitas al menos una propiedad para generar el reporte.",
+  "disclaimer": {
+    "title": "Es un resumen, no una planilla",
+    "body": "Este reporte organiza tus ingresos y gastos registrados según las líneas del Schedule E del IRS como referencia. No es asesoría contributiva ni sustituye la planilla. Compártelo con tu contador/a para que lo revise antes de radicar."
+  },
+  "totals": {
+    "income": "Ingresos estimados",
+    "expenses": "Gastos",
+    "net": "Neto",
+    "properties": "{count, plural, one {# propiedad} other {# propiedades}}"
+  },
+  "incomeHint": "Los ingresos se estiman con la renta de los contratos firmados que cubren el año.",
+  "table": {
+    "line": "Línea",
+    "concept": "Concepto",
+    "amount": "Monto",
+    "noExpenses": "No hay gastos registrados para esta propiedad en {year}.",
+    "income": "Ingresos de renta (estimado)",
+    "totalExpenses": "Total de gastos",
+    "net": "Ingreso neto"
+  },
+  "lines": {
+    "5": "Publicidad",
+    "9": "Seguro",
+    "11": "Comisiones de administración",
+    "12": "Intereses de hipoteca",
+    "14": "Reparaciones y mantenimiento",
+    "16": "Contribuciones (CRIM)",
+    "17": "Utilidades",
+    "19": "Otros (incluye HOA)"
+  },
+  "lineNumber": "Línea {line}",
+  "emptyProperties": {
+    "title": "Todavía no tienes propiedades",
+    "description": "Añade una propiedad y registra sus gastos para ver el resumen.",
+    "action": "Añadir propiedad"
+  },
+  "gate": {
+    "title": "Resumen Schedule E",
+    "description": "Genera un PDF con los ingresos y gastos de cada propiedad, organizado por las líneas del Schedule E, para compartir con tu contador/a.",
+    "currentPlan": "Tu plan actual: {plan}",
+    "features": {
+      "summary": "PDF con ingresos y gastos por propiedad",
+      "lines": "Gastos agrupados por línea del Schedule E como referencia",
+      "properties": "Propiedades ilimitadas",
+      "managers": "Hasta 3 administradores de propiedad"
+    },
+    "cta": "Mejorar a Inversionista",
+    "price": "${price}/mes · Cancela cuando quieras",
+    "whatTitle": "¿Qué es el Schedule E?",
+    "whatBody": "Es el anejo del IRS donde los dueños de propiedades de alquiler en EE. UU. informan ingresos y gastos. Tu contador/a decide cómo y si aplica a tu caso."
+  }
+}

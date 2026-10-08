@@ -1,48 +1,52 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload, FileText, Star, Trash2, Download, Loader2 } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { Download, FileText, Loader2, Star, Trash2, Upload } from "lucide-react";
 import type { ContractTemplate } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/settings/ConfirmDialog";
+import { cn } from "@/lib/utils";
 
 interface Props {
   templates: ContractTemplate[];
+  loading?: boolean;
   onUploaded: (t: ContractTemplate) => void;
   onDeleted: (id: string) => void;
   onSetDefault: (id: string) => void;
 }
 
-const CONTRACT_TYPE_LABELS: Record<string, string> = {
-  all: "All types",
-  lease: "Lease",
-  rental: "Rental",
-  addendum: "Addendum",
-};
+const CONTRACT_TYPES = ["all", "lease", "rental", "addendum"] as const;
 
-const S = {
-  card: "rounded-2xl p-5 space-y-4",
-  surface: "var(--surface-low)",
-  surfaceMid: "var(--surface-mid)",
-  border: "rgba(255,255,255,0.07)",
-  text: "var(--text-primary)",
-  muted: "var(--text-muted)",
-  secondary: "var(--text-secondary)",
-  accent: "#10b981",
-};
-
-export default function TemplateUploader({ templates, onUploaded, onDeleted, onSetDefault }: Props) {
+export default function TemplateUploader({ templates, loading, onUploaded, onDeleted, onSetDefault }: Props) {
+  const t = useTranslations("settings.templatesPage");
+  const tc = useTranslations("common");
+  const f = useFormatter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", contract_type: "all", is_default: false });
+  const [deleteTarget, setDeleteTarget] = useState<ContractTemplate | null>(null);
+
+  const typeLabel = (type: string) =>
+    (CONTRACT_TYPES as readonly string[]).includes(type) ? t(`types.${type}`) : type;
 
   async function upload(file: File) {
     if (!file.name.endsWith(".docx")) {
-      setError("Only .docx files are supported");
+      setError(t("onlyDocx"));
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setError("File must be under 5 MB");
+      setError(t("tooLarge"));
       return;
     }
     setError(null);
@@ -59,21 +63,29 @@ export default function TemplateUploader({ templates, onUploaded, onDeleted, onS
       const res = await fetch("/api/templates", { method: "POST", body: fd });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "Upload failed");
+        throw new Error(typeof body.error === "string" ? body.error : t("uploadFailed"));
       }
       const created: ContractTemplate = await res.json();
       onUploaded(created);
       setForm({ name: "", contract_type: "all", is_default: false });
+      toast.success(t("uploaded"));
     } catch (e) {
       setError((e as Error).message);
+      toast.error(t("uploadFailed"));
     } finally {
       setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
     }
   }
 
   async function deleteTemplate(id: string) {
-    const res = await fetch(`/api/templates/${id}`, { method: "DELETE" });
-    if (res.ok) onDeleted(id);
+    const res = await fetch(`/api/templates/${id}`, { method: "DELETE" }).catch(() => null);
+    if (res?.ok) {
+      onDeleted(id);
+      toast.success(tc("deleted"));
+    } else {
+      toast.error(t("deleteError"));
+    }
   }
 
   async function setDefault(id: string) {
@@ -81,196 +93,175 @@ export default function TemplateUploader({ templates, onUploaded, onDeleted, onS
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ is_default: true }),
-    });
-    if (res.ok) onSetDefault(id);
+    }).catch(() => null);
+    if (res?.ok) {
+      onSetDefault(id);
+      toast.success(t("defaultSet"));
+    } else {
+      toast.error(tc("saveFailed"));
+    }
   }
 
   return (
     <div className="space-y-6">
-      {/* Upload area */}
-      <div
-        className={S.card}
-        style={{ background: S.surface, border: `1px solid ${dragging ? S.accent : S.border}` }}
-      >
-        <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: S.muted }}>
-          Upload Template
-        </p>
-
-        {/* Drop zone */}
-        <div
-          className="rounded-xl border-2 border-dashed flex flex-col items-center gap-3 py-8 cursor-pointer transition-colors"
-          style={{
-            borderColor: dragging ? S.accent : S.border,
-            background: dragging ? "rgba(16, 185, 129,0.06)" : "transparent",
-          }}
-          onDragOver={e => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={e => {
-            e.preventDefault();
-            setDragging(false);
-            const f = e.dataTransfer.files[0];
-            if (f) upload(f);
-          }}
-          onClick={() => inputRef.current?.click()}
-        >
-          <Upload className="h-8 w-8" style={{ color: S.muted }} />
-          <div className="text-center">
-            <p className="text-sm font-medium" style={{ color: S.text }}>
-              Drop your .docx template here
-            </p>
-            <p className="text-xs mt-1" style={{ color: S.muted }}>
-              or click to browse — max 5 MB
-            </p>
+      {/* Upload */}
+      <Card className="gap-4 py-4 md:py-5">
+        <CardHeader className="px-4 md:px-5">
+          <CardTitle className="text-base">
+            <h3>{t("uploadTitle")}</h3>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 px-4 md:px-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">{t("nameLabel")}</Label>
+              <Input
+                id="template-name"
+                type="text"
+                placeholder={t("namePlaceholder")}
+                value={form.name}
+                onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+                className="h-10 sm:h-9"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="template-type">{t("typeLabel")}</Label>
+              <Select value={form.contract_type} onValueChange={(v) => setForm((s) => ({ ...s, contract_type: v }))}>
+                <SelectTrigger id="template-type" className="h-10 w-full sm:h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONTRACT_TYPES.map((v) => (
+                    <SelectItem key={v} value={v}>{t(`types.${v}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          <div className="flex min-h-10 items-center gap-3">
+            <Checkbox
+              id="template-default"
+              checked={form.is_default}
+              onCheckedChange={(c) => setForm((s) => ({ ...s, is_default: c === true }))}
+            />
+            <Label htmlFor="template-default" className="cursor-pointer font-normal">{t("setDefaultLabel")}</Label>
+          </div>
+
+          {/* Drop zone */}
+          <button
+            type="button"
+            disabled={uploading}
+            className={cn(
+              "flex w-full flex-col items-center gap-3 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-60",
+              dragging ? "border-primary bg-primary-soft" : "border-border-strong hover:bg-surface-hover"
+            )}
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              const file = e.dataTransfer.files[0];
+              if (file) upload(file);
+            }}
+            onClick={() => inputRef.current?.click()}
+          >
+            {uploading ? (
+              <Loader2 className="size-8 animate-spin text-muted-foreground" aria-hidden />
+            ) : (
+              <Upload className="size-8 text-muted-foreground" aria-hidden />
+            )}
+            <span>
+              <span className="block text-sm font-medium text-foreground">
+                {uploading ? t("uploading") : t("dropTitle")}
+              </span>
+              <span className="mt-1 block text-xs text-muted-foreground">{t("dropHint")}</span>
+            </span>
+          </button>
           <input
             ref={inputRef}
             type="file"
             accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             className="hidden"
-            onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); }}
+            aria-label={t("dropTitle")}
+            onChange={(e) => { const file = e.target.files?.[0]; if (file) upload(file); }}
           />
-        </div>
 
-        {/* Name + type fields */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium block mb-1.5" style={{ color: S.secondary }}>
-              Template name
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Sabana Gardens Lease"
-              value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full rounded-xl px-3 py-2 text-sm outline-hidden"
-              style={{
-                background: S.surfaceMid,
-                border: `1px solid ${S.border}`,
-                color: S.text,
-              }}
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium block mb-1.5" style={{ color: S.secondary }}>
-              Contract type
-            </label>
-            <select
-              value={form.contract_type}
-              onChange={e => setForm(f => ({ ...f, contract_type: e.target.value }))}
-              className="w-full rounded-xl px-3 py-2 text-sm outline-hidden"
-              style={{
-                background: S.surfaceMid,
-                border: `1px solid ${S.border}`,
-                color: S.text,
-              }}
-            >
-              {Object.entries(CONTRACT_TYPE_LABELS).map(([v, l]) => (
-                <option key={v} value={v}>{l}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+          {error && <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>}
+        </CardContent>
+      </Card>
 
-        <label className="flex items-center gap-2.5 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={form.is_default}
-            onChange={e => setForm(f => ({ ...f, is_default: e.target.checked }))}
-            className="rounded"
-          />
-          <span className="text-sm" style={{ color: S.secondary }}>
-            Set as default template for this contract type
-          </span>
-        </label>
-
-        {error && (
-          <p className="text-xs rounded-xl px-3 py-2" style={{ background: "rgba(255,59,48,0.12)", color: "#ff3b30" }}>
-            {error}
-          </p>
-        )}
-
-        {uploading && (
-          <div className="flex items-center gap-2 text-sm" style={{ color: S.muted }}>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Uploading…
-          </div>
-        )}
-      </div>
-
-      {/* Template list */}
-      {templates.length > 0 && (
-        <div
-          className={S.card}
-          style={{ background: S.surface, border: `1px solid ${S.border}` }}
-        >
-          <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: S.muted }}>
-            Your Templates
-          </p>
+      {/* List */}
+      <section aria-labelledby="templates-list" className="space-y-3">
+        <h3 id="templates-list" className="text-base font-semibold text-foreground">{t("listTitle")}</h3>
+        {loading ? (
           <div className="space-y-2">
-            {templates.map(t => (
-              <div
-                key={t.id}
-                className="flex items-center gap-3 rounded-xl px-3 py-3"
-                style={{ background: S.surfaceMid, border: `1px solid ${S.border}` }}
-              >
-                <FileText className="h-5 w-5 shrink-0" style={{ color: S.accent }} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: S.text }}>
-                    {t.name}
-                    {t.is_default && (
-                      <span
-                        className="ml-2 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md"
-                        style={{ background: "rgba(16, 185, 129,0.18)", color: S.accent }}
-                      >
-                        Default
-                      </span>
+            {[0, 1].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
+          </div>
+        ) : templates.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border bg-surface p-6 text-center text-sm text-muted-foreground">
+            {t("empty")}
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {templates.map((tpl) => (
+              <li key={tpl.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 md:p-4">
+                <FileText className="size-5 shrink-0 text-primary" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-foreground">
+                    <span className="truncate">{tpl.name}</span>
+                    {tpl.is_default && (
+                      <Badge className="bg-primary-soft text-primary-soft-foreground">
+                        <Star aria-hidden />
+                        {t("default")}
+                      </Badge>
                     )}
                   </p>
-                  <p className="text-[11px] mt-0.5" style={{ color: S.muted }}>
-                    {CONTRACT_TYPE_LABELS[t.contract_type] ?? t.contract_type} ·{" "}
-                    {new Date(t.created_at).toLocaleDateString()}
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {typeLabel(tpl.contract_type)} · {f.dateTime(new Date(tpl.created_at), { dateStyle: "medium" })}
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
-                  {!t.is_default && (
-                    <button
-                      title="Set as default"
-                      onClick={() => setDefault(t.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
-                      style={{ color: S.muted }}
-                      onMouseEnter={e => (e.currentTarget.style.color = S.accent)}
-                      onMouseLeave={e => (e.currentTarget.style.color = S.muted)}
+                <div className="flex shrink-0 items-center gap-1">
+                  {!tpl.is_default && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-10 sm:size-9"
+                      onClick={() => setDefault(tpl.id)}
+                      aria-label={t("setDefaultAria", { name: tpl.name })}
                     >
-                      <Star className="h-3.5 w-3.5" />
-                    </button>
+                      <Star aria-hidden />
+                    </Button>
                   )}
-                  <a
-                    href={t.file_url}
-                    download
-                    title="Download template"
-                    className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
-                    style={{ color: S.muted }}
-                    onMouseEnter={e => (e.currentTarget.style.color = S.text)}
-                    onMouseLeave={e => (e.currentTarget.style.color = S.muted)}
+                  <Button asChild variant="ghost" size="icon" className="size-10 sm:size-9">
+                    <a href={tpl.file_url} download aria-label={t("downloadAria", { name: tpl.name })}>
+                      <Download aria-hidden />
+                    </a>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-10 text-danger hover:bg-danger-soft hover:text-danger sm:size-9"
+                    onClick={() => setDeleteTarget(tpl)}
+                    aria-label={t("deleteAria", { name: tpl.name })}
                   >
-                    <Download className="h-3.5 w-3.5" />
-                  </a>
-                  <button
-                    title="Delete template"
-                    onClick={() => deleteTemplate(t.id)}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
-                    style={{ color: S.muted }}
-                    onMouseEnter={e => (e.currentTarget.style.color = "#ff3b30")}
-                    onMouseLeave={e => (e.currentTarget.style.color = S.muted)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                    <Trash2 aria-hidden />
+                  </Button>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
-        </div>
-      )}
+          </ul>
+        )}
+      </section>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title={t("deleteTitle")}
+        description={deleteTarget ? t("deleteBody", { name: deleteTarget.name }) : undefined}
+        confirmLabel={tc("delete")}
+        onConfirm={() => (deleteTarget ? deleteTemplate(deleteTarget.id) : undefined)}
+      />
     </div>
   );
 }

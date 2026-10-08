@@ -1,1 +1,175 @@
-{}
+{
+  "title": "Mercado",
+  "labs": "Labs",
+  "description": "Propiedades a la venta en Puerto Rico, con señales de vendedores motivados.",
+  "labsNote": "Función beta: los datos vienen de anuncios públicos y pueden estar incompletos o atrasados.",
+  "viewToggle": "Cambiar vista",
+  "views": { "map": "Mapa", "list": "Lista" },
+  "loading": "Cargando anuncios…",
+  "listings": "{count, plural, one {# anuncio} other {# anuncios}}",
+  "searchPlaceholder": "Buscar por dirección o pueblo",
+  "bedsBaths": "{beds} hab · {baths} baños",
+  "cuts": "{count, plural, one {# rebaja} other {# rebajas}}",
+  "daysListed": "{count, plural, one {# día publicado} other {# días publicado}}",
+  "upgrade": {
+    "title": "Mercado no está incluido en tu plan",
+    "message": "Esta función requiere un plan superior. Actualiza tu plan para usar el análisis de mercado.",
+    "cta": "Ver planes"
+  },
+  "filters": {
+    "open": "Filtros",
+    "title": "Filtrar anuncios",
+    "description": "Ajusta pueblo, precio y habitaciones.",
+    "city": "Pueblo",
+    "allCities": "Todos los pueblos",
+    "minPrice": "Precio mínimo",
+    "maxPrice": "Precio máximo",
+    "noLimit": "Sin límite",
+    "beds": "Habitaciones",
+    "anyBeds": "Cualquiera",
+    "bedsMin": "{count}+",
+    "search": "Buscar"
+  },
+  "byCity": { "title": "Por pueblo", "avg": "{price} promedio" },
+  "topMotivated": { "title": "Vendedores más motivados" },
+  "motivation": {
+    "label": "Motivación del vendedor",
+    "badge": "{level} {score}",
+    "levels": { "high": "Alta", "moderate": "Moderada", "mild": "Leve", "none": "Sin señales" }
+  },
+  "columns": {
+    "address": "Dirección",
+    "city": "Pueblo",
+    "price": "Precio",
+    "bedsBaths": "Hab / Baños",
+    "days": "Días publicado",
+    "cuts": "Rebajas",
+    "motivation": "Motivación"
+  },
+  "csv": { "beds": "Habitaciones", "baths": "Baños", "cutPct": "Rebaja total %", "url": "Enlace" },
+  "empty": {
+    "title": "No hay anuncios",
+    "description": "Prueba con otros filtros o busca en otro pueblo."
+  },
+  "map": { "details": "Ver detalle", "listing": "Ver anuncio" },
+  "stats": {
+    "title": "Precio promedio por pueblo",
+    "subtitle": "Propiedades a la venta",
+    "avgPrice": "Precio promedio",
+    "avgDays": "{count, plural, one {# día promedio} other {# días promedio}}"
+  },
+  "rentVsMarket": {
+    "title": "Tu renta vs. el mercado",
+    "subtitle": "Renta mensual de tus contratos firmados comparada con el precio promedio de venta en cada pueblo. La gráfica muestra el rendimiento bruto (renta × 12 ÷ precio).",
+    "yield": "Rendimiento bruto",
+    "city": "Pueblo",
+    "yourRent": "Tu renta",
+    "marketPrice": "Precio de venta"
+  },
+  "detail": {
+    "notFound": "No encontramos este anuncio",
+    "notFoundDescription": "Puede que ya no esté publicado.",
+    "backToMarket": "Volver al mercado",
+    "property": "Propiedad",
+    "noPrice": "Precio no disponible",
+    "beds": "Habitaciones",
+    "baths": "Baños",
+    "days": "Días publicado",
+    "signals": "Motivación del vendedor",
+    "score": "Puntuación de motivación",
+    "scoreValue": "{score} / 100 · {level}",
+    "originalPrice": "Precio original",
+    "totalCut": "Rebaja total",
+    "cuts": "Rebajas de precio",
+    "lastCut": "Última rebaja",
+    "scoreHelp": "La puntuación refleja la rapidez, lo reciente y la frecuencia de las rebajas de precio. Más alta = vendedor más motivado.",
+    "details": "Detalles",
+    "status": "Estado",
+    "type": "Tipo",
+    "viewListing": "Ver anuncio original"
+  },
+  "watchlistButton": {
+    "save": "Guardar en mi lista",
+    "saved": "Guardada",
+    "added": "Propiedad guardada en tu lista",
+    "removed": "Propiedad quitada de tu lista",
+    "error": "No se pudo actualizar tu lista"
+  },
+  "watchlist": {
+    "title": "Mi lista",
+    "description": "{count, plural, =0 {Propiedades que guardaste del mercado.} one {# propiedad guardada.} other {# propiedades guardadas.}}",
+    "browse": "Ver el mercado",
+    "emptyTitle": "No tienes propiedades guardadas",
+    "emptyDescription": "Explora el mercado y guarda las propiedades que te interesen para analizarlas.",
+    "analyze": "Analizar inversión"
+  },
+  "analyzer": {
+    "property": "Propiedad",
+    "heading": "Análisis de inversión",
+    "listedAt": "Publicada en {price}",
+    "save": "Guardar análisis",
+    "saved": "Guardado",
+    "savedToast": "Análisis guardado",
+    "saveError": "No se pudo guardar el análisis",
+    "disclaimer": "Estimados basados en tus supuestos; no es asesoría financiera.",
+    "results": "Resultados",
+    "kpi": {
+      "cashFlow": "Flujo de caja mensual",
+      "capRate": "Tasa de capitalización",
+      "capRateHint": "NOI ÷ precio",
+      "coc": "Retorno sobre efectivo",
+      "cocHint": "Flujo anual ÷ inversión inicial",
+      "breakEven": "Renta de equilibrio",
+      "grm": "Multiplicador bruto {value}×"
+    },
+    "perYear": "{amount} al año",
+    "perMonth": "/mes",
+    "positive": "Positivo",
+    "negative": "Negativo",
+    "tone": { "good": "Sólido", "warn": "Aceptable", "bad": "Débil" },
+    "groups": {
+      "acquisition": "Compra",
+      "financing": "Financiamiento",
+      "expenses": "Gastos operacionales",
+      "income": "Ingresos"
+    },
+    "totalUpfront": "Total requerido al inicio",
+    "monthlyMortgage": "Hipoteca mensual (principal e intereses)",
+    "effectiveRent": "Renta efectiva",
+    "fields": {
+      "purchasePrice": "Precio de compra",
+      "downPayment": "Pronto",
+      "closingCosts": "Gastos de cierre",
+      "mortgageRate": "Tasa de interés",
+      "loanTerm": "Término del préstamo",
+      "propertyTax": "Contribución sobre la propiedad (anual)",
+      "insurance": "Seguro (anual)",
+      "maintenance": "Reserva de mantenimiento (anual)",
+      "hoa": "Mantenimiento / HOA (mensual)",
+      "utilities": "Utilidades (mensual)",
+      "rent": "Renta mensual estimada",
+      "vacancy": "Tasa de desocupación"
+    },
+    "years": "{count, plural, one {# año} other {# años}}",
+    "taxHintCrim": "CRIM {municipality}: {rate}% sobre el valor tasado",
+    "taxHintState": "Promedio de {state}: {rate}%",
+    "breakdown": {
+      "title": "Desglose mensual",
+      "mortgage": "Hipoteca (P+I)",
+      "tax": "Contribución (CRIM)",
+      "insurance": "Seguro",
+      "maintenance": "Mantenimiento",
+      "hoa": "HOA",
+      "utilities": "Utilidades",
+      "totalExpenses": "Gastos totales",
+      "net": "Flujo de caja neto"
+    },
+    "upfront": {
+      "title": "Inversión inicial",
+      "downPayment": "Pronto",
+      "closingCosts": "Gastos de cierre",
+      "loanAmount": "Monto del préstamo",
+      "cashRequired": "Efectivo requerido"
+    }
+  }
+}

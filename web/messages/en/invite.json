@@ -1,1 +1,41 @@
-{}
+{
+  "home": "Go to homepage",
+  "tenant": {
+    "contextLabel": "Lease agreement",
+    "context": "You've been invited to sign your lease for <b>{property}</b>.",
+    "greeting": "Hi, {name}.",
+    "propertyFallback": "your property",
+    "titleSignup": "Create your account to sign",
+    "titleSignin": "Sign in to sign your lease",
+    "description": "Use the email address the invitation was sent to.",
+    "tabSignup": "Create account",
+    "tabSignin": "I have an account",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Your full name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least 6 characters.",
+    "submitSignup": "Create account and continue",
+    "submitSignin": "Sign in and continue",
+    "redeemFailed": "We couldn't activate your invitation. Please try again.",
+    "expiredTitle": "This link is no longer available",
+    "expiredDescription": "The invitation has expired or was already used. Ask your landlord for a new link."
+  },
+  "manager": {
+    "title": "Property manager invitation",
+    "description": "<b>{owner}</b> invited <b>{email}</b> to manage these properties:",
+    "propertiesLabel": "Included properties",
+    "loginNote": "You must be signed in as <b>{email}</b> to accept this invitation.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "ownerFallback": "A landlord",
+    "acceptedTitle": "Invitation accepted",
+    "acceptedDescription": "You can now manage properties for {owner}.",
+    "goDashboard": "Go to dashboard",
+    "declinedTitle": "Invitation declined",
+    "declinedDescription": "You declined this invitation. If this was a mistake, contact {owner}.",
+    "unavailableTitle": "Invitation unavailable",
+    "unavailableDescription": "This link has already been used, declined, or revoked. Ask the property owner for a new invitation.",
+    "genericError": "Something went wrong. Please try again."
+  }
+}

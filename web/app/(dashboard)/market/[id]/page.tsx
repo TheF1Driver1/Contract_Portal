@@ -1,27 +1,43 @@
 import { createClient } from "@/lib/supabase-server"
-import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
-import { ArrowLeft, Bed, Bath, Clock, ExternalLink, TrendingDown } from "lucide-react"
+import { getFormatter, getTranslations } from "next-intl/server"
+import { ArrowLeft, Bed, Bath, Clock, ExternalLink, SearchX, TrendingDown } from "lucide-react"
 import WatchlistButton from "@/components/WatchlistButton"
-
-function motivationColor(score: number) {
-  if (score >= 61) return "var(--color-red-500, #ef4444)"
-  if (score >= 41) return "var(--color-orange-500, #f97316)"
-  if (score >= 21) return "var(--color-yellow-500, #eab308)"
-  return "var(--text-muted)"
-}
+import { EmptyState } from "@/components/app/EmptyState"
+import { LabsBadge } from "@/components/market/LabsBadge"
+import { MotivationGauge } from "@/components/market/MotivationGauge"
+import { MOTIVATION_TONE, motivationLevel } from "@/components/market/motivation"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default async function MarketPropertyPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
+  const t = await getTranslations("market")
+  const f = await getFormatter()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data } = await supabase
     .from("zillow_market").select("*").eq("id", Number(params.id)).maybeSingle()
 
+  const back = (
+    <Button asChild variant="ghost" size="sm" className="-ml-2 min-h-10 text-muted-foreground">
+      <Link href="/market">
+        <ArrowLeft aria-hidden />
+        {t("title")}
+      </Link>
+    </Button>
+  )
+
   if (!data) return (
-    <div className="surface-card py-16 text-center">
-      <p style={{ color: "var(--text-muted)" }}>Listing not found.</p>
+    <div className="mx-auto max-w-3xl space-y-4">
+      {back}
+      <EmptyState
+        icon={SearchX}
+        title={t("detail.notFound")}
+        description={t("detail.notFoundDescription")}
+        action={<Button asChild><Link href="/market">{t("detail.backToMarket")}</Link></Button>}
+      />
     </div>
   )
 
@@ -31,124 +47,108 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
 
   const motivation = data.desperation_score ?? 0
   const hasSellerSignals = data.desperation_score != null && data.desperation_score > 0
+  const level = motivationLevel(motivation)
+  const humanize = (v: string | null | undefined) => (v ? v.replace(/_/g, " ").toLowerCase() : null)
+  const address = [data.street, data.city, data.state, data.zipcode].filter(Boolean).join(", ")
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      {/* Back link */}
-      <Link
-        href="/market"
-        className="btn-tonal inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Market
-      </Link>
+    <div className="mx-auto max-w-3xl space-y-6">
+      {back}
+
+      {/* Title row */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {data.homeType && (
+              <span className="text-xs font-medium capitalize text-muted-foreground">{humanize(data.homeType)}</span>
+            )}
+            <LabsBadge label={t("labs")} />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{address || t("detail.property")}</h1>
+          <p className="tabular text-2xl font-semibold text-foreground">
+            {data.price ? f.number(data.price, "money") : t("detail.noPrice")}
+          </p>
+        </div>
+        {user && <WatchlistButton property={data} saved={!!saved} />}
+      </div>
+      <p className="-mt-3 text-xs text-subtle-foreground">{t("labsNote")}</p>
 
       {/* Hero image */}
       {data.imgSrc && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={data.imgSrc}
-          alt={data.street ?? "Property"}
-          className="h-64 w-full rounded-2xl object-cover"
+          alt={data.street ?? t("detail.property")}
+          className="h-64 w-full rounded-xl border object-cover"
         />
       )}
 
-      {/* Price + address */}
-      <div className="surface-card space-y-2">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-              {data.homeType ?? "Property"}
-            </p>
-            <h1
-              className="text-2xl font-bold mt-1"
-              style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}
-            >
-              {[data.street, data.city, data.state, data.zipcode].filter(Boolean).join(", ")}
-            </h1>
-            <p
-              className="text-3xl font-bold mt-2"
-              style={{ color: "var(--accent-color)", letterSpacing: "-0.03em" }}
-            >
-              {data.price ? formatCurrency(data.price) : "Price unavailable"}
-            </p>
-          </div>
-          {user && <WatchlistButton property={data} saved={!!saved} />}
-        </div>
-      </div>
-
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <StatCard icon={<Bed className="h-4 w-4" />} value={data.beds ?? "—"} label="Bedrooms" />
-        <StatCard icon={<Bath className="h-4 w-4" />} value={data.baths ?? "—"} label="Bathrooms" />
-        <StatCard icon={<Clock className="h-4 w-4" />} value={data.daysOnZillow ?? "—"} label="Days listed" />
-      </div>
+      <dl className="grid grid-cols-3 gap-3">
+        <StatCard icon={<Bed className="size-4" aria-hidden />} value={data.beds ?? "—"} label={t("detail.beds")} />
+        <StatCard icon={<Bath className="size-4" aria-hidden />} value={data.baths ?? "—"} label={t("detail.baths")} />
+        <StatCard icon={<Clock className="size-4" aria-hidden />} value={data.daysOnZillow ?? "—"} label={t("detail.days")} />
+      </dl>
 
-      {/* Seller Signals */}
+      {/* Seller signals */}
       {hasSellerSignals && (
-        <div className="surface-card space-y-4">
+        <section className="space-y-4 rounded-xl border bg-surface p-4 md:p-5" aria-labelledby="seller-signals-title">
           <div className="flex items-center gap-2">
-            <TrendingDown className="h-4 w-4" style={{ color: motivationColor(motivation) }} />
-            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Seller Motivation</p>
+            <TrendingDown className={cn("size-4", MOTIVATION_TONE[level].text)} aria-hidden />
+            <h2 id="seller-signals-title" className="text-base font-semibold text-foreground">{t("detail.signals")}</h2>
           </div>
 
-          {/* Score gauge */}
           <div className="space-y-1.5">
-            <div className="flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
-              <span>Motivation score</span>
-              <span className="font-bold" style={{ color: motivationColor(motivation) }}>
-                {data.desperation_score} / 100
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>{t("detail.score")}</span>
+              <span className="tabular font-semibold text-foreground">
+                {t("detail.scoreValue", { score: motivation, level: t(`motivation.levels.${level}`) })}
               </span>
             </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--surface-container)" }}>
-              <div
-                className="h-full rounded-full transition-all"
-                style={{
-                  width: `${Math.min(motivation, 100)}%`,
-                  background: motivationColor(motivation),
-                }}
-              />
-            </div>
+            <MotivationGauge score={motivation} label={t("detail.score")} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
             {data.original_price && data.original_price !== data.price && (
-              <InfoRow label="Original price" value={formatCurrency(data.original_price)} />
+              <InfoRow label={t("detail.originalPrice")} value={f.number(data.original_price, "money")} />
             )}
             {data.price_cut_pct != null && data.price_cut_pct > 0 && (
-              <InfoRow label="Total reduction" value={`↓ ${data.price_cut_pct}%`} />
+              <InfoRow label={t("detail.totalCut")} value={`↓ ${data.price_cut_pct}%`} />
             )}
             {data.num_price_cuts != null && data.num_price_cuts > 0 && (
-              <InfoRow label="Price cuts" value={String(data.num_price_cuts)} />
+              <InfoRow label={t("detail.cuts")} value={String(data.num_price_cuts)} />
             )}
             {data.last_cut_date && (
-              <InfoRow label="Last cut" value={new Date(data.last_cut_date).toLocaleDateString()} />
+              <InfoRow
+                label={t("detail.lastCut")}
+                value={f.dateTime(
+                  new Date(/^\d{4}-\d{2}-\d{2}$/.test(data.last_cut_date) ? data.last_cut_date + "T12:00:00" : data.last_cut_date),
+                  { dateStyle: "medium" }
+                )}
+              />
             )}
-          </div>
+          </dl>
 
-          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            Score reflects price reduction velocity, recency, and frequency. Higher = more motivated seller.
-          </p>
-        </div>
+          <p className="text-xs text-subtle-foreground">{t("detail.scoreHelp")}</p>
+        </section>
       )}
 
       {/* Meta */}
-      <div className="surface-card space-y-2">
-        <InfoRow label="Status" value={data.homeStatus} />
-        <InfoRow label="Type"   value={data.homeType} />
-      </div>
+      <section className="rounded-xl border bg-surface p-4 md:p-5" aria-label={t("detail.details")}>
+        <dl className="space-y-2">
+          <InfoRow label={t("detail.status")} value={humanize(data.homeStatus)} capitalize />
+          <InfoRow label={t("detail.type")} value={humanize(data.homeType)} capitalize />
+        </dl>
+      </section>
 
       {/* CTA */}
       {data.detailUrl && (
-        <a
-          href={data.detailUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-primary-gradient inline-flex items-center gap-2"
-        >
-          View on Zillow
-          <ExternalLink className="h-3.5 w-3.5" />
-        </a>
+        <Button asChild variant="outline" className="min-h-10">
+          <a href={data.detailUrl} target="_blank" rel="noopener noreferrer">
+            {t("detail.viewListing")}
+            <ExternalLink aria-hidden />
+          </a>
+        </Button>
       )}
     </div>
   )
@@ -156,24 +156,20 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
 
 function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string | number; label: string }) {
   return (
-    <div className="surface-card flex flex-col items-center gap-1 py-5 text-center">
-      <span style={{ color: "var(--accent-color)" }}>{icon}</span>
-      <p className="text-2xl font-bold" style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-        {value}
-      </p>
-      <p className="text-xs" style={{ color: "var(--text-muted)" }}>{label}</p>
+    <div className="flex flex-col items-center gap-1 rounded-xl border bg-surface p-4 text-center">
+      <span className="text-primary">{icon}</span>
+      <dt className="order-last text-xs text-muted-foreground">{label}</dt>
+      <dd className="tabular text-xl font-semibold text-foreground">{value}</dd>
     </div>
   )
 }
 
-function InfoRow({ label, value }: { label: string; value?: string | null }) {
+function InfoRow({ label, value, capitalize }: { label: string; value?: string | null; capitalize?: boolean }) {
   if (!value) return null
   return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-sm" style={{ color: "var(--text-muted)" }}>{label}</span>
-      <span className="text-sm font-semibold capitalize" style={{ color: "var(--text-primary)" }}>
-        {value.replace(/_/g, " ").toLowerCase()}
-      </span>
+    <div className="flex items-center justify-between gap-4 text-sm">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className={cn("tabular font-medium text-foreground", capitalize && "capitalize")}>{value}</dd>
     </div>
   );
 }

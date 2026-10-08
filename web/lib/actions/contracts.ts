@@ -1,5 +1,6 @@
 "use server";
 
+import { trackEvent } from "@/lib/analytics";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase-server";
 import { ContractCreateSchema } from "@/lib/schemas";
@@ -123,6 +124,7 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
       return { ok: false, error: (error && planLimitMessage(error)) ?? "No se pudo guardar el contrato." };
     }
     contractId = created.id as string;
+    await trackEvent("contract_created", { signedInPerson: fullySigned });
   }
 
   // Co-tenants: replace, snapshotting each tenant row server-side.

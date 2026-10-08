@@ -1,49 +1,68 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Mail, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { Loader2, Mail } from "lucide-react";
 import type { Contract } from "@/lib/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Props {
   contract: Contract;
   landlordEmail: string;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export default function SendEmailModal({ contract, landlordEmail, onClose }: Props) {
+/** Email the generated contract to the landlord and/or tenant. */
+export default function SendEmailModal({ contract, landlordEmail, open, onOpenChange }: Props) {
+  const t = useTranslations("contracts.email");
+  const tc = useTranslations("common");
   const tenantEmailDefault = contract.tenant?.email ?? "";
 
   const [sendToLandlord, setSendToLandlord] = useState(true);
-  const [sendToTenant,   setSendToTenant]   = useState(!!tenantEmailDefault);
-  const [landlordInput,  setLandlordInput]  = useState(landlordEmail);
-  const [tenantInput,    setTenantInput]    = useState(tenantEmailDefault);
-  const [loading,  setLoading]  = useState(false);
-  const [result,   setResult]   = useState<"sent" | "error" | null>(null);
+  const [sendToTenant, setSendToTenant] = useState(!!tenantEmailDefault);
+  const [landlordInput, setLandlordInput] = useState(landlordEmail);
+  const [tenantInput, setTenantInput] = useState(tenantEmailDefault);
+  const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   async function handleSend() {
     if (!sendToLandlord && !sendToTenant) return;
     setLoading(true);
-    setResult(null);
+    setErrorMsg("");
     try {
       const res = await fetch(`/api/contracts/${contract.id}/send-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...(sendToLandlord && landlordInput ? { landlordEmail: landlordInput } : {}),
-          ...(sendToTenant   && tenantInput   ? { tenantEmail:   tenantInput   } : {}),
+          ...(sendToTenant && tenantInput ? { tenantEmail: tenantInput } : {}),
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setErrorMsg(data.error ?? "Send failed");
-        setResult("error");
+        const msg = typeof data.error === "string" ? data.error : t("failed");
+        setErrorMsg(msg);
+        toast.error(t("failed"), { description: msg });
       } else {
-        setResult("sent");
+        toast.success(t("sent"));
+        onOpenChange(false);
       }
     } catch (e) {
       setErrorMsg((e as Error).message);
-      setResult("error");
+      toast.error(t("failed"), { description: (e as Error).message });
     } finally {
       setLoading(false);
     }
@@ -52,89 +71,56 @@ export default function SendEmailModal({ contract, landlordEmail, onClose }: Pro
   const canSend = (sendToLandlord && !!landlordInput) || (sendToTenant && !!tenantInput);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }}
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl p-6 space-y-5 shadow-2xl"
-        style={{ background: "var(--surface-card)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4" style={{ color: "#10b981" }} />
-            <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-              Email Contract
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <RecipientRow
+            id="email-landlord"
+            label={t("landlord")}
+            checked={sendToLandlord}
+            onCheck={setSendToLandlord}
+            email={landlordInput}
+            onEmail={setLandlordInput}
+            editable
+          />
+          <RecipientRow
+            id="email-tenant"
+            label={contract.tenant?.full_name ? t("tenantNamed", { name: contract.tenant.full_name }) : t("tenant")}
+            checked={sendToTenant}
+            onCheck={setSendToTenant}
+            email={tenantInput}
+            onEmail={setTenantInput}
+            editable={!tenantEmailDefault}
+            placeholder={t("tenantPlaceholder")}
+          />
+          {errorMsg && (
+            <p role="alert" className="rounded-md bg-danger-soft p-2 text-sm text-danger">
+              {errorMsg}
             </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-full"
-            style={{ background: "var(--surface-container)" }}
-          >
-            <X className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
-          </button>
+          )}
         </div>
 
-        {result === "sent" ? (
-          <div className="rounded-xl p-4 text-center space-y-2" style={{ background: "rgba(52,199,89,0.12)" }}>
-            <p className="text-sm font-semibold" style={{ color: "#34c759" }}>Email sent!</p>
-            <button
-              className="text-xs underline"
-              style={{ color: "var(--text-muted)" }}
-              onClick={onClose}
-            >
-              Close
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* Landlord */}
-            <RecipientRow
-              label="Landlord"
-              checked={sendToLandlord}
-              onCheck={setSendToLandlord}
-              email={landlordInput}
-              onEmail={setLandlordInput}
-              editable
-            />
-
-            {/* Tenant */}
-            <RecipientRow
-              label={contract.tenant?.full_name ? `Tenant — ${contract.tenant.full_name}` : "Tenant"}
-              checked={sendToTenant}
-              onCheck={setSendToTenant}
-              email={tenantInput}
-              onEmail={setTenantInput}
-              editable={!tenantEmailDefault}
-              placeholder="tenant@email.com"
-            />
-
-            {result === "error" && (
-              <p className="text-xs rounded-lg p-2" style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}>
-                {errorMsg}
-              </p>
-            )}
-
-            <button
-              className="btn-primary-gradient w-full flex items-center justify-center gap-2"
-              disabled={loading || !canSend}
-              onClick={handleSend}
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-              {loading ? "Sending…" : "Send"}
-            </button>
-          </>
-        )}
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {tc("cancel")}
+          </Button>
+          <Button disabled={loading || !canSend} onClick={handleSend}>
+            {loading ? <Loader2 className="animate-spin" /> : <Mail />}
+            {loading ? t("sending") : tc("send")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
 function RecipientRow({
+  id,
   label,
   checked,
   onCheck,
@@ -143,6 +129,7 @@ function RecipientRow({
   editable = false,
   placeholder = "",
 }: {
+  id: string;
   label: string;
   checked: boolean;
   onCheck: (v: boolean) => void;
@@ -151,26 +138,25 @@ function RecipientRow({
   editable?: boolean;
   placeholder?: string;
 }) {
+  const t = useTranslations("contracts.email");
   return (
     <div className="space-y-2">
-      <label className="flex items-center gap-2.5 cursor-pointer">
-        <input
-          type="checkbox"
-          className="h-4 w-4 rounded accent-tertiary-container"
-          checked={checked}
-          onChange={(e) => onCheck(e.target.checked)}
-        />
-        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{label}</span>
-      </label>
+      <div className="flex min-h-10 items-center gap-2.5">
+        <Checkbox id={`${id}-check`} checked={checked} onCheckedChange={(v) => onCheck(v === true)} />
+        <Label htmlFor={`${id}-check`} className="cursor-pointer">
+          {label}
+        </Label>
+      </div>
       {checked && (
-        <input
-          className="input-tonal w-full text-sm"
+        <Input
+          id={`${id}-input`}
+          aria-label={t("emailFor", { who: label })}
           type="email"
           value={email}
           onChange={(e) => onEmail(e.target.value)}
           readOnly={!editable && !!email}
           placeholder={placeholder || "email@example.com"}
-          style={!editable && email ? { opacity: 0.7 } : undefined}
+          className={!editable && email ? "bg-surface-muted text-muted-foreground" : undefined}
         />
       )}
     </div>

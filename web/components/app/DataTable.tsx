@@ -57,6 +57,9 @@ export function DataTable<T>({
   empty,
   toolbar,
   pageSize = 25,
+  initialQuery,
+  initialFilters,
+  initialSorting,
 }: {
   /** Key for saved views in localStorage. */
   id: string;
@@ -71,11 +74,15 @@ export function DataTable<T>({
   empty?: ReactNode;
   toolbar?: ReactNode;
   pageSize?: number;
+  /** Starting state, e.g. from ?q= or ?status= in the URL. */
+  initialQuery?: string;
+  initialFilters?: ColumnFiltersState;
+  initialSorting?: SortingState;
 }) {
   const t = useTranslations("common");
-  const [query, setQuery] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [filters, setFilters] = useState<ColumnFiltersState>([]);
+  const [query, setQuery] = useState(initialQuery ?? "");
+  const [sorting, setSorting] = useState<SortingState>(initialSorting ?? []);
+  const [filters, setFilters] = useState<ColumnFiltersState>(initialFilters ?? []);
   const [views, setViews] = useState<View[]>([]);
   const storageKey = `datatable:${id}:views`;
 

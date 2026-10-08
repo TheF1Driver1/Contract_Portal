@@ -1,1 +1,175 @@
-{}
+{
+  "title": "Market",
+  "labs": "Labs",
+  "description": "Puerto Rico properties for sale, with motivated-seller signals.",
+  "labsNote": "Beta feature: data comes from public listings and may be incomplete or out of date.",
+  "viewToggle": "Change view",
+  "views": { "map": "Map", "list": "List" },
+  "loading": "Loading listings…",
+  "listings": "{count, plural, one {# listing} other {# listings}}",
+  "searchPlaceholder": "Search by address or town",
+  "bedsBaths": "{beds} bd · {baths} ba",
+  "cuts": "{count, plural, one {# price cut} other {# price cuts}}",
+  "daysListed": "{count, plural, one {# day listed} other {# days listed}}",
+  "upgrade": {
+    "title": "Market isn't included in your plan",
+    "message": "This feature requires a higher plan. Upgrade to use market analysis.",
+    "cta": "See plans"
+  },
+  "filters": {
+    "open": "Filters",
+    "title": "Filter listings",
+    "description": "Adjust town, price and bedrooms.",
+    "city": "Town",
+    "allCities": "All towns",
+    "minPrice": "Min price",
+    "maxPrice": "Max price",
+    "noLimit": "No limit",
+    "beds": "Bedrooms",
+    "anyBeds": "Any",
+    "bedsMin": "{count}+",
+    "search": "Search"
+  },
+  "byCity": { "title": "By town", "avg": "{price} avg" },
+  "topMotivated": { "title": "Most motivated sellers" },
+  "motivation": {
+    "label": "Seller motivation",
+    "badge": "{level} {score}",
+    "levels": { "high": "High", "moderate": "Moderate", "mild": "Mild", "none": "No signals" }
+  },
+  "columns": {
+    "address": "Address",
+    "city": "Town",
+    "price": "Price",
+    "bedsBaths": "Beds / Baths",
+    "days": "Days listed",
+    "cuts": "Price cuts",
+    "motivation": "Motivation"
+  },
+  "csv": { "beds": "Bedrooms", "baths": "Bathrooms", "cutPct": "Total cut %", "url": "Link" },
+  "empty": {
+    "title": "No listings",
+    "description": "Try other filters or search another town."
+  },
+  "map": { "details": "View details", "listing": "View listing" },
+  "stats": {
+    "title": "Average price by town",
+    "subtitle": "Properties for sale",
+    "avgPrice": "Average price",
+    "avgDays": "{count, plural, one {# day avg} other {# days avg}}"
+  },
+  "rentVsMarket": {
+    "title": "Your rent vs. the market",
+    "subtitle": "Monthly rent from your signed contracts compared with the average sale price in each town. The chart shows gross yield (rent × 12 ÷ price).",
+    "yield": "Gross yield",
+    "city": "Town",
+    "yourRent": "Your rent",
+    "marketPrice": "Sale price"
+  },
+  "detail": {
+    "notFound": "We couldn't find this listing",
+    "notFoundDescription": "It may no longer be published.",
+    "backToMarket": "Back to market",
+    "property": "Property",
+    "noPrice": "Price unavailable",
+    "beds": "Bedrooms",
+    "baths": "Bathrooms",
+    "days": "Days listed",
+    "signals": "Seller motivation",
+    "score": "Motivation score",
+    "scoreValue": "{score} / 100 · {level}",
+    "originalPrice": "Original price",
+    "totalCut": "Total reduction",
+    "cuts": "Price cuts",
+    "lastCut": "Last cut",
+    "scoreHelp": "The score reflects how fast, how recent and how often the price was reduced. Higher = more motivated seller.",
+    "details": "Details",
+    "status": "Status",
+    "type": "Type",
+    "viewListing": "View original listing"
+  },
+  "watchlistButton": {
+    "save": "Save to watchlist",
+    "saved": "Saved",
+    "added": "Property saved to your watchlist",
+    "removed": "Property removed from your watchlist",
+    "error": "Couldn't update your watchlist"
+  },
+  "watchlist": {
+    "title": "Watchlist",
+    "description": "{count, plural, =0 {Properties you saved from the market.} one {# saved property.} other {# saved properties.}}",
+    "browse": "Browse market",
+    "emptyTitle": "No saved properties",
+    "emptyDescription": "Browse the market and save properties you're interested in to analyze them.",
+    "analyze": "Analyze investment"
+  },
+  "analyzer": {
+    "property": "Property",
+    "heading": "Investment analysis",
+    "listedAt": "Listed at {price}",
+    "save": "Save analysis",
+    "saved": "Saved",
+    "savedToast": "Analysis saved",
+    "saveError": "Couldn't save the analysis",
+    "disclaimer": "Estimates based on your assumptions; not financial advice.",
+    "results": "Results",
+    "kpi": {
+      "cashFlow": "Monthly cash flow",
+      "capRate": "Cap rate",
+      "capRateHint": "NOI ÷ price",
+      "coc": "Cash-on-cash return",
+      "cocHint": "Annual cash flow ÷ upfront",
+      "breakEven": "Break-even rent",
+      "grm": "Gross rent multiplier {value}×"
+    },
+    "perYear": "{amount} per year",
+    "perMonth": "/mo",
+    "positive": "Positive",
+    "negative": "Negative",
+    "tone": { "good": "Strong", "warn": "Fair", "bad": "Weak" },
+    "groups": {
+      "acquisition": "Acquisition",
+      "financing": "Financing",
+      "expenses": "Operating expenses",
+      "income": "Income"
+    },
+    "totalUpfront": "Total upfront required",
+    "monthlyMortgage": "Monthly mortgage (P&I)",
+    "effectiveRent": "Effective rent",
+    "fields": {
+      "purchasePrice": "Purchase price",
+      "downPayment": "Down payment",
+      "closingCosts": "Closing costs",
+      "mortgageRate": "Mortgage rate",
+      "loanTerm": "Loan term",
+      "propertyTax": "Property tax (annual)",
+      "insurance": "Insurance (annual)",
+      "maintenance": "Maintenance reserve (annual)",
+      "hoa": "HOA (monthly)",
+      "utilities": "Utilities (monthly)",
+      "rent": "Estimated monthly rent",
+      "vacancy": "Vacancy rate"
+    },
+    "years": "{count, plural, one {# year} other {# years}}",
+    "taxHintCrim": "CRIM {municipality}: {rate}% of assessed value",
+    "taxHintState": "{state} average: {rate}%",
+    "breakdown": {
+      "title": "Monthly breakdown",
+      "mortgage": "Mortgage (P&I)",
+      "tax": "Property tax",
+      "insurance": "Insurance",
+      "maintenance": "Maintenance",
+      "hoa": "HOA",
+      "utilities": "Utilities",
+      "totalExpenses": "Total expenses",
+      "net": "Net cash flow"
+    },
+    "upfront": {
+      "title": "Upfront investment",
+      "downPayment": "Down payment",
+      "closingCosts": "Closing costs",
+      "loanAmount": "Loan amount",
+      "cashRequired": "Cash required"
+    }
+  }
+}

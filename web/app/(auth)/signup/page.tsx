@@ -3,10 +3,35 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase";
-import { Home, Loader2 } from "lucide-react";
+import { track } from "@vercel/analytics";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { PasswordInput } from "@/components/auth/PasswordInput";
+import { FormError } from "@/components/auth/FormError";
+import { authErrorKey } from "@/components/auth/auth-errors";
+
+const legalLink = (href: string) =>
+  function LegalLink(chunks: React.ReactNode) {
+    return (
+      <Link
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-medium text-primary underline underline-offset-4"
+      >
+        {chunks}
+      </Link>
+    );
+  };
 
 export default function SignupPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const supabase = createBrowserClient();
   const [fullName, setFullName] = useState("");
@@ -15,11 +40,13 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [termsError, setTermsError] = useState(false);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     if (!accepted) {
-      setError("Debes aceptar los Términos y la Política de privacidad. / You must accept the Terms and Privacy Policy.");
+      setTermsError(true);
+      setError(t("signupPage.termsRequired"));
       return;
     }
     setLoading(true);
@@ -34,159 +61,113 @@ export default function SignupPage() {
     });
 
     if (error) {
-      setError(error.message);
+      setError(t(`errors.${authErrorKey(error)}`));
       setLoading(false);
     } else {
       // Visitors who picked a paid plan on /pricing continue to checkout
       const plan = new URLSearchParams(window.location.search).get("plan");
+      track("signup", { plan: plan ?? "free" });
       const paid = plan === "propietario" || plan === "inversionista";
       router.push(paid ? `/settings/billing?plan=${plan}` : "/dashboard");
       router.refresh();
     }
   }
 
+  const describedBy = error ? "signup-error" : undefined;
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center p-4"
-      style={{ background: "var(--background)" }}
+    <AuthShell
+      title={t("signupPage.title")}
+      description={t("signupPage.description")}
+      footer={
+        <>
+          {t("haveAccount")}{" "}
+          <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+            {t("signInLink")}
+          </Link>
+        </>
+      }
     >
-      <div className="w-full max-w-sm">
-        {/* Logo + headline */}
-        <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <div
-            className="flex h-12 w-12 items-center justify-center rounded-2xl"
-            style={{ background: "linear-gradient(135deg, #005bc2, #10b981)" }}
-          >
-            <Home className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1
-              className="text-2xl font-bold"
-              style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}
-            >
-              ContractOS
-            </h1>
-            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-              Create your landlord account
-            </p>
-          </div>
+      <form onSubmit={handleSignup} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="name">{t("signupPage.fullName")}</Label>
+          <Input
+            id="name"
+            name="name"
+            autoComplete="name"
+            placeholder={t("signupPage.fullNamePlaceholder")}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            className="h-10"
+          />
         </div>
 
-        {/* Form card */}
-        <div className="surface-card space-y-4">
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="name"
-                className="block text-xs font-semibold uppercase tracking-widest"
-                style={{ color: "var(--text-muted)" }}
-              >
-                Full Name
-              </label>
-              <input
-                id="name"
-                className="input-tonal w-full"
-                placeholder="Jane Smith"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                autoComplete="name"
-              />
-            </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="email">{t("email")}</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder={t("emailPlaceholder")}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-10"
+            aria-describedby={describedBy}
+          />
+        </div>
 
-            <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="block text-xs font-semibold uppercase tracking-widest"
-                style={{ color: "var(--text-muted)" }}
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                className="input-tonal w-full"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="block text-xs font-semibold uppercase tracking-widest"
-                style={{ color: "var(--text-muted)" }}
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                className="input-tonal w-full"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                autoComplete="new-password"
-              />
-            </div>
-
-            <label className="flex items-start gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-              <input
-                type="checkbox"
-                className="mt-0.5"
-                checked={accepted}
-                onChange={(e) => setAccepted(e.target.checked)}
-                required
-              />
-              <span>
-                Acepto los{" "}
-                <Link href="/terminos" target="_blank" className="underline">
-                  Términos de servicio
-                </Link>{" "}
-                y la{" "}
-                <Link href="/privacidad" target="_blank" className="underline">
-                  Política de privacidad
-                </Link>
-                . / I accept the Terms of Service and Privacy Policy.
-              </span>
-            </label>
-
-            {error && (
-              <p
-                className="rounded-xl px-3 py-2 text-sm"
-                style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30" }}
-              >
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="btn-primary-gradient w-full justify-center disabled:opacity-60"
-              disabled={loading}
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Account
-            </button>
-          </form>
-
-          <p className="text-center text-sm" style={{ color: "var(--text-muted)" }}>
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="font-semibold hover:opacity-70 transition-opacity"
-              style={{ color: "var(--accent-color)" }}
-            >
-              Sign in
-            </Link>
+        <div className="space-y-1.5">
+          <Label htmlFor="password">{t("password")}</Label>
+          <PasswordInput
+            id="password"
+            name="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            aria-describedby={describedBy ? `password-hint ${describedBy}` : "password-hint"}
+          />
+          <p id="password-hint" className="text-xs text-muted-foreground">
+            {t("signupPage.passwordHint")}
           </p>
         </div>
-      </div>
-    </div>
+
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="terms"
+            checked={accepted}
+            onCheckedChange={(v) => {
+              setAccepted(v === true);
+              if (v === true) {
+                setTermsError(false);
+                setError("");
+              }
+            }}
+            aria-invalid={termsError ? true : undefined}
+            className="mt-0.5"
+          />
+          <Label htmlFor="terms" className="block text-sm font-normal leading-snug text-muted-foreground">
+            {t.rich("signupPage.terms", {
+              terms: legalLink("/terminos"),
+              privacy: legalLink("/privacidad"),
+            })}
+          </Label>
+        </div>
+
+        <FormError id="signup-error">{error}</FormError>
+
+        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          {loading && <Loader2 className="animate-spin" aria-hidden />}
+          {t("signUpButton")}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

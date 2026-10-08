@@ -5,9 +5,8 @@
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const chartSkeleton = () => <Skeleton className="h-[200px] w-full" />;
 
-export const CashflowChart = dynamic(() => import("@/components/CashflowChart"), { ssr: false, loading: chartSkeleton });
-export const ExpenseIncomeChart = dynamic(() => import("@/components/ExpenseIncomeChart"), { ssr: false, loading: chartSkeleton });
-export const MarketStatsWidget = dynamic(() => import("@/components/MarketStatsWidget"), { ssr: false, loading: chartSkeleton });
-export const RentVsMarketChart = dynamic(() => import("@/components/RentVsMarketChart"), { ssr: false, loading: chartSkeleton });
+export const RentExpenseChart = dynamic(() => import("@/components/dashboard/RentExpenseChart"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-64 w-full" />,
+});

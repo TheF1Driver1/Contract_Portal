@@ -1,4 +1,5 @@
 import { z } from "zod";
+import "@/lib/zod-es"; // Spanish validation messages
 
 // ── Shared primitives ────────────────────────────────────────────────────────
 
@@ -36,9 +37,7 @@ export const ContractCreateSchema = z.object({
   late_fee_grace_period_days: z.number().int().min(0).max(30).default(0),
   late_fee_fixed_amount: nonNeg.default(0),
   late_fee_daily_amount: nonNeg.default(0),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- stored as jsonb
   tenant_snapshot: z.record(z.any()).optional().nullable(),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- stored as jsonb
   property_snapshot: z.record(z.any()).optional().nullable(),
   governing_law: z.enum(['codigo_civil_pr_2020', 'us_state', 'other']).optional().nullable(),
   template_version: z.string().max(20).optional().nullable(),
@@ -271,6 +270,7 @@ export const TenantUpdateSchema = z.object({
   previous_state: z.string().max(100).optional().nullable(),
   previous_zip: z.string().max(20).optional().nullable(),
   previous_country: z.string().max(100).optional().nullable(),
+  preferred_locale: z.enum(["es", "en"]).optional(),
 });
 
 export const TenantCreateSchema = TenantUpdateSchema.required({ full_name: true });

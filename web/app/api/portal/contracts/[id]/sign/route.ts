@@ -1,3 +1,4 @@
+import { trackEvent } from "@/lib/analytics";
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { TenantSignatureSchema } from "@/lib/schemas";
@@ -42,5 +43,6 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     return NextResponse.json({ error: "Failed to save signature" }, { status: 500 });
   }
 
+  await trackEvent("contract_signed", { channel: "portal" });
   return NextResponse.json({ success: true });
 }

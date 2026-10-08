@@ -1,27 +1,43 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useSyncExternalStore, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Loader2, ArrowLeft, XCircle } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase";
-import { Loader2, ArrowLeft } from "lucide-react";
-import { SplineScene } from "@/components/ui/splite";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { AuthShell, AuthStatusIcon } from "@/components/auth/AuthShell";
+import { PasswordInput } from "@/components/auth/PasswordInput";
+import { FormError } from "@/components/auth/FormError";
+import { authErrorKey } from "@/components/auth/auth-errors";
+
+const noopSubscribe = () => () => {};
+
+// Read once: Supabase strips the recovery hash from the URL after it creates the session,
+// so later re-renders must not re-read it.
+let recoveryFlag: boolean | undefined;
+
+function readRecoveryFlag(): boolean {
+  if (recoveryFlag !== undefined) return recoveryFlag;
+  const params = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
+  const type = params.get("type") ?? hashParams.get("type");
+  recoveryFlag = type === "recovery" || type === "recover";
+  return recoveryFlag;
+}
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const supabase = createBrowserClient();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isRecovery, setIsRecovery] = useState(false);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
-    const type = params.get("type") ?? hashParams.get("type");
-    setIsRecovery(type === "recovery" || type === "recover");
-  }, []);
+  // null on the server (URL unknown), so the invalid-link screen does not flash before hydration.
+  const isRecovery = useSyncExternalStore(noopSubscribe, readRecoveryFlag, () => null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -29,12 +45,12 @@ export default function ResetPasswordPage() {
     setError("");
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError(t("resetPage.tooShort"));
       setLoading(false);
       return;
     }
     if (password !== confirm) {
-      setError("Passwords do not match.");
+      setError(t("resetPage.mismatch"));
       setLoading(false);
       return;
     }
@@ -42,144 +58,96 @@ export default function ResetPasswordPage() {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      setError(error.message);
+      setError(t(`errors.${authErrorKey(error)}`));
       setLoading(false);
-     } else {
+    } else {
       router.push("/login");
       router.refresh();
-     }
+    }
+  }
+
+  if (isRecovery === null) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-background">
+        <Loader2 className="size-5 animate-spin text-muted-foreground" aria-hidden />
+      </div>
+    );
   }
 
   if (!isRecovery) {
     return (
-      <main className="min-h-screen w-full relative overflow-hidden">
-        <SplineScene
-          scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-          className="absolute inset-0 w-full h-full"
-        />
-        <div className="pointer-events-none relative z-10 flex items-center justify-center h-screen">
-          <div className="text-center space-y-4">
-            <h1 className="font-display text-3xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]">
-              Invalid link
-            </h1>
-            <p className="text-sm text-neutral-500">
-              This reset link is invalid or has expired.
-            </p>
-            <Link
-              href="/forgot-password"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-300 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Try again
-            </Link>
-          </div>
-        </div>
-      </main>
+      <AuthShell
+        media={
+          <AuthStatusIcon tone="danger">
+            <XCircle />
+          </AuthStatusIcon>
+        }
+        title={t("resetPage.invalidTitle")}
+        description={t("resetPage.invalidDescription")}
+        footer={
+          <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+            {t("backToLogin")}
+          </Link>
+        }
+      >
+        <Button asChild size="lg" className="w-full">
+          <Link href="/forgot-password">
+            <ArrowLeft aria-hidden />
+            {t("resetPage.tryAgain")}
+          </Link>
+        </Button>
+      </AuthShell>
     );
   }
 
+  const describedBy = error ? "reset-error" : undefined;
+
   return (
-    <main className="min-h-screen w-full relative overflow-hidden">
-      <SplineScene
-        scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-        className="absolute inset-0 w-full h-full"
-      />
-
-      <div className="pointer-events-none relative z-10 flex items-center h-screen">
-        {/* Left hero text */}
-        <div className="hidden md:flex w-1/2 flex-col justify-center px-12 lg:px-20 gap-5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
-            Real Estate Management
-          </p>
-          <h2 className="font-display text-5xl lg:text-6xl font-bold leading-tight bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]">
-            New<br />password.
-          </h2>
-          <p className="text-neutral-500 text-base leading-relaxed max-w-sm">
-            Set a strong password you&apos;ll actually remember.
-          </p>
+    <AuthShell
+      title={t("resetPage.title")}
+      description={t("resetPage.description")}
+      footer={
+        <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+          {t("backToLogin")}
+        </Link>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="new-password">{t("resetPage.newPassword")}</Label>
+          <PasswordInput
+            id="new-password"
+            name="new-password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            aria-describedby={describedBy}
+          />
         </div>
 
-        {/* Right form */}
-        <div className="pointer-events-none w-full md:w-1/2 flex flex-col justify-center px-10 lg:px-16">
-          <div className="mb-8">
-            <h1 className="font-display text-3xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]">
-              Reset password
-            </h1>
-            <p className="mt-2 text-sm text-neutral-500">
-              Enter your new password below.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="pointer-events-auto space-y-5">
-            <div className="space-y-1.5">
-              <label
-                className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500"
-                htmlFor="new-password"
-              >
-                New password
-              </label>
-              <input
-                id="new-password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-hidden focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label
-                className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500"
-                htmlFor="confirm-password"
-              >
-                Confirm password
-              </label>
-              <input
-                id="confirm-password"
-                type="password"
-                placeholder="••••••••"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                required
-                autoComplete="new-password"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-[#edeae0] placeholder-neutral-500 outline-hidden focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/15 transition-colors"
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#8fe3a8] px-4 py-2.5 text-sm font-semibold text-[#06281c] hover:bg-[#a5ecbb] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Update Password"
-              )}
-            </button>
-          </form>
-
-          <p className="pointer-events-auto mt-6 text-center text-sm text-neutral-600">
-            Back?{" "}
-            <Link
-              href="/login"
-              className="font-semibold text-neutral-300 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="h-3 w-3 inline mr-1" />
-              Sign in
-            </Link>
-          </p>
+        <div className="space-y-1.5">
+          <Label htmlFor="confirm-password">{t("confirmPassword")}</Label>
+          <PasswordInput
+            id="confirm-password"
+            name="confirm-password"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            required
+            minLength={6}
+            aria-describedby={describedBy}
+          />
         </div>
-      </div>
-    </main>
+
+        <FormError id="reset-error">{error}</FormError>
+
+        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          {loading && <Loader2 className="animate-spin" aria-hidden />}
+          {t("resetPage.submit")}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

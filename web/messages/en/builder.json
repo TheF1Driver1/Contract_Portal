@@ -1,1 +1,320 @@
-{}
+{
+  "page": {
+    "newTitle": "New contract",
+    "editTitle": "Edit contract",
+    "newDescription": "Complete the steps to prepare your lease agreement.",
+    "editDescription": "Keep editing your draft.",
+    "missingTitle": "Before you start",
+    "missingProperty": "Add at least one property to create a contract.",
+    "missingTenant": "Add at least one tenant to create a contract.",
+    "addProperty": "Add property",
+    "addTenant": "Add tenant"
+  },
+  "steps": {
+    "label": "Contract steps",
+    "parties": "Parties & property",
+    "terms": "Terms",
+    "clauses": "Clauses",
+    "review": "Review & send",
+    "mobile": "Step {current} of {total}",
+    "completed": "completed"
+  },
+  "actions": {
+    "back": "Back",
+    "next": "Next",
+    "saveDraft": "Save draft",
+    "downloadPdf": "Download PDF",
+    "downloadDocx": "Download DOCX",
+    "send": "Send to tenant"
+  },
+  "autosave": {
+    "saving": "Saving…",
+    "savedAgo": "Saved {time}",
+    "justNow": "just now",
+    "draft": "Draft saved",
+    "notSaved": "Not saved yet",
+    "failed": "Autosave failed"
+  },
+  "toast": {
+    "saved": "Draft saved",
+    "saveFailed": "Could not save the contract.",
+    "fixErrors": "Check the highlighted fields before continuing.",
+    "downloadFailed": "Could not generate the document. Try again.",
+    "sendFailed": "Could not send the contract. Your draft is saved.",
+    "sent": "Contract sent to the tenant",
+    "emailIssue": "Contract saved, but there was an email problem: {issue}",
+    "seePlans": "See plans"
+  },
+  "preview": {
+    "title": "Preview",
+    "open": "Preview",
+    "description": "Updates as you fill in the form."
+  },
+  "fields": {
+    "property": "Property",
+    "propertyPlaceholder": "Select a property…",
+    "unit": "Unit",
+    "unitPlaceholder": "e.g. 2A",
+    "jurisdiction": "Jurisdiction",
+    "tenant": "Primary tenant",
+    "tenantPlaceholder": "Select a tenant…",
+    "occupantNames": "Occupant names",
+    "occupantNamesHint": "Separate names with commas.",
+    "occupantNamesPlaceholder": "John Doe, Jane Doe",
+    "occupantCount": "Number of occupants",
+    "contractType": "Contract type",
+    "template": "Template",
+    "templateHint": "The final document is generated with this template.",
+    "templateDefault": "Default template",
+    "templateUnknown": "Current template",
+    "leaseStart": "Start date",
+    "leaseMonths": "Duration (months)",
+    "leaseEnd": "End date",
+    "leaseEndHint": "Calculated from the duration; you can change it.",
+    "rent": "Monthly rent",
+    "rentVerbal": "Rent in words",
+    "rentVerbalHint": "How it will be written in the contract.",
+    "rentVerbalPlaceholder": "e.g. one thousand two hundred dollars",
+    "dueDay": "Due day",
+    "firstLateDay": "First late day: day {day} of each month",
+    "deposit": "Security deposit",
+    "lateFeeType": "Late fee type",
+    "graceDays": "Grace period (days)",
+    "lateFeeFixed": "Fixed late fee",
+    "lateFeeDaily": "Daily late fee",
+    "keys": "Keys handed over",
+    "customAmenities": "Other appliances or amenities",
+    "customAmenitiesHint": "Separate each one with commas.",
+    "customAmenitiesPlaceholder": "e.g. washer, dryer, private patio",
+    "parkingIncluded": "Parking included",
+    "parkingCount": "Spaces",
+    "parkingSpot": "Spot number or ID",
+    "parkingSpotPlaceholder": "e.g. A-1, 12"
+  },
+  "errors": {
+    "propertyRequired": "Select the property.",
+    "tenantRequired": "Select the tenant.",
+    "occupantsMin": "There must be at least 1 occupant.",
+    "startRequired": "Enter the start date.",
+    "endRequired": "Enter the end date.",
+    "endAfterStart": "The end date must be after the start date.",
+    "monthsMin": "The minimum duration is 1 month.",
+    "rentRequired": "Enter the monthly rent.",
+    "rentMin": "Rent must be greater than 0.",
+    "dueDayRange": "Use a day between 1 and 28."
+  },
+  "jurisdiction": {
+    "pr": "Puerto Rico",
+    "us_mainland": "US mainland",
+    "other": "Other"
+  },
+  "contractType": {
+    "lease": "Lease agreement",
+    "rental": "Rental agreement",
+    "addendum": "Addendum"
+  },
+  "lateFeeType": {
+    "fixed": "Fixed amount",
+    "daily": "Per day late",
+    "both": "Fixed + per day"
+  },
+  "parties": {
+    "propertyTitle": "Property",
+    "propertyDescription": "The unit you are leasing.",
+    "tenantTitle": "Tenants",
+    "tenantDescription": "Who signs the contract.",
+    "coTenants": "Co-tenants",
+    "coTenantsEmpty": "No co-tenants.",
+    "coTenantLabel": "Co-tenant {n}",
+    "coTenantPlaceholder": "Select a co-tenant…",
+    "removeCoTenant": "Remove co-tenant {n}",
+    "addCoTenant": "Add co-tenant",
+    "occupantsTitle": "Occupants",
+    "occupantsDescription": "People who will live in the property.",
+    "documentTitle": "Document",
+    "documentDescription": "Contract type and template."
+  },
+  "terms": {
+    "periodTitle": "Term",
+    "periodDescription": "The end date is calculated from the duration.",
+    "rentTitle": "Rent and deposit",
+    "rentDescription": "How much and when it is paid.",
+    "depositNotePr": "Puerto Rico law sets no maximum for the security deposit. Agree on the amount in writing in the contract. This is not legal advice.",
+    "depositNoteOther": "Deposit rules vary by jurisdiction. Check the applicable law. This is not legal advice.",
+    "depositAboveRent": "The deposit ({deposit}) is more than one month of rent ({rent}). Make sure it is agreed in writing.",
+    "lateFeeTitle": "Late fees",
+    "lateFeeDescription": "What happens if rent is late.",
+    "keysTitle": "Keys"
+  },
+  "amenities": {
+    "fridge": "Refrigerator",
+    "microwave": "Microwave",
+    "ac": "Air conditioning",
+    "mini_blinds": "Mini blinds",
+    "mirror_doors": "Mirrored closet doors",
+    "renovated_bathroom": "Renovated bathroom",
+    "sofa": "Sofa",
+    "futon": "Futon",
+    "wall_art": "Wall art"
+  },
+  "counts": {
+    "room_count": "Bedrooms",
+    "bathroom_count": "Bathrooms",
+    "fan_count": "Ceiling fans",
+    "stool_count": "Bar stools",
+    "stove_count": "Stoves"
+  },
+  "clauses": {
+    "amenitiesTitle": "Appliances and amenities",
+    "amenitiesDescription": "Check what comes with the property.",
+    "inventoryTitle": "Inventory",
+    "inventoryDescription": "Quantities that will appear in the contract.",
+    "parkingTitle": "Parking",
+    "customTitle": "Additional clauses",
+    "customDescription": "Inserted before the signatures. Optional.",
+    "manageLibrary": "Manage library",
+    "clauseTitle": "Clause title",
+    "clauseTitlePlaceholder": "e.g. Pets",
+    "clauseBody": "Clause text",
+    "clauseBodyPlaceholder": "Write the clause text…",
+    "saveClause": "Save clause",
+    "cancel": "Cancel",
+    "editClause": "Edit clause {title}",
+    "removeClause": "Remove clause {title}",
+    "fromLibrary": "Add from your library",
+    "add": "Add",
+    "addAgain": "Add again",
+    "newClause": "New clause",
+    "addClause": "Add clause"
+  },
+  "review": {
+    "none": "—",
+    "edit": "Edit",
+    "editStep": "Edit {step}",
+    "unit": "Unit {unit}",
+    "occupants": "{count, plural, one {# occupant} other {# occupants}}",
+    "term": "Term",
+    "termValue": "{start} – {end} ({months, plural, one {# month} other {# months}})",
+    "dueDay": "Day {day} of each month",
+    "lateFeeFixed": "{fixed} from day {day}",
+    "lateFeeDaily": "{daily} per day from day {day}",
+    "lateFeeBoth": "{fixed} + {daily} per day from day {day}",
+    "parking": "{count, plural, one {# space} other {# spaces}}",
+    "noParking": "Not included",
+    "lawTitle": "Governing law",
+    "law": {
+      "pr": "For properties in Puerto Rico, the contract is governed by the 2020 Puerto Rico Civil Code.",
+      "us_mainland": "The contract is governed by the law of the state where the property is located.",
+      "other": "The contract is governed by the law of the jurisdiction where the property is located."
+    },
+    "prIncludes": {
+      "daco": "Includes DACO rights notice",
+      "nonRenewal": "60-day non-renewal notice (agreed)",
+      "depositReturn": "Deposit returned within 30 days (agreed)"
+    },
+    "lawDisclaimer": "This is not legal advice. We recommend having a lawyer review the contract.",
+    "deliveryTitle": "Delivery",
+    "yourCopy": "Your copy",
+    "yourCopyHint": "We will email you a copy at this address.",
+    "tenantCopy": "Tenant copy",
+    "noEmailNamed": "{name} has no email on file",
+    "noTenant": "You have not selected a tenant yet",
+    "actionsTitle": "Actions"
+  },
+  "signatures": {
+    "title": "In-person signature (optional)",
+    "description": "Use it only if the parties are with you right now.",
+    "landlord": "Landlord signature",
+    "tenant": "Tenant signature",
+    "tenantNamed": "Tenant signature: {name}",
+    "coTenant": "Co-tenant {n} signature",
+    "coTenantNamed": "Co-tenant signature: {name}",
+    "allSignedNote": "If every party signs here, the contract is marked signed when saved and can no longer be edited."
+  },
+  "signaturePad": {
+    "clear": "Clear",
+    "hint": "Sign inside the box",
+    "signed": "Signature captured"
+  },
+  "lease": {
+    "blank": "__________",
+    "title": {
+      "lease": "LEASE AGREEMENT",
+      "rental": "RENTAL AGREEMENT",
+      "addendum": "LEASE ADDENDUM"
+    },
+    "parties": "On one side, the LANDLORD; and on the other, {tenants}, hereinafter the TENANT. Both parties agree as follows:",
+    "clauseHeading": "{n}. {title}",
+    "property": {
+      "title": "Property",
+      "body": "The LANDLORD leases to the TENANT the property {name}, located at {address}",
+      "unit": ", unit {unit}"
+    },
+    "term": {
+      "title": "Term",
+      "body": "The lease will last {hasMonths, select, yes {{months, plural, one {# month} other {# months}}} other {__________}}, from {start} to {end}."
+    },
+    "rent": {
+      "title": "Rent",
+      "body": "Monthly rent will be {rent}, payable no later than day {day} of each month.",
+      "verbal": "Amount in words: {verbal}."
+    },
+    "deposit": {
+      "title": "Deposit",
+      "body": "The TENANT provides a deposit of {deposit}.",
+      "none": "No deposit is required."
+    },
+    "lateFee": {
+      "title": "Late fees",
+      "fixed": "If rent is not paid on time, starting on day {day} of the month a late fee of {fixed} will be charged.",
+      "daily": "If rent is not paid on time, starting on day {day} of the month a late fee of {daily} will be charged for each day late.",
+      "both": "If rent is not paid on time, starting on day {day} of the month a late fee of {fixed} will be charged, plus {daily} for each day late.",
+      "none": "No late fees are agreed."
+    },
+    "occupants": {
+      "title": "Occupants",
+      "body": "The property will be occupied by {count, plural, one {# person} other {# people}}",
+      "names": ": {names}"
+    },
+    "keys": {
+      "title": "Keys",
+      "body": "The TENANT receives {count, plural, one {# key} other {# keys}}."
+    },
+    "parking": {
+      "title": "Parking",
+      "body": "Includes {count, plural, one {# parking space} other {# parking spaces}}",
+      "spot": " (no. {spot})"
+    },
+    "furnishings": {
+      "title": "Appliances and furnishings",
+      "body": "The property is delivered with: {items}."
+    },
+    "items": {
+      "room_count": "{count, plural, one {# bedroom} other {# bedrooms}}",
+      "bathroom_count": "{count, plural, one {# bathroom} other {# bathrooms}}",
+      "fan_count": "{count, plural, one {# ceiling fan} other {# ceiling fans}}",
+      "stool_count": "{count, plural, one {# bar stool} other {# bar stools}}",
+      "stove_count": "{count, plural, one {# stove} other {# stoves}}",
+      "fridge": "refrigerator",
+      "microwave": "microwave",
+      "ac": "air conditioning",
+      "mini_blinds": "mini blinds",
+      "mirror_doors": "mirrored closet doors",
+      "renovated_bathroom": "renovated bathroom",
+      "sofa": "sofa",
+      "futon": "futon",
+      "wall_art": "wall art"
+    },
+    "law": {
+      "title": "Governing law",
+      "pr": "This contract is governed by the 2020 Puerto Rico Civil Code.",
+      "us_mainland": "This contract is governed by the laws of the state where the property is located.",
+      "other": "This contract is governed by the laws of the jurisdiction where the property is located."
+    },
+    "signatures": {
+      "landlord": "LANDLORD",
+      "tenant": "TENANT: {name}"
+    },
+    "disclaimer": "Reference preview. The final document is generated from the selected template and may include additional clauses."
+  }
+}

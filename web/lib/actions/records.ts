@@ -1,5 +1,6 @@
 "use server";
 
+import { trackEvent } from "@/lib/analytics";
 import type { z } from "zod";
 import { createClient } from "@/lib/supabase-server";
 import {
@@ -54,9 +55,11 @@ export async function createProperty(input: Record<string, unknown>): Promise<Ac
   const parsed = PropertyCreateSchema.safeParse(blanksToNull(input));
   if (!parsed.success) return invalid(parsed.error);
   const values = parsed.data;
-  return withSession("la propiedad", ({ supabase, userId }) =>
+  const result = await withSession("la propiedad", ({ supabase, userId }) =>
     supabase.from("properties").insert({ ...values, owner_id: userId }).select("id").single()
   );
+  if (result.ok) await trackEvent("property_created");
+  return result;
 }
 
 export async function updateProperty(id: string, input: Record<string, unknown>): Promise<ActionResult> {
@@ -72,9 +75,11 @@ export async function createTenant(input: Record<string, unknown>): Promise<Acti
   const parsed = TenantCreateSchema.safeParse(blanksToNull(input));
   if (!parsed.success) return invalid(parsed.error);
   const values = parsed.data;
-  return withSession("el inquilino", ({ supabase, userId }) =>
+  const result = await withSession("el inquilino", ({ supabase, userId }) =>
     supabase.from("tenants").insert({ ...values, owner_id: userId }).select("id").single()
   );
+  if (result.ok) await trackEvent("tenant_created");
+  return result;
 }
 
 export async function updateTenant(id: string, input: Record<string, unknown>): Promise<ActionResult> {

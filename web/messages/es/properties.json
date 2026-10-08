@@ -4,5 +4,92 @@
   "address": "Dirección",
   "units": "Unidades",
   "noProperties": "Sin propiedades aún",
-  "addFirst": "Agrega tu primera propiedad"
+  "addFirst": "Añade tu primera propiedad",
+  "description": "Tus propiedades, sus contratos activos y el balance del año.",
+  "add": "Añadir propiedad",
+  "emptyDescription": "Registra una propiedad para empezar a crear contratos de arrendamiento.",
+  "tabs": { "list": "Lista", "map": "Mapa" },
+  "searchPlaceholder": "Buscar por nombre o dirección",
+  "filteredBy": "Mostrando resultados para «{query}»",
+  "clearFilter": "Ver todas",
+  "noMapped": "Todavía no hay propiedades ubicadas en el mapa. Las ubicamos a partir de su dirección; vuelve en unos minutos.",
+  "col": {
+    "name": "Nombre",
+    "location": "Dirección",
+    "units": "Unidades",
+    "jurisdiction": "Jurisdicción",
+    "activeLeases": "Contratos activos",
+    "expenses": "Gastos del año",
+    "net": "Neto estimado"
+  },
+  "unitsCount": "{count, plural, one {# unidad} other {# unidades}}",
+  "leasesOf": "{active} de {units}",
+  "bathsCount": "{count, plural, one {# baño} other {# baños}}",
+  "parking": "Estacionamiento",
+  "jurisdiction": {
+    "pr": "Puerto Rico",
+    "us_mainland": "EE. UU. (continental)",
+    "other": "Otra"
+  },
+  "actions": {
+    "edit": "Editar {name}",
+    "coOwners": "Copropietarios de {name}",
+    "menu": "Acciones"
+  },
+  "form": {
+    "createTitle": "Añadir propiedad",
+    "editTitle": "Editar propiedad",
+    "createDescription": "Los datos básicos y la dirección se usan en tus contratos.",
+    "editWarning": "Los cambios no afectan los contratos que ya están firmados.",
+    "basics": "Datos básicos",
+    "addressGroup": "Dirección",
+    "name": "Nombre de la propiedad",
+    "namePlaceholder": "Ej. Sabana Gardens Apt 2",
+    "street": "Calle y número",
+    "streetPlaceholder": "Calle Luna 123",
+    "city": "Pueblo o ciudad",
+    "cityPlaceholder": "San Juan",
+    "state": "Estado",
+    "zip": "Código postal",
+    "unitCount": "Unidades",
+    "bathrooms": "Baños",
+    "parkingIncluded": "Incluye estacionamiento",
+    "parkingCount": "Espacios de estacionamiento",
+    "save": "Guardar propiedad",
+    "saveChanges": "Guardar cambios",
+    "saving": "Guardando…",
+    "seePlans": "Ver planes",
+    "created": "Propiedad añadida",
+    "updated": "Cambios guardados"
+  },
+  "coOwners": {
+    "title": "Copropietarios",
+    "current": "Copropietarios actuales",
+    "none": "Todavía no has añadido copropietarios.",
+    "add": "Añadir copropietario",
+    "search": "Buscar persona",
+    "searchPlaceholder": "Busca por @usuario o email",
+    "searching": "Buscando…",
+    "results": "Resultados",
+    "selected": "Seleccionado: {name}",
+    "pct": "Porcentaje de titularidad",
+    "pctPlaceholder": "Ej. 50",
+    "pctInvalid": "Escribe un porcentaje entre 1 y 100.",
+    "invite": "Enviar invitación",
+    "invited": "Invitación enviada",
+    "inviteFailed": "No se pudo enviar la invitación",
+    "remove": "Quitar a {name}",
+    "removed": "Copropietario eliminado",
+    "removeFailed": "No se pudo quitar al copropietario",
+    "loadFailed": "No se pudieron cargar los copropietarios",
+    "status": {
+      "accepted": "Activo",
+      "declined": "Rechazado",
+      "pending": "Pendiente"
+    }
+  },
+  "map": {
+    "loading": "Cargando mapa…",
+    "label": "Mapa de propiedades"
+  }
 }

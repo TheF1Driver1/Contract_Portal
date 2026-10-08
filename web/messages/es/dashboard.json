@@ -1,12 +1,60 @@
 {
-  "title": "Panel",
+  "title": "Inicio",
   "welcome": "Bienvenido",
   "properties": "Propiedades",
   "contracts": "Contratos",
-  "tenants": "Arrendatarios",
+  "tenants": "Inquilinos",
   "activeLeases": "Contratos activos",
   "expiringLeases": "Por vencer",
   "monthlyRevenue": "Ingreso mensual",
   "noData": "Sin datos aún",
-  "viewAll": "Ver todos"
+  "viewAll": "Ver todos",
+  "description": "Lo que necesita tu atención hoy y cómo va tu cartera.",
+  "newContract": "Nuevo contrato",
+  "today": {
+    "title": "Hoy",
+    "count": "{count, plural, one {# pendiente} other {# pendientes}}",
+    "allClear": "Todo al día",
+    "allClearDescription": "No tienes contratos por enviar, firmar ni renovar.",
+    "draft": "Borrador sin enviar",
+    "unsigned": "Enviado hace {days, plural, one {# día} other {# días}} sin firmar",
+    "expiring": "Vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+    "failed": "Falló el recordatorio por {channel}",
+    "untitled": "Contrato",
+    "action": {
+      "send": "Enviar",
+      "remind": "Recordar",
+      "renew": "Renovar",
+      "review": "Revisar"
+    },
+    "more": "{count, plural, one {y # más} other {y # más}}"
+  },
+  "kpi": {
+    "label": "Indicadores",
+    "expectedRent": "Renta esperada este mes",
+    "expectedRentSub": "{count, plural, =0 {Sin contratos activos} one {# contrato activo} other {# contratos activos}}",
+    "occupancy": "Ocupación",
+    "occupancySub": "{occupied} de {total, plural, one {# unidad} other {# unidades}}",
+    "occupancyNone": "Sin unidades registradas",
+    "expiring": "Contratos por vencer",
+    "expiringSub": "En los próximos 60 días",
+    "drafts": "Borradores",
+    "draftsSub": "Listos para enviar"
+  },
+  "chart": {
+    "title": "Renta esperada y gastos",
+    "description": "Últimos 12 meses. La renta esperada sale de los contratos firmados; los pagos cobrados llegarán pronto.",
+    "rent": "Renta esperada",
+    "expenses": "Gastos",
+    "month": "Mes",
+    "summary": "Gráfica de barras de los últimos 12 meses: renta esperada total {rent}, gastos totales {expenses}.",
+    "empty": "Aún no hay renta ni gastos en los últimos 12 meses."
+  },
+  "recent": {
+    "title": "Contratos recientes",
+    "empty": "Todavía no tienes contratos",
+    "emptyDescription": "Crea tu primer contrato de arrendamiento para empezar.",
+    "unknownTenant": "Inquilino sin nombre",
+    "noProperty": "Sin propiedad"
+  }
 }

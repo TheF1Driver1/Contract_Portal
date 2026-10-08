@@ -14,7 +14,7 @@ type ContractRow = {
   lease_end: string;
   property: { name?: string } | null;
   tenant: { full_name?: string; phone?: string | null; email?: string | null } | null;
-  owner: { full_name?: string; phone?: string | null; email?: string | null } | null;
+  owner: { full_name?: string; phone?: string | null; email?: string | null; locale?: string | null } | null;
 };
 
 type LogRow = {
@@ -67,7 +67,7 @@ async function run(req: Request) {
           id, owner_id, lease_end,
           property:properties(name),
           tenant:tenants(full_name, phone, email),
-          owner:profiles(full_name, phone, email)
+          owner:profiles(full_name, phone, email, locale)
         `)
         .gte("lease_end", today)
         .lte("lease_end", addDays(today, maxDays))
@@ -109,9 +109,10 @@ async function run(req: Request) {
 
         const { subject, emailHtml } = buildExpiryNotification({
           tenantName: c.tenant?.full_name ?? "",
-          propertyName: c.property?.name ?? "your property",
+          propertyName: c.property?.name ?? "",
           daysLeft,
           contractUrl: `${appUrl}/contracts/${c.id}`,
+          locale: c.owner?.locale,
         });
 
         let err: string | null = null;

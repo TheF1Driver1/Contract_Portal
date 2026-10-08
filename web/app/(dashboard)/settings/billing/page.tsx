@@ -1,62 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createBrowserClient } from "@/lib/supabase";
-import { CreditCard, Zap, Check, ArrowUpRight, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { ArrowUpRight, Check, CreditCard, Minus, Users } from "lucide-react";
+import { createBrowserClient } from "@/lib/supabase";
 import type { SubscriptionPlan } from "@/lib/types";
-import { PLAN_LIMITS, planDisplayName } from "@/lib/subscription";
+import { PLAN_LIMITS } from "@/lib/subscription";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionHeader } from "@/components/settings/SectionHeader";
+import { cn } from "@/lib/utils";
+import BillingLoading from "./loading";
 
-const S = {
-  bg: "rgba(255,255,255,0.04)",
-  border: "rgba(255,255,255,0.08)",
-  text: "rgba(200,210,230,0.80)",
-  muted: "rgba(200,210,230,0.45)",
-  accent: "#10b981",
+const PLANS: SubscriptionPlan[] = ["free", "propietario", "inversionista", "enterprise"];
+const RANK: Record<SubscriptionPlan, number> = { free: 0, propietario: 1, inversionista: 2, enterprise: 3 };
+const CHECKOUT_PLANS: SubscriptionPlan[] = ["propietario", "inversionista"];
+
+/** Feature keys (messages billing.compare.*) included per plan. */
+const PLAN_FEATURES: Record<SubscriptionPlan, string[]> = {
+  free: ["oneProperty", "threeContracts"],
+  propietario: ["fiveProperties", "unlimitedContracts", "sms", "expenseCsv", "prContract", "market"],
+  inversionista: ["unlimitedProperties", "scheduleE", "portfolio", "threeManagers", "prioritySupport"],
+  enterprise: ["unlimitedProperties", "scheduleE", "unlimitedManagers"],
 };
 
-const tierDetails: Record<SubscriptionPlan, {
-  price: string;
-  description: string;
-  color: string;
-}> = {
-  free:          { price: "$0/mes",         description: "1 propiedad · 3 contratos/mes",                         color: "rgba(200,210,230,0.50)" },
-  propietario:   { price: "$29/mes",        description: "Hasta 5 propiedades · Contratos ilimitados",            color: "#30d158" },
-  inversionista: { price: "$99/mes",        description: "Propiedades ilimitadas · Schedule E · Administradores", color: "#10b981" },
-  enterprise:    { price: "Personalizado",  description: "Para administradoras de propiedades",                   color: "#bf5af2" },
-};
-
-const upgradeFeatures: { plan: Exclude<SubscriptionPlan, "free">; features: string[] }[] = [
-  {
-    plan: "propietario",
-    features: [
-      "Hasta 5 propiedades",
-      "Contratos ilimitados",
-      "Envío por SMS",
-      "Exportación de gastos (CSV)",
-      "Contrato para Puerto Rico (Código Civil 2020)",
-      "Análisis de mercado y lista de seguimiento",
-    ],
-  },
-  {
-    plan: "inversionista",
-    features: [
-      "Propiedades ilimitadas",
-      "Reportes de impuestos (Schedule E)",
-      "Panel de portafolio",
-      "Hasta 3 administradores de propiedad",
-      "Soporte prioritario (48h SLA)",
-    ],
-  },
-];
+function isPlan(v: string | null): v is SubscriptionPlan {
+  return !!v && (PLANS as string[]).includes(v);
+}
 
 export default function BillingPage() {
-  const supabase = createBrowserClient();
+  const t = useTranslations("billing");
+  const searchParams = useSearchParams();
+  const requested = searchParams.get("plan");
+  const requestedPlan = isPlan(requested) ? requested : null;
+
   const [plan, setPlan] = useState<SubscriptionPlan>("free");
   const [propertyCount, setPropertyCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const requestedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const supabase = createBrowserClient();
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -73,187 +60,179 @@ export default function BillingPage() {
     load();
   }, []);
 
-  const limits = PLAN_LIMITS[plan];
-  const detail = tierDetails[plan];
+  // Arriving from /pricing with ?plan=: bring that plan's card into view.
+  useEffect(() => {
+    if (!loading && requestedPlan) requestedRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [loading, requestedPlan]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-6 w-6 rounded-full border-2 border-tertiary-container border-t-transparent animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <BillingLoading />;
+
+  const limits = PLAN_LIMITS[plan];
+  const fmtMax = (n: number) => (n === Infinity ? t("unlimited") : String(n));
+  const propertiesOver = limits.max_properties !== Infinity && propertyCount >= limits.max_properties;
+
+  const usage = [
+    {
+      key: "properties",
+      label: t("usage.properties"),
+      value: `${propertyCount} / ${fmtMax(limits.max_properties)}`,
+      note: propertiesOver ? t("usage.limitReached") : null,
+    },
+    {
+      key: "contracts",
+      label: t("usage.contracts"),
+      value: limits.max_contracts_per_month === Infinity ? t("unlimited") : t("usage.perMonth", { count: limits.max_contracts_per_month }),
+      note: null,
+    },
+    { key: "sms", label: t("usage.sms"), included: limits.sms },
+    { key: "scheduleE", label: t("usage.scheduleE"), included: limits.schedule_e },
+    {
+      key: "managers",
+      label: t("usage.managers"),
+      value: limits.managers === 0 ? t("usage.notIncluded") : t("usage.upTo", { max: fmtMax(limits.managers) }),
+      note: null,
+    },
+  ] as const;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Facturación</h1>
-        <p className="text-sm mt-1" style={{ color: S.muted }}>
-          Administra tu suscripción y método de pago
-        </p>
-      </div>
+    <div className="space-y-6">
+      <SectionHeader title={t("title")} description={t("description")} />
 
-      {/* Current plan card */}
-      <div
-        className="rounded-2xl p-6"
-        style={{ background: S.bg, border: `1px solid ${S.border}` }}
-      >
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: S.muted }}>
-              Plan actual
-            </p>
-            <div className="flex items-center gap-3">
-              <span
-                className="text-2xl font-bold"
-                style={{ color: detail.color }}
+      {/* Current plan */}
+      <Card className="gap-5 py-4 md:py-5">
+        <CardHeader className="px-4 md:px-5">
+          <CardDescription>{t("currentPlan")}</CardDescription>
+          <CardTitle className="flex flex-wrap items-center gap-2 text-xl">
+            <h3>{t(`plans.${plan}.name`)}</h3>
+            <Badge variant="secondary" className="tabular">{t(`plans.${plan}.price`)}</Badge>
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">{t(`plans.${plan}.description`)}</p>
+        </CardHeader>
+        <CardContent className="px-4 md:px-5">
+          <dl className="grid grid-cols-2 gap-3 md:grid-cols-5">
+            {usage.map((u) => (
+              <div
+                key={u.key}
+                className={cn(
+                  "rounded-lg border bg-surface-muted p-3",
+                  "note" in u && u.note ? "border-danger" : "border-border"
+                )}
               >
-                {planDisplayName(plan)}
-              </span>
-              <span
-                className="px-2 py-0.5 rounded-full text-xs font-medium"
-                style={{ background: `${detail.color}18`, color: detail.color, border: `1px solid ${detail.color}30` }}
-              >
-                {detail.price}
-              </span>
-            </div>
-            <p className="text-sm mt-1" style={{ color: S.muted }}>
-              {detail.description}
-            </p>
-          </div>
+                <dt className="text-xs font-medium text-muted-foreground">{u.label}</dt>
+                <dd className="mt-1 text-base font-semibold text-foreground tabular">
+                  {"included" in u ? (
+                    <span className={cn("inline-flex items-center gap-1", u.included ? "text-success" : "text-muted-foreground")}>
+                      {u.included ? <Check className="size-4" aria-hidden /> : <Minus className="size-4" aria-hidden />}
+                      {u.included ? t("usage.included") : t("usage.notIncluded")}
+                    </span>
+                  ) : (
+                    u.value
+                  )}
+                </dd>
+                {"note" in u && u.note && <p className="mt-1 text-xs font-medium text-danger">{u.note}</p>}
+              </div>
+            ))}
+          </dl>
+        </CardContent>
+        {plan !== "free" && (
+          <CardFooter className="flex-col items-stretch gap-2 border-t px-4 pt-4 sm:flex-row sm:items-center sm:justify-between md:px-5 [.border-t]:pt-4">
+            <p className="text-sm text-muted-foreground">{t("manageHint")}</p>
+            <Button asChild variant="outline" className="h-10 sm:h-9">
+              {/* Plain navigation (GET) to the Stripe customer portal redirect. */}
+              <a href="/api/billing/portal">
+                <CreditCard aria-hidden />
+                {t("manage")}
+              </a>
+            </Button>
+          </CardFooter>
+        )}
+      </Card>
 
-          {plan !== "free" && (
-            <button
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
-              style={{ background: "rgba(255,255,255,0.06)", color: S.text, border: `1px solid ${S.border}` }}
-              onClick={() => { window.location.href = "/api/billing/portal"; }}
-            >
-              <CreditCard size={14} />
-              Administrar facturación
-            </button>
-          )}
-        </div>
-
-        {/* Usage */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            {
-              label: "Propiedades",
-              used: propertyCount,
-              max: limits.max_properties === Infinity ? "∞" : limits.max_properties,
-              overLimit: limits.max_properties !== Infinity && propertyCount >= limits.max_properties,
-            },
-            { label: "SMS", used: limits.sms ? "✓" : "✗", max: null, overLimit: !limits.sms },
-            { label: "Schedule E", used: limits.schedule_e ? "✓" : "✗", max: null, overLimit: !limits.schedule_e },
-            { label: "Administradores", used: 0, max: limits.managers === Infinity ? "∞" : limits.managers, overLimit: false },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-xl p-3"
-              style={{
-                background: "rgba(255,255,255,0.03)",
-                border: `1px solid ${stat.overLimit ? "rgba(255,69,58,0.30)" : "rgba(255,255,255,0.05)"}`,
-              }}
-            >
-              <p className="text-xs font-medium mb-1" style={{ color: S.muted }}>
-                {stat.label}
-              </p>
-              <p
-                className="text-lg font-bold"
-                style={{ color: stat.overLimit ? "#ff453a" : "rgba(200,210,230,0.90)" }}
-              >
-                {stat.max !== null ? `${stat.used} / ${stat.max}` : stat.used}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Upgrade options */}
-      {plan !== "inversionista" && plan !== "enterprise" && (
-        <div>
-          <h2 className="text-base font-semibold text-white mb-4">Mejorar plan</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {upgradeFeatures
-              .filter((t) =>
-                plan === "free"
-                  ? true
-                  : t.plan === "inversionista"
-              )
-              .map(({ plan: upgradePlan, features }) => {
-                const d = tierDetails[upgradePlan];
-                return (
-                  <div
-                    key={upgradePlan}
-                    className="rounded-2xl p-5 flex flex-col"
-                    style={{
-                      background: upgradePlan === "inversionista"
-                        ? "rgba(16, 185, 129,0.08)"
-                        : "rgba(48,209,88,0.06)",
-                      border: `1px solid ${upgradePlan === "inversionista"
-                        ? "rgba(16, 185, 129,0.25)"
-                        : "rgba(48,209,88,0.20)"}`,
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="font-semibold text-white">{planDisplayName(upgradePlan)}</p>
-                        <p className="text-sm" style={{ color: d.color }}>{d.price}</p>
-                      </div>
-                      <Zap size={18} style={{ color: d.color }} />
+      {/* Plan comparison */}
+      <section aria-labelledby="compare-title" className="space-y-4">
+        <h3 id="compare-title" className="text-base font-semibold text-foreground">{t("compareTitle")}</h3>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {PLANS.map((p) => {
+            const isCurrent = p === plan;
+            const isRequested = p === requestedPlan && !isCurrent;
+            const canUpgrade = CHECKOUT_PLANS.includes(p) && RANK[p] > RANK[plan];
+            return (
+              <div key={p} ref={isRequested ? requestedRef : undefined}>
+                <Card
+                  className={cn(
+                    "h-full gap-4 py-4 md:py-5",
+                    isCurrent && "border-primary",
+                    isRequested && "ring-2 ring-ring"
+                  )}
+                >
+                  <CardHeader className="px-4 md:px-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CardTitle className="text-base">
+                        <h4>{t(`plans.${p}.name`)}</h4>
+                      </CardTitle>
+                      {isCurrent && <Badge className="bg-primary-soft text-primary-soft-foreground">{t("yourPlan")}</Badge>}
+                      {isRequested && <Badge variant="outline">{t("selected")}</Badge>}
                     </div>
-                    <ul className="space-y-2 flex-1 mb-5">
-                      {features.map((f, i) => (
-                        <li key={i} className="flex items-center gap-2 text-sm" style={{ color: S.text }}>
-                          <Check size={13} style={{ color: d.color }} />
-                          {f}
+                    <p className="text-lg font-semibold text-foreground tabular">{t(`plans.${p}.price`)}</p>
+                    <CardDescription>{t(`plans.${p}.description`)}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1 px-4 md:px-5">
+                    <ul className="space-y-2">
+                      {PLAN_FEATURES[p].map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-sm text-foreground">
+                          <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+                          {t(`compare.${f}`)}
                         </li>
                       ))}
                     </ul>
-                    <form action="/api/billing/checkout" method="post">
-                      <input type="hidden" name="plan" value={upgradePlan} />
-                      <button
-                        type="submit"
-                        className="flex w-full items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                        style={{
-                          background: upgradePlan === "inversionista" ? "#10b981" : "rgba(48,209,88,0.20)",
-                          color: "#fff",
-                        }}
-                      >
-                        Mejorar a {planDisplayName(upgradePlan)}
-                        <ArrowUpRight size={14} />
-                      </button>
-                    </form>
-                  </div>
-                );
-              })}
-          </div>
+                  </CardContent>
+                  {canUpgrade && (
+                    <CardFooter className="px-4 md:px-5">
+                      <form action="/api/billing/checkout" method="post" className="w-full">
+                        <input type="hidden" name="plan" value={p} />
+                        <Button
+                          type="submit"
+                          className="h-10 w-full sm:h-9"
+                          variant={p === "inversionista" || isRequested ? "default" : "outline"}
+                        >
+                          {t("upgradeTo", { plan: t(`plans.${p}.name`) })}
+                          <ArrowUpRight aria-hidden />
+                        </Button>
+                      </form>
+                    </CardFooter>
+                  )}
+                  {p === "enterprise" && !isCurrent && (
+                    <CardFooter className="px-4 md:px-5">
+                      <Button asChild variant="outline" className="h-10 w-full sm:h-9">
+                        <Link href="/pricing">{t("enterpriseCta")}</Link>
+                      </Button>
+                    </CardFooter>
+                  )}
+                </Card>
+              </div>
+            );
+          })}
         </div>
-      )}
+      </section>
 
       {/* Managers shortcut */}
       {(plan === "inversionista" || plan === "enterprise") && (
         <Link
           href="/settings/managers"
-          className="flex items-center gap-4 rounded-2xl px-5 py-4 transition-all"
-          style={{ background: S.bg, border: `1px solid ${S.border}` }}
+          className="flex items-center gap-4 rounded-xl border border-border bg-surface p-4 transition-colors hover:bg-surface-hover md:p-5"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(16, 185, 129,0.12)" }}>
-            <Users size={16} style={{ color: S.accent }} />
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary-soft-foreground">
+            <Users className="size-4" aria-hidden />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-white">Property Managers</p>
-            <p className="text-xs mt-0.5" style={{ color: S.muted }}>Invite team members to manage properties on your behalf</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">{t("managersTitle")}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{t("managersBody")}</p>
           </div>
-          <ArrowUpRight size={14} style={{ color: S.muted }} />
+          <ArrowUpRight className="size-4 text-muted-foreground" aria-hidden />
         </Link>
       )}
 
-      {/* Legal */}
-      <p className="text-xs" style={{ color: "rgba(200,210,230,0.25)" }}>
-        Los precios están en USD. Puedes cancelar en cualquier momento.
-        Al actualizar, se le cobrará de forma prorrateada por el resto del período de facturación actual.
-      </p>
+      <p className="text-xs text-muted-foreground">{t("legal")}</p>
     </div>
   );
 }

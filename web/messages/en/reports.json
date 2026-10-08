@@ -1,1 +1,62 @@
-{}
+{
+  "eyebrow": "Reports",
+  "title": "Schedule E",
+  "description": "A per-property summary of income and expenses to share with your accountant.",
+  "year": "Year",
+  "download": "Download {year} PDF",
+  "generating": "Generating…",
+  "downloaded": "PDF downloaded",
+  "downloadFailed": "Couldn't generate the report",
+  "noProperties": "You need at least one property to generate the report.",
+  "disclaimer": {
+    "title": "A summary, not a tax return",
+    "body": "This report groups your recorded income and expenses by IRS Schedule E line as a reference. It isn't tax advice and doesn't replace your return. Share it with your accountant to review before you file."
+  },
+  "totals": {
+    "income": "Estimated income",
+    "expenses": "Expenses",
+    "net": "Net",
+    "properties": "{count, plural, one {# property} other {# properties}}"
+  },
+  "incomeHint": "Income is estimated from the rent on signed contracts that cover the year.",
+  "table": {
+    "line": "Line",
+    "concept": "Item",
+    "amount": "Amount",
+    "noExpenses": "No expenses recorded for this property in {year}.",
+    "income": "Rental income (estimated)",
+    "totalExpenses": "Total expenses",
+    "net": "Net income"
+  },
+  "lines": {
+    "5": "Advertising",
+    "9": "Insurance",
+    "11": "Management fees",
+    "12": "Mortgage interest",
+    "14": "Repairs and maintenance",
+    "16": "Property taxes (CRIM)",
+    "17": "Utilities",
+    "19": "Other (includes HOA)"
+  },
+  "lineNumber": "Line {line}",
+  "emptyProperties": {
+    "title": "You don't have properties yet",
+    "description": "Add a property and log its expenses to see the summary.",
+    "action": "Add property"
+  },
+  "gate": {
+    "title": "Schedule E summary",
+    "description": "Generate a PDF with each property's income and expenses, grouped by Schedule E line, to share with your accountant.",
+    "currentPlan": "Your current plan: {plan}",
+    "features": {
+      "summary": "PDF with income and expenses per property",
+      "lines": "Expenses grouped by Schedule E line as a reference",
+      "properties": "Unlimited properties",
+      "managers": "Up to 3 property managers"
+    },
+    "cta": "Upgrade to Inversionista",
+    "price": "${price}/mo · Cancel anytime",
+    "whatTitle": "What is Schedule E?",
+    "whatBody": "It's the IRS schedule where US rental property owners report income and expenses. Your accountant decides how, and whether, it applies to you."
+  }
+}

@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Bell, BellOff } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { BellOff, Mail, MessageSquare } from "lucide-react";
 import type { ContractNotificationLog } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { StatusBadge } from "@/components/app/StatusBadge";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 export default function NotificationPanel({
   contractId,
@@ -14,23 +18,27 @@ export default function NotificationPanel({
   initialSuppressed: boolean;
   initialLogs: ContractNotificationLog[];
 }) {
+  const t = useTranslations("contracts.notifications");
+  const tc = useTranslations("common");
   // remindersOn = true means notifications are ENABLED (suppress_notifications = false in DB)
-  const [remindersOn, setRemindersOn]           = useState(!initialSuppressed);
-  const [toggling, setToggling]                 = useState(false);
-  const [logs]                                  = useState<ContractNotificationLog[]>(initialLogs);
+  const [remindersOn, setRemindersOn] = useState(!initialSuppressed);
+  const [toggling, setToggling] = useState(false);
+  const logs = initialLogs;
 
-  async function handleToggle() {
+  async function handleToggle(next: boolean) {
     setToggling(true);
-    const next = !remindersOn;
     setRemindersOn(next);
     try {
-      await fetch(`/api/contracts/${contractId}`, {
+      const res = await fetch(`/api/contracts/${contractId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ suppress_notifications: !next }),
       });
+      if (!res.ok) throw new Error();
+      toast.success(next ? t("enabled") : t("disabled"));
     } catch {
       setRemindersOn(!next);
+      toast.error(tc("saveFailed"));
     } finally {
       setToggling(false);
     }
@@ -38,53 +46,29 @@ export default function NotificationPanel({
 
   return (
     <div className="space-y-4">
-      {/* Reminders toggle */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          {remindersOn
-            ? <Bell    className="h-3.5 w-3.5" style={{ color: "var(--accent-color)" }} />
-            : <BellOff className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
-          }
-          <span className="text-sm" style={{ color: remindersOn ? "var(--text-primary)" : "var(--text-muted)" }}>
-            Renewal reminders
-          </span>
-          <span
-            className="rounded-full px-2 py-0.5 text-xs font-semibold"
-            style={{
-              background: remindersOn ? "rgba(52,199,89,0.15)" : "rgba(255,59,48,0.12)",
-              color:      remindersOn ? "#34c759"               : "#ff3b30",
-            }}
-          >
-            {remindersOn ? "ON" : "OFF"}
-          </span>
+        <div className="min-w-0">
+          <Label htmlFor="contract-reminders">{t("reminders")}</Label>
+          <p className="mt-0.5 text-xs text-muted-foreground">{remindersOn ? t("remindersOn") : t("remindersOff")}</p>
         </div>
-        <button
-          onClick={handleToggle}
+        <Switch
+          id="contract-reminders"
+          checked={remindersOn}
+          onCheckedChange={handleToggle}
           disabled={toggling}
-          className="flex h-5 w-9 shrink-0 items-center rounded-full transition-all duration-200 disabled:opacity-50"
-          style={{ background: remindersOn ? "#34c759" : "var(--surface-container)" }}
-          aria-label={remindersOn ? "Turn off reminders" : "Turn on reminders"}
-        >
-          <span
-            className="h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
-            style={{ transform: remindersOn ? "translateX(18px)" : "translateX(2px)" }}
-          />
-        </button>
+        />
       </div>
 
-      {/* Notification log */}
-      <div className="space-y-2 pt-1">
-        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-          Notification History
-        </p>
+      <div className="space-y-2 border-t pt-4">
+        <h3 className="text-sm font-semibold text-foreground">{t("history")}</h3>
         {logs.length === 0 ? (
-          <p className="text-xs" style={{ color: "var(--text-muted)" }}>No notifications sent yet.</p>
+          <p className="text-sm text-muted-foreground">{t("empty")}</p>
         ) : (
-          <div className="space-y-1">
+          <ul className="divide-y">
             {logs.map((log) => (
               <LogRow key={log.id} log={log} />
             ))}
-          </div>
+          </ul>
         )}
       </div>
     </div>
@@ -92,28 +76,30 @@ export default function NotificationPanel({
 }
 
 function LogRow({ log }: { log: ContractNotificationLog }) {
-  const label = log.days_before === 0 ? "Manual" : `${log.days_before}d before`;
+  const t = useTranslations("contracts.notifications");
+  const f = useFormatter();
+  const Icon = log.channel === "sms" ? MessageSquare : Mail;
+  const label = log.days_before === 0 ? t("manual") : t("daysBefore", { count: log.days_before });
 
   return (
-    <div className="flex items-center justify-between gap-3 text-xs">
-      <div className="flex items-center gap-2">
-        <Mail className="h-3 w-3 shrink-0" style={{ color: "var(--text-muted)" }} />
-        <span style={{ color: "var(--text-muted)" }}>{label}</span>
-        <span
-          className="rounded-full px-2 py-0.5 font-medium capitalize"
-          style={{
-            background: log.status === "sent"   ? "rgba(52,199,89,0.12)"
-                      : log.status === "failed" ? "rgba(255,59,48,0.12)"
-                      : "rgba(255,255,255,0.06)",
-            color:      log.status === "sent"   ? "#34c759"
-                      : log.status === "failed" ? "#ff3b30"
-                      : "var(--text-muted)",
-          }}
-        >
-          {log.status}
+    <li className="flex items-center justify-between gap-3 py-2 text-sm">
+      <div className="flex min-w-0 items-center gap-2">
+        <Icon className="size-4 shrink-0 text-muted-foreground" aria-label={t(`channel.${log.channel}`)} />
+        <span className="truncate text-muted-foreground" title={log.error_message ?? undefined}>
+          {label}
         </span>
+        {log.status === "suppressed" ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            <BellOff className="size-3.5" aria-hidden />
+            {t("suppressed")}
+          </span>
+        ) : (
+          <StatusBadge status={log.status} />
+        )}
       </div>
-      <span style={{ color: "var(--text-muted)" }}>{formatDate(log.sent_at)}</span>
-    </div>
+      <span className="shrink-0 text-xs text-muted-foreground">
+        {f.dateTime(new Date(log.sent_at), { dateStyle: "medium" })}
+      </span>
+    </li>
   );
 }

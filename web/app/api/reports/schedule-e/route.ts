@@ -1,3 +1,4 @@
+import { SCHEDULE_E_LINE_BY_CATEGORY } from "@/components/reports/schedule-e-data";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { canExportScheduleE } from "@/lib/subscription";
@@ -5,18 +6,22 @@ import type { SubscriptionPlan } from "@/lib/types";
 import type { PropertyReport } from "@/lib/pdf-schedule-e";
 import React from "react";
 
-const SCHEDULE_E_LINES: Record<string, { line: number; label: string }> = {
-  advertising:  { line: 5,  label: "Advertising" },
-  insurance:    { line: 9,  label: "Insurance" },
-  management:   { line: 11, label: "Management fees" },
-  mortgage:     { line: 12, label: "Mortgage interest (deductible)" },
-  repairs:      { line: 14, label: "Repairs" },
-  maintenance:  { line: 14, label: "Repairs & maintenance" },
-  taxes:        { line: 16, label: "Taxes" },
-  utilities:    { line: 17, label: "Utilities" },
-  hoa:          { line: 19, label: "Other (HOA)" },
-  other:        { line: 19, label: "Other" },
+// Line numbers are shared with the on-screen summary so the two can't drift.
+const LINE_LABELS: Record<string, string> = {
+  advertising: "Advertising",
+  insurance: "Insurance",
+  management: "Management fees",
+  mortgage: "Mortgage interest (deductible)",
+  repairs: "Repairs",
+  maintenance: "Repairs & maintenance",
+  taxes: "Taxes",
+  utilities: "Utilities",
+  hoa: "Other (HOA)",
+  other: "Other",
 };
+const SCHEDULE_E_LINES: Record<string, { line: number; label: string }> = Object.fromEntries(
+  Object.entries(SCHEDULE_E_LINE_BY_CATEGORY).map(([cat, line]) => [cat, { line, label: LINE_LABELS[cat] ?? "Other" }])
+);
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();

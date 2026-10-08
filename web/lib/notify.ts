@@ -1,3 +1,5 @@
+import { emailLayout } from "@/lib/emails/layout";
+import { emailT } from "@/lib/emails/translator";
 // Carriers (A2P 10DLC) require brand identification and opt-out instructions.
 const SMS_FOOTER = "ContractOS. Responde STOP para cancelar / Reply STOP to opt out.";
 
@@ -36,106 +38,50 @@ export async function sendResendEmail(
   }
 }
 
-export async function sendTenantInviteEmail(
-  to: string,
-  tenantName: string,
-  propertyName: string,
-  inviteUrl: string,
-  landlordName: string
-): Promise<void> {
-  const greeting = tenantName ? `Hello ${tenantName},` : "Hello,";
-  const subject = `Sign your lease for ${propertyName}`;
-  const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-        <tr><td style="background:#111;padding:24px 32px;">
-          <p style="margin:0;color:#fff;font-size:18px;font-weight:bold;letter-spacing:0.04em;">LEASE AGREEMENT — SIGNATURE REQUIRED</p>
-        </td></tr>
-        <tr><td style="padding:28px 32px 8px;">
-          <p style="margin:0 0 16px;font-size:15px;color:#222;">${greeting}</p>
-          <p style="margin:0 0 16px;font-size:14px;color:#444;line-height:1.6;">
-            ${landlordName ? `<strong>${landlordName}</strong> has sent you a lease agreement for <strong>${propertyName}</strong> that requires your signature.` : `A lease agreement for <strong>${propertyName}</strong> has been sent to you for signature.`}
-          </p>
-          <p style="margin:0 0 16px;font-size:14px;color:#444;line-height:1.6;">
-            Click the button below to review and sign your lease. You will be asked to create a secure account to access the document.
-          </p>
-        </td></tr>
-        <tr><td style="padding:8px 32px 28px;">
-          <a href="${inviteUrl}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
-            Review &amp; Sign Lease
-          </a>
-        </td></tr>
-        <tr><td style="padding:16px 32px;border-top:1px solid #eee;">
-          <p style="margin:0;font-size:11px;color:#999;line-height:1.5;">
-            This link expires in 7 days. If you did not expect this email, you can safely ignore it.
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
-  await sendResendEmail(to, subject, html);
+export async function sendTenantInviteEmail(opts: {
+  to: string;
+  tenantName: string;
+  propertyName: string;
+  inviteUrl: string;
+  landlordName: string;
+  locale?: string | null;
+}): Promise<void> {
+  const { lang, t } = emailT(opts.locale);
+  const vars = { name: opts.tenantName, property: opts.propertyName, landlord: opts.landlordName };
+  const html = emailLayout({
+    lang,
+    heading: t("invite.heading"),
+    paragraphs: [
+      opts.tenantName ? t("invite.greeting", vars) : t("invite.greetingNoName"),
+      opts.landlordName ? t("invite.bodyFrom", vars) : t("invite.body", vars),
+      t("invite.how"),
+    ],
+    cta: { label: t("invite.cta"), url: opts.inviteUrl },
+    note: t("invite.expires"),
+    footer: t("footerAuto"),
+  });
+  await sendResendEmail(opts.to, t("invite.subject", vars), html);
 }
 
+/** Lease-ending reminder for the landlord, in their language. */
 export function buildExpiryNotification(opts: {
   tenantName: string;
   propertyName: string;
   daysLeft: number;
   contractUrl: string;
+  locale?: string | null;
 }): { sms: string; subject: string; emailHtml: string } {
-  const { tenantName, propertyName, daysLeft, contractUrl } = opts;
-  const daysLabel = daysLeft === 1 ? "1 day" : `${daysLeft} days`;
-  const tenantLabel = tenantName ? ` (${tenantName})` : "";
-
-  const sms = `Reminder: Your lease for ${propertyName}${tenantLabel} expires in ${daysLabel}. View contract: ${contractUrl}`;
-
-  const subject = `Lease Expiring in ${daysLabel} — ${propertyName}`;
-
-  const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-        <tr>
-          <td style="background:#111;padding:24px 32px;">
-            <p style="margin:0;color:#fff;font-size:18px;font-weight:bold;letter-spacing:0.04em;">LEASE EXPIRY REMINDER</p>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:28px 32px 8px;">
-            <p style="margin:0 0 16px;font-size:15px;color:#222;">Hello,</p>
-            <p style="margin:0 0 16px;font-size:14px;color:#444;line-height:1.6;">
-              The lease for <strong>${propertyName}</strong>${tenantLabel} expires in <strong>${daysLabel}</strong>.
-              You may want to reach out to renew or let it expire.
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:8px 32px 28px;">
-            <a href="${contractUrl}"
-               style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:600;">
-              View Contract
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:16px 32px;border-top:1px solid #eee;">
-            <p style="margin:0;font-size:11px;color:#999;line-height:1.5;">
-              This is an automated expiry reminder. To stop receiving these alerts for this contract, open the contract and toggle off notifications.
-            </p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-
-  return { sms, subject, emailHtml };
+  const { lang, t } = emailT(opts.locale);
+  const vars = { property: opts.propertyName, tenant: opts.tenantName || "none", days: opts.daysLeft, url: opts.contractUrl };
+  return {
+    sms: t("expiry.sms", vars),
+    subject: t("expiry.subject", vars),
+    emailHtml: emailLayout({
+      lang,
+      heading: t("expiry.heading"),
+      paragraphs: [t("expiry.greeting"), t("expiry.body", vars)],
+      cta: { label: t("expiry.cta"), url: opts.contractUrl },
+      footer: t("expiry.footer"),
+    }),
+  };
 }

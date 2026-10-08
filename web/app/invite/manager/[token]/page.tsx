@@ -1,12 +1,17 @@
 import Link from "next/link";
 export const dynamic = "force-dynamic";
 
+import { getTranslations } from "next-intl/server";
+import { XCircle } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase-server";
+import { Button } from "@/components/ui/button";
+import { AuthShell, AuthStatusIcon } from "@/components/auth/AuthShell";
 import ManagerInviteClient from "./ManagerInviteClient";
 
 export default async function ManagerInvitePage(props: { params: Promise<{ token: string }> }) {
   const params = await props.params;
   const admin = createAdminClient();
+  const t = await getTranslations("invite");
 
   const { data: invite } = await admin
     .from("property_managers")
@@ -16,22 +21,19 @@ export default async function ManagerInvitePage(props: { params: Promise<{ token
 
   if (!invite || invite.status !== "pending") {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
-            <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <h1 className="text-lg font-semibold text-white">Invite Unavailable</h1>
-          <p className="mt-2 text-sm text-neutral-400">
-            This invitation link has already been used, declined, or revoked. Contact the property owner for a new invite.
-          </p>
-          <Link href="/" className="mt-6 inline-block text-sm text-neutral-500 hover:text-white transition-colors">
-            Go to homepage
-          </Link>
-        </div>
-      </div>
+      <AuthShell
+        media={
+          <AuthStatusIcon tone="danger">
+            <XCircle />
+          </AuthStatusIcon>
+        }
+        title={t("manager.unavailableTitle")}
+        description={t("manager.unavailableDescription")}
+      >
+        <Button asChild variant="outline" size="lg" className="w-full">
+          <Link href="/">{t("home")}</Link>
+        </Button>
+      </AuthShell>
     );
   }
 
@@ -49,13 +51,11 @@ export default async function ManagerInvitePage(props: { params: Promise<{ token
     .in("id", invite.property_ids as string[]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <ManagerInviteClient
-        token={params.token}
-        managerEmail={invite.manager_email}
-        ownerName={owner?.full_name || owner?.email || "A landlord"}
-        properties={properties ?? []}
-      />
-    </div>
+    <ManagerInviteClient
+      token={params.token}
+      managerEmail={invite.manager_email}
+      ownerName={owner?.full_name || owner?.email || t("manager.ownerFallback")}
+      properties={properties ?? []}
+    />
   );
 }

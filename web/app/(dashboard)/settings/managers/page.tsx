@@ -1,42 +1,63 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { Ban, CheckCircle2, Clock, Loader2, Lock, Mail, Trash2, Users, XCircle } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase";
-import { Users, Plus, Trash2, Mail, Clock, CheckCircle2, XCircle, Loader2, Lock } from "lucide-react";
 import type { PropertyManager, SubscriptionPlan } from "@/lib/types";
 import { canInviteManager, getMaxManagers } from "@/lib/subscription";
-import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardAction } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/app/EmptyState";
+import { SectionHeader } from "@/components/settings/SectionHeader";
+import { ConfirmDialog } from "@/components/settings/ConfirmDialog";
+import { cn } from "@/lib/utils";
 
-const S = {
-  bg:     "rgba(255,255,255,0.04)",
-  border: "rgba(255,255,255,0.08)",
-  text:   "rgba(200,210,230,0.80)",
-  muted:  "rgba(200,210,230,0.45)",
-  accent: "#10b981",
+const STATUS_STYLES: Record<PropertyManager["status"], { icon: LucideIcon; className: string }> = {
+  pending: { icon: Clock, className: "bg-warning-soft text-warning" },
+  accepted: { icon: CheckCircle2, className: "bg-success-soft text-success" },
+  declined: { icon: XCircle, className: "bg-danger-soft text-danger" },
+  revoked: { icon: Ban, className: "bg-surface-muted text-muted-foreground" },
 };
 
-const STATUS_STYLES: Record<PropertyManager["status"], { label: string; color: string; icon: React.ReactNode }> = {
-  pending:  { label: "Pending",  color: "#f59e0b", icon: <Clock size={12} /> },
-  accepted: { label: "Active",   color: "#30d158", icon: <CheckCircle2 size={12} /> },
-  declined: { label: "Declined", color: "#ff453a", icon: <XCircle size={12} /> },
-  revoked:  { label: "Revoked",  color: "#8a9ab8", icon: <XCircle size={12} /> },
-};
+const PERMISSIONS = ["view", "create_contracts", "sign_contracts"] as const;
+
+function ManagerStatus({ status }: { status: PropertyManager["status"] }) {
+  const t = useTranslations("settings.managersPage.status");
+  const s = STATUS_STYLES[status];
+  const Icon = s.icon;
+  return (
+    <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap", s.className)}>
+      <Icon className="size-3.5" aria-hidden />
+      {t(status)}
+    </span>
+  );
+}
 
 export default function ManagersSettingsPage() {
+  const t = useTranslations("settings.managersPage");
   const [managers, setManagers] = useState<PropertyManager[]>([]);
   const [properties, setProperties] = useState<{ id: string; name: string }[]>([]);
   const [plan, setPlan] = useState<SubscriptionPlan>("free");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [revoking, setRevoking] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<PropertyManager | null>(null);
 
   const [email, setEmail] = useState("");
   const [selectedProps, setSelectedProps] = useState<string[]>([]);
   const [perms, setPerms] = useState({ view: true, create_contracts: true, sign_contracts: false });
 
-  useEffect(() => { loadAll(); }, []);
+  useEffect(() => {
+    loadAll();
+  }, []);
 
   async function loadAll() {
     setLoading(true);
@@ -56,7 +77,7 @@ export default function ManagersSettingsPage() {
     }
   }
 
-  const activeCount = managers.filter(m => ["pending", "accepted"].includes(m.status)).length;
+  const activeCount = managers.filter((m) => ["pending", "accepted"].includes(m.status)).length;
   const maxManagers = getMaxManagers(plan);
   const canInvite = canInviteManager(plan, activeCount);
 
@@ -64,8 +85,6 @@ export default function ManagersSettingsPage() {
     e.preventDefault();
     if (!email || selectedProps.length === 0) return;
     setSaving(true);
-    setError(null);
-    setSuccess(null);
     try {
       const res = await fetch("/api/managers", {
         method: "POST",
@@ -73,270 +92,207 @@ export default function ManagersSettingsPage() {
         body: JSON.stringify({ manager_email: email, property_ids: selectedProps, permissions: perms }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to send invite");
-      setSuccess(`Invite sent to ${email}`);
+      if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : t("inviteError"));
+      toast.success(t("inviteSent", { email }));
       setEmail("");
       setSelectedProps([]);
       setPerms({ view: true, create_contracts: true, sign_contracts: false });
       await loadAll();
-    } catch (e) {
-      setError((e as Error).message);
+    } catch (err) {
+      toast.error(t("inviteError"), { description: (err as Error).message });
     } finally {
       setSaving(false);
     }
   }
 
   async function handleRevoke(id: string) {
-    setRevoking(id);
-    try {
-      const res = await fetch(`/api/managers/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to revoke");
-      setManagers(prev => prev.map(m => m.id === id ? { ...m, status: "revoked" } : m));
-    } finally {
-      setRevoking(null);
+    const res = await fetch(`/api/managers/${id}`, { method: "DELETE" }).catch(() => null);
+    if (!res?.ok) {
+      toast.error(t("revokeError"));
+      return;
     }
+    setManagers((prev) => prev.map((m) => (m.id === id ? { ...m, status: "revoked" } : m)));
+    toast.success(t("revoked"));
   }
 
-  function toggleProp(id: string) {
-    setSelectedProps(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
+  function toggleProp(id: string, checked: boolean) {
+    setSelectedProps((prev) => (checked ? [...prev, id] : prev.filter((p) => p !== id)));
   }
 
-  const activeManagers = managers.filter(m => m.status !== "revoked" && m.status !== "declined");
-  const pastManagers   = managers.filter(m => m.status === "revoked" || m.status === "declined");
+  const activeManagers = managers.filter((m) => m.status !== "revoked" && m.status !== "declined");
+  const pastManagers = managers.filter((m) => m.status === "revoked" || m.status === "declined");
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="animate-slide-up">
-        <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: S.muted }}>
-          Settings
-        </p>
-        <h1
-          className="font-display text-4xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]"
-          style={{ letterSpacing: "-0.03em" }}
-        >
-          Property Managers
-        </h1>
-        <p className="text-sm mt-2" style={{ color: S.muted }}>
-          Invite team members to manage contracts and properties on your behalf.
-        </p>
-      </div>
+    <div className="max-w-3xl space-y-6">
+      <SectionHeader title={t("title")} description={t("description")} />
 
       {/* Plan gate */}
-      {maxManagers === 0 && (
-        <div
-          className="rounded-2xl p-6 flex items-start gap-4 animate-slide-up"
-          style={{ background: "rgba(16, 185, 129,0.06)", border: "1px solid rgba(16, 185, 129,0.18)" }}
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(16, 185, 129,0.15)" }}>
-            <Lock size={18} style={{ color: S.accent }} />
-          </div>
-          <div className="flex-1">
-            <p className="font-semibold text-white text-sm mb-1">Inversionista plan required</p>
-            <p className="text-xs mb-3" style={{ color: S.muted }}>
-              Property manager invites are available on the Inversionista plan (up to 3 managers) and Enterprise (unlimited).
-            </p>
-            <Link
-              href="/pricing"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold"
-              style={{ background: S.accent, color: "#fff" }}
-            >
-              Upgrade plan
-            </Link>
-          </div>
-        </div>
+      {!loading && maxManagers === 0 && (
+        <Card className="gap-4 py-4 md:py-5">
+          <CardHeader className="flex items-start gap-3 px-4 md:px-5">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary-soft-foreground">
+              <Lock className="size-4" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <CardTitle className="text-base">
+                <h3>{t("gateTitle")}</h3>
+              </CardTitle>
+              <CardDescription className="mt-1">{t("gateBody")}</CardDescription>
+              <Button asChild className="mt-3 h-10 sm:h-9">
+                <Link href="/pricing">{t("upgrade")}</Link>
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
       )}
 
       {/* Invite form */}
-      {maxManagers > 0 && (
-        <form
-          onSubmit={handleInvite}
-          className="rounded-2xl p-6 space-y-5 animate-slide-up"
-          style={{ background: S.bg, border: `1px solid ${S.border}` }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Plus size={16} style={{ color: S.accent }} />
-              <span className="text-sm font-semibold text-white">Invite a Manager</span>
-            </div>
-            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: S.muted }}>
-              {activeCount} / {maxManagers === Infinity ? "∞" : maxManagers} used
-            </span>
-          </div>
-
-          {/* Email */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium" style={{ color: S.muted }}>Email address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="manager@example.com"
-              required
-              disabled={!canInvite}
-              className="w-full rounded-xl px-3 py-2.5 text-sm outline-hidden transition-all"
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                border: `1px solid ${S.border}`,
-                color: "#fff",
-                opacity: canInvite ? 1 : 0.5,
-              }}
-            />
-          </div>
-
-          {/* Properties */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium" style={{ color: S.muted }}>
-              Properties to grant access to
-            </label>
-            {properties.length === 0 ? (
-              <p className="text-xs" style={{ color: S.muted }}>No properties found.</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {properties.map(p => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => toggleProp(p.id)}
-                    disabled={!canInvite}
-                    className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
-                    style={{
-                      background: selectedProps.includes(p.id) ? "rgba(16, 185, 129,0.20)" : "rgba(255,255,255,0.06)",
-                      border: `1px solid ${selectedProps.includes(p.id) ? "rgba(16, 185, 129,0.35)" : "transparent"}`,
-                      color: selectedProps.includes(p.id) ? "#fff" : S.text,
-                    }}
-                  >
-                    {p.name}
-                  </button>
-                ))}
+      {!loading && maxManagers > 0 && (
+        <Card className="gap-4 py-4 md:py-5">
+          <CardHeader className="px-4 md:px-5">
+            <CardTitle className="text-base">
+              <h3>{t("inviteTitle")}</h3>
+            </CardTitle>
+            <CardAction>
+              <Badge variant="secondary" className="tabular">
+                {t("used", { count: activeCount, max: maxManagers === Infinity ? "∞" : String(maxManagers) })}
+              </Badge>
+            </CardAction>
+            {!canInvite && <CardDescription>{t("limitReached")}</CardDescription>}
+          </CardHeader>
+          <CardContent className="px-4 md:px-5">
+            <form onSubmit={handleInvite} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="manager-email">{t("emailLabel")}</Label>
+                <Input
+                  id="manager-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("emailPlaceholder")}
+                  required
+                  disabled={!canInvite}
+                  className="h-10 sm:h-9"
+                />
               </div>
-            )}
-          </div>
 
-          {/* Permissions */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium" style={{ color: S.muted }}>Permissions</label>
-            <div className="space-y-2">
-              {(["view", "create_contracts", "sign_contracts"] as const).map(key => (
-                <label key={key} className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={perms[key]}
-                    onChange={e => setPerms(prev => ({ ...prev, [key]: e.target.checked }))}
-                    disabled={key === "view" || !canInvite}
-                    className="accent-blue-500 h-4 w-4"
-                  />
-                  <span className="text-sm" style={{ color: S.text }}>
-                    {key === "view" && "View properties & contracts"}
-                    {key === "create_contracts" && "Create & edit contracts"}
-                    {key === "sign_contracts" && "Sign contracts on your behalf"}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium text-foreground">{t("propertiesLabel")}</legend>
+                {properties.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("noProperties")}</p>
+                ) : (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {properties.map((p) => {
+                      const id = `prop-${p.id}`;
+                      return (
+                        <div key={p.id} className="flex min-h-10 items-center gap-3 rounded-lg border border-border px-3">
+                          <Checkbox
+                            id={id}
+                            checked={selectedProps.includes(p.id)}
+                            onCheckedChange={(c) => toggleProp(p.id, c === true)}
+                            disabled={!canInvite}
+                          />
+                          <Label htmlFor={id} className="flex-1 cursor-pointer py-2 font-normal">{p.name}</Label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </fieldset>
 
-          {error && (
-            <p className="text-xs rounded-xl px-3 py-2" style={{ background: "rgba(255,69,58,0.10)", color: "#ff453a", border: "1px solid rgba(255,69,58,0.20)" }}>
-              {error}
-            </p>
-          )}
-          {success && (
-            <p className="text-xs rounded-xl px-3 py-2" style={{ background: "rgba(48,209,88,0.10)", color: "#30d158", border: "1px solid rgba(48,209,88,0.20)" }}>
-              {success}
-            </p>
-          )}
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium text-foreground">{t("permissionsLabel")}</legend>
+                {PERMISSIONS.map((key) => {
+                  const id = `perm-${key}`;
+                  return (
+                    <div key={key} className="flex min-h-10 items-center gap-3">
+                      <Checkbox
+                        id={id}
+                        checked={perms[key]}
+                        onCheckedChange={(c) => setPerms((prev) => ({ ...prev, [key]: c === true }))}
+                        disabled={key === "view" || !canInvite}
+                      />
+                      <Label htmlFor={id} className="cursor-pointer font-normal">{t(`perm.${key}`)}</Label>
+                    </div>
+                  );
+                })}
+              </fieldset>
 
-          <button
-            type="submit"
-            disabled={saving || !canInvite || !email || selectedProps.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-            style={{ background: S.accent, color: "#fff", boxShadow: "0 4px 16px rgba(16, 185, 129,0.30)" }}
-          >
-            {saving ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
-            {saving ? "Sending…" : "Send Invite"}
-          </button>
-        </form>
+              <Button
+                type="submit"
+                disabled={saving || !canInvite || !email || selectedProps.length === 0}
+                className="h-10 sm:h-9"
+              >
+                {saving ? <Loader2 className="animate-spin" aria-hidden /> : <Mail aria-hidden />}
+                {saving ? t("sending") : t("send")}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Active managers list */}
+      {/* Active and pending */}
       {loading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 size={20} className="animate-spin" style={{ color: S.muted }} />
+        <div className="space-y-3">
+          {[0, 1].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
         </div>
       ) : activeManagers.length > 0 ? (
-        <div className="space-y-3 animate-slide-up">
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: S.muted }}>Active & Pending</p>
-          {activeManagers.map(m => {
-            const s = STATUS_STYLES[m.status];
-            return (
-              <div
-                key={m.id}
-                className="flex items-center gap-4 rounded-xl px-4 py-3"
-                style={{ background: S.bg, border: `1px solid ${S.border}` }}
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "rgba(16, 185, 129,0.20)" }}>
-                  <Users size={14} style={{ color: S.accent }} />
+        <section aria-labelledby="active-managers" className="space-y-3">
+          <h3 id="active-managers" className="text-base font-semibold text-foreground">{t("activeTitle")}</h3>
+          <ul className="space-y-2">
+            {activeManagers.map((m) => (
+              <li key={m.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 md:p-4">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-soft-foreground">
+                  <Users className="size-4" aria-hidden />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{m.manager_email}</p>
-                  <p className="text-xs mt-0.5" style={{ color: S.muted }}>
-                    {m.property_ids.length} propert{m.property_ids.length === 1 ? "y" : "ies"}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{m.manager_email}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {t("propertyCount", { count: m.property_ids.length })}
                   </p>
                 </div>
-                <span
-                  className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full"
-                  style={{ background: `${s.color}18`, color: s.color }}
+                <ManagerStatus status={m.status} />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-10 text-danger hover:bg-danger-soft hover:text-danger sm:size-9"
+                  onClick={() => setRevokeTarget(m)}
+                  aria-label={t("revokeAria", { email: m.manager_email })}
                 >
-                  {s.icon}
-                  {s.label}
-                </span>
-                <button
-                  onClick={() => handleRevoke(m.id)}
-                  disabled={revoking === m.id}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg transition-all disabled:opacity-50"
-                  style={{ background: "rgba(255,69,58,0.10)", color: "#ff453a" }}
-                  title="Revoke access"
-                >
-                  {revoking === m.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                  <Trash2 aria-hidden />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : maxManagers > 0 ? (
-        <div
-          className="rounded-2xl p-8 text-center animate-slide-up"
-          style={{ background: S.bg, border: `1px solid ${S.border}` }}
-        >
-          <Users size={24} className="mx-auto mb-3" style={{ color: S.muted }} />
-          <p className="text-sm font-medium text-white mb-1">No managers yet</p>
-          <p className="text-xs" style={{ color: S.muted }}>Invite a manager above to grant access to your properties.</p>
-        </div>
+        <EmptyState icon={Users} title={t("emptyTitle")} description={t("emptyBody")} />
       ) : null}
 
-      {/* Past (revoked/declined) */}
+      {/* Revoked / declined */}
       {pastManagers.length > 0 && (
-        <div className="space-y-2 animate-slide-up">
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: S.muted }}>Revoked / Declined</p>
-          {pastManagers.map(m => {
-            const s = STATUS_STYLES[m.status];
-            return (
-              <div
-                key={m.id}
-                className="flex items-center gap-4 rounded-xl px-4 py-3 opacity-50"
-                style={{ background: S.bg, border: `1px solid ${S.border}` }}
-              >
-                <Users size={14} style={{ color: S.muted }} />
-                <p className="text-sm flex-1 truncate" style={{ color: S.muted }}>{m.manager_email}</p>
-                <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ background: `${s.color}18`, color: s.color }}>
-                  {s.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        <section aria-labelledby="past-managers" className="space-y-3">
+          <h3 id="past-managers" className="text-base font-semibold text-foreground">{t("pastTitle")}</h3>
+          <ul className="space-y-2">
+            {pastManagers.map((m) => (
+              <li key={m.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted p-3">
+                <Users className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">{m.manager_email}</p>
+                <ManagerStatus status={m.status} />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
+
+      <ConfirmDialog
+        open={revokeTarget !== null}
+        onOpenChange={(o) => !o && setRevokeTarget(null)}
+        title={t("revokeTitle")}
+        description={revokeTarget ? t("revokeBody", { email: revokeTarget.manager_email }) : undefined}
+        confirmLabel={t("revokeConfirm")}
+        onConfirm={() => (revokeTarget ? handleRevoke(revokeTarget.id) : undefined)}
+      />
     </div>
   );
 }

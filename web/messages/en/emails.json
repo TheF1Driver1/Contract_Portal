@@ -1,0 +1,23 @@
+{
+  "footerAuto": "ContractOS sent this message on behalf of your landlord. If you weren't expecting it, you can ignore it.",
+  "invite": {
+    "subject": "Sign your lease: {property}",
+    "heading": "You have a lease to sign",
+    "greeting": "Hi {name},",
+    "greetingNoName": "Hi,",
+    "bodyFrom": "{landlord} sent you the lease for {property} to review and sign.",
+    "body": "You've been sent the lease for {property} to review and sign.",
+    "how": "Open it on your phone or computer. You can read every page before signing.",
+    "cta": "Review and sign",
+    "expires": "This link expires in 7 days."
+  },
+  "expiry": {
+    "subject": "The lease for {property} ends in {days, plural, one {# day} other {# days}}",
+    "heading": "Lease ending soon",
+    "greeting": "Hi,",
+    "body": "The lease for {property}{tenant, select, none {} other { ({tenant})}} ends in {days, plural, one {# day} other {# days}}. It's a good time to renew or plan the move-out.",
+    "cta": "View lease",
+    "footer": "You get this alert from your expiry reminders. Change them in Settings › Reminders.",
+    "sms": "ContractOS: the lease for {property}{tenant, select, none {} other { ({tenant})}} ends in {days, plural, one {# day} other {# days}}. {url}"
+  }
+}

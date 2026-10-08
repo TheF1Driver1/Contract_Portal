@@ -1,3 +1,4 @@
+import { trackEvent } from "@/lib/analytics";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase-server";
 import { getStripe, PAID_PLAN_PRICES } from "@/lib/stripe";
@@ -51,5 +52,6 @@ export async function POST(req: NextRequest) {
     subscription_data: { metadata: { owner_id: user.id } },
   });
 
+  await trackEvent("checkout_started", { plan });
   return NextResponse.redirect(session.url!, 303);
 }

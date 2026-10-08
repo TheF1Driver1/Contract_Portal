@@ -1,48 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import { BarChart3, Lock, Download, Check, ArrowUpRight, FileText, Zap } from "lucide-react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { ArrowUpRight, Building2, Check, Download, FileText, Info, Loader2, Lock } from "lucide-react";
 import type { SubscriptionPlan } from "@/lib/types";
+import { PLAN_PRICES_USD, planDisplayName } from "@/lib/subscription";
+import { PageHeader } from "@/components/app/PageHeader";
+import { EmptyState } from "@/components/app/EmptyState";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { ScheduleESummary } from "@/components/reports/schedule-e-data";
+import { cn } from "@/lib/utils";
 
-const S = {
-  bg:     "rgba(255,255,255,0.04)",
-  border: "rgba(255,255,255,0.08)",
-  text:   "rgba(200,210,230,0.80)",
-  muted:  "rgba(200,210,230,0.45)",
-};
-
-const INVERSIONISTA_FEATURES = [
-  "Schedule E PDF mapped to correct IRS line numbers",
-  "Income & expenses broken down per property",
-  "Unlimited properties",
-  "Portfolio panel",
-  "Up to 3 property managers",
-  "Priority support (48h SLA)",
-];
-
-const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+const GATE_FEATURES = ["summary", "lines", "properties", "managers"] as const;
+const MONEY = { style: "currency", currency: "USD" } as const;
 
 export default function ScheduleEClient({
   plan,
   canExport,
+  year,
+  years,
+  summary,
 }: {
   plan: SubscriptionPlan;
   canExport: boolean;
+  year: number;
+  years: number[];
+  summary: ScheduleESummary | null;
 }) {
-  const [year, setYear] = useState(currentYear);
+  const t = useTranslations("reports");
+  const f = useFormatter();
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
   const [downloading, setDownloading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const money = (n: number) => f.number(n, MONEY);
 
   async function handleDownload() {
     setDownloading(true);
-    setError(null);
     try {
       const res = await fetch(`/api/reports/schedule-e?year=${year}`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "Failed to generate report");
+        throw new Error(res.status === 404 ? t("noProperties") : typeof body.error === "string" ? body.error : t("downloadFailed"));
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -51,8 +56,9 @@ export default function ScheduleEClient({
       a.download = `schedule-e-${year}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
+      toast.success(t("downloaded"));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      toast.error(e instanceof Error ? e.message : t("downloadFailed"));
     } finally {
       setDownloading(false);
     }
@@ -61,122 +67,46 @@ export default function ScheduleEClient({
   // ── Upgrade gate ──────────────────────────────────────────────────────────
   if (!canExport) {
     return (
-      <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="animate-slide-up">
-          <p
-            className="text-[10px] font-semibold uppercase tracking-widest mb-1"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Reports
-          </p>
-          <h1
-            className="font-display text-4xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]"
-            style={{ letterSpacing: "-0.03em" }}
-          >
-            Schedule E
-          </h1>
-        </div>
+      <div className="space-y-6">
+        <PageHeader title={t("title")} description={t("description")} />
 
-        {/* Gate card */}
-        <div
-          className="rounded-2xl p-8 flex flex-col items-center text-center animate-slide-up"
-          style={{
-            background: "rgba(16, 185, 129,0.06)",
-            border: "1px solid rgba(16, 185, 129,0.18)",
-            animationDelay: "0.06s",
-            animationFillMode: "both",
-          }}
-        >
-          {/* Icon + lock badge */}
-          <div className="relative mb-6">
-            <div
-              className="flex h-20 w-20 items-center justify-center rounded-3xl"
-              style={{
-                background: "linear-gradient(135deg, rgba(0,87,217,0.25), rgba(16, 185, 129,0.15))",
-                border: "1px solid rgba(16, 185, 129,0.25)",
-                boxShadow: "0 8px 32px rgba(16, 185, 129,0.15)",
-              }}
-            >
-              <BarChart3 className="h-9 w-9" style={{ color: "#10b981" }} strokeWidth={1.5} />
+        <Card className="items-center text-center">
+          <CardHeader className="w-full justify-items-center">
+            <div className="mb-2 flex size-12 items-center justify-center rounded-xl bg-primary-soft text-primary-soft-foreground">
+              <Lock className="size-5" aria-hidden />
             </div>
-            <div
-              className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full"
-              style={{
-                background: "rgba(255,69,58,0.18)",
-                border: "1px solid rgba(255,69,58,0.35)",
-              }}
-            >
-              <Lock className="h-3.5 w-3.5" style={{ color: "#ff453a" }} strokeWidth={2.5} />
+            <CardTitle className="text-lg">
+              <h2>{t("gate.title")}</h2>
+            </CardTitle>
+            <CardDescription className="max-w-md">{t("gate.description")}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex w-full flex-col items-center gap-5">
+            <ul className="w-full max-w-sm space-y-2 text-left text-sm">
+              {GATE_FEATURES.map((k) => (
+                <li key={k} className="flex items-center gap-2.5 text-foreground">
+                  <Check className="size-4 shrink-0 text-success" aria-hidden />
+                  {t(`gate.features.${k}`)}
+                </li>
+              ))}
+            </ul>
+            <Button asChild size="lg">
+              <Link href="/pricing">
+                {t("gate.cta")}
+                <ArrowUpRight />
+              </Link>
+            </Button>
+            <div className="space-y-1 text-xs text-muted-foreground">
+              <p className="tabular">{t("gate.price", { price: PLAN_PRICES_USD.inversionista })}</p>
+              <p>{t("gate.currentPlan", { plan: planDisplayName(plan) })}</p>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <h2 className="text-xl font-bold text-white mb-2">IRS Schedule E Report</h2>
-          <p className="text-sm max-w-sm mb-8" style={{ color: S.muted }}>
-            Generate a pre-filled Schedule E PDF for your rental properties —
-            with income and expenses mapped to the correct IRS line items.
-          </p>
-
-          {/* Feature list */}
-          <ul className="space-y-2.5 mb-8 text-left w-full max-w-xs">
-            {INVERSIONISTA_FEATURES.map((f) => (
-              <li key={f} className="flex items-center gap-2.5 text-sm" style={{ color: S.text }}>
-                <div
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                  style={{ background: "rgba(16, 185, 129,0.15)" }}
-                >
-                  <Check size={11} style={{ color: "#10b981" }} strokeWidth={3} />
-                </div>
-                {f}
-              </li>
-            ))}
-          </ul>
-
-          {/* CTA */}
-          <Link
-            href="/pricing"
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all"
-            style={{
-              background: "#10b981",
-              color: "#fff",
-              boxShadow: "0 4px 16px rgba(16, 185, 129,0.40)",
-            }}
-          >
-            <Zap size={15} />
-            Upgrade to Inversionista
-            <ArrowUpRight size={14} />
-          </Link>
-          <p className="text-xs mt-3" style={{ color: S.muted }}>
-            $99/mes &middot; Cancel anytime
-          </p>
-        </div>
-
-        {/* What is Schedule E */}
-        <div
-          className="rounded-2xl p-5 animate-slide-up"
-          style={{
-            background: S.bg,
-            border: `1px solid ${S.border}`,
-            animationDelay: "0.12s",
-            animationFillMode: "both",
-          }}
-        >
-          <div className="flex items-start gap-3">
-            <div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl mt-0.5"
-              style={{ background: "rgba(255,255,255,0.06)" }}
-            >
-              <FileText size={15} style={{ color: S.muted }} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white mb-1">What is Schedule E?</p>
-              <p className="text-xs leading-relaxed" style={{ color: S.muted }}>
-                Schedule E is an IRS form used by rental property owners to report income,
-                expenses, and net profit or loss. ContractOS maps your tracked expenses
-                directly to the correct line numbers and generates a PDF you can hand to
-                your accountant or use as a reference when filing.
-              </p>
-            </div>
+        <div className="flex items-start gap-3 rounded-xl border bg-surface p-4 md:p-5">
+          <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <div>
+            <h2 className="text-sm font-semibold text-foreground">{t("gate.whatTitle")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("gate.whatBody")}</p>
           </div>
         </div>
       </div>
@@ -184,111 +114,155 @@ export default function ScheduleEClient({
   }
 
   // ── Unlocked view ─────────────────────────────────────────────────────────
+  const props = summary?.properties ?? [];
+
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div
-        className="flex items-start justify-between gap-4 flex-wrap animate-slide-up"
-      >
+    <div className="space-y-6">
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="schedule-e-year" className="sr-only">
+                {t("year")}
+              </Label>
+              <Select
+                value={String(year)}
+                onValueChange={(v) => startTransition(() => router.push(`/reports/schedule-e?year=${v}`))}
+              >
+                <SelectTrigger id="schedule-e-year" className="h-10 w-28 tabular md:h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((y) => (
+                    <SelectItem key={y} value={String(y)} className="tabular">
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleDownload} disabled={downloading || props.length === 0} className="h-10 md:h-9">
+              {downloading ? <Loader2 className="animate-spin" /> : <Download />}
+              {downloading ? t("generating") : t("download", { year })}
+            </Button>
+          </>
+        }
+      />
+
+      <div className="flex items-start gap-3 rounded-xl border bg-info-soft p-4 md:p-5">
+        <Info className="mt-0.5 size-4 shrink-0 text-info" aria-hidden />
         <div>
-          <p
-            className="text-[10px] font-semibold uppercase tracking-widest mb-1"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Reports
-          </p>
-          <h1
-            className="font-display text-4xl font-bold bg-clip-text text-transparent bg-linear-to-b from-[#f2efe6] to-[#a3a196]"
-            style={{ letterSpacing: "-0.03em" }}
-          >
-            Schedule E
-          </h1>
-          <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>
-            IRS Supplemental Income &amp; Loss &mdash; for informational purposes only
-          </p>
+          <h2 className="text-sm font-semibold text-foreground">{t("disclaimer.title")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("disclaimer.body")}</p>
         </div>
-
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-          style={{
-            background: "#10b981",
-            color: "#fff",
-            boxShadow: downloading ? "none" : "0 4px 16px rgba(16, 185, 129,0.35)",
-          }}
-        >
-          {downloading ? (
-            <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-          ) : (
-            <Download size={15} />
-          )}
-          {downloading ? "Generating…" : `Download ${year} PDF`}
-        </button>
       </div>
 
-      {/* Year selector */}
-      <div
-        className="flex flex-wrap gap-2 animate-slide-up"
-        style={{ animationDelay: "0.06s", animationFillMode: "both" }}
-      >
-        {years.map((y) => (
-          <button
-            key={y}
-            onClick={() => setYear(y)}
-            className="rounded-xl px-3 py-1.5 text-xs font-medium transition-all"
-            style={{
-              background: y === year ? "rgba(16, 185, 129,0.18)" : "rgba(255,255,255,0.06)",
-              color: y === year ? "#fff" : "var(--text-secondary)",
-              border: `1px solid ${y === year ? "rgba(16, 185, 129,0.30)" : "transparent"}`,
-            }}
-          >
-            {y}
-          </button>
-        ))}
-      </div>
+      {props.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          title={t("emptyProperties.title")}
+          description={t("emptyProperties.description")}
+          action={
+            <Button asChild>
+              <Link href="/properties">{t("emptyProperties.action")}</Link>
+            </Button>
+          }
+        />
+      ) : (
+        <div className={cn("space-y-6 transition-opacity", pending && "opacity-60")} aria-busy={pending}>
+          <dl className="grid grid-cols-1 gap-4 rounded-xl border bg-surface p-4 sm:grid-cols-3 md:p-5">
+            <div>
+              <dt className="text-xs text-muted-foreground">{t("totals.income")}</dt>
+              <dd className="tabular mt-1 text-lg font-semibold text-foreground">{money(summary?.income ?? 0)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">{t("totals.expenses")}</dt>
+              <dd className="tabular mt-1 text-lg font-semibold text-foreground">{money(summary?.expenses ?? 0)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">
+                {t("totals.net")} · {t("totals.properties", { count: props.length })}
+              </dt>
+              <dd
+                className={cn(
+                  "tabular mt-1 text-lg font-semibold",
+                  (summary?.net ?? 0) < 0 ? "text-danger" : "text-foreground"
+                )}
+              >
+                {money(summary?.net ?? 0)}
+              </dd>
+            </div>
+          </dl>
+          <p className="text-xs text-muted-foreground">{t("incomeHint")}</p>
 
-      {/* Error */}
-      {error && (
-        <div
-          className="rounded-xl px-4 py-3 text-sm animate-fade-in"
-          style={{
-            background: "rgba(255,69,58,0.10)",
-            border: "1px solid rgba(255,69,58,0.25)",
-            color: "#ff453a",
-          }}
-        >
-          {error}
+          {props.map((p) => (
+            <Card key={p.id} className="gap-4 py-4 md:py-5">
+              <CardHeader className="px-4 md:px-5">
+                <CardTitle className="text-base">
+                  <h2>{p.name}</h2>
+                </CardTitle>
+                {p.address && <CardDescription>{p.address}</CardDescription>}
+              </CardHeader>
+              <CardContent className="px-0 md:px-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-20 pl-4 md:pl-5">{t("table.line")}</TableHead>
+                      <TableHead>{t("table.concept")}</TableHead>
+                      <TableHead className="pr-4 text-right md:pr-5">{t("table.amount")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="pl-4 text-muted-foreground tabular md:pl-5">3</TableCell>
+                      <TableCell>{t("table.income")}</TableCell>
+                      <TableCell className="tabular pr-4 text-right md:pr-5">{money(p.income)}</TableCell>
+                    </TableRow>
+                    {p.lines.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="whitespace-normal px-4 text-sm text-muted-foreground md:px-5">
+                          {t("table.noExpenses", { year })}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      p.lines.map((l) => (
+                        <TableRow key={l.line}>
+                          <TableCell className="pl-4 text-muted-foreground tabular md:pl-5">{l.line}</TableCell>
+                          <TableCell className="whitespace-normal">
+                            {t.has(`lines.${l.line}`) ? t(`lines.${l.line}`) : t("lineNumber", { line: l.line })}
+                          </TableCell>
+                          <TableCell className="tabular pr-4 text-right md:pr-5">{money(l.amount)}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell className="pl-4 md:pl-5" />
+                      <TableCell>{t("table.totalExpenses")}</TableCell>
+                      <TableCell className="tabular pr-4 text-right md:pr-5">{money(p.expenses)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="pl-4 md:pl-5" />
+                      <TableCell className="font-semibold">{t("table.net")}</TableCell>
+                      <TableCell
+                        className={cn(
+                          "tabular pr-4 text-right font-semibold md:pr-5",
+                          p.net < 0 ? "text-danger" : "text-foreground"
+                        )}
+                      >
+                        {money(p.net)}
+                      </TableCell>
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
-
-      {/* Info card */}
-      <div
-        className="rounded-2xl p-5 animate-slide-up"
-        style={{
-          background: S.bg,
-          border: `1px solid ${S.border}`,
-          animationDelay: "0.10s",
-          animationFillMode: "both",
-        }}
-      >
-        <div className="flex items-start gap-3">
-          <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl mt-0.5"
-            style={{ background: "rgba(255,255,255,0.06)" }}
-          >
-            <FileText size={15} style={{ color: S.muted }} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-white mb-1">What&apos;s included</p>
-            <p className="text-xs leading-relaxed" style={{ color: S.muted }}>
-              Your report includes rental income from signed contracts and all tracked expenses
-              mapped to their correct IRS Schedule E line numbers. Share with your accountant
-              or use as a filing reference. This report is not tax advice.
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

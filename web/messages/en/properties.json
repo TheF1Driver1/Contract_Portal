@@ -1,8 +1,95 @@
 {
   "title": "Properties",
-  "new": "New Property",
+  "new": "New property",
   "address": "Address",
   "units": "Units",
   "noProperties": "No properties yet",
-  "addFirst": "Add your first property"
+  "addFirst": "Add your first property",
+  "description": "Your properties, their active leases and this year's balance.",
+  "add": "Add property",
+  "emptyDescription": "Add a property to start creating lease agreements.",
+  "tabs": { "list": "List", "map": "Map" },
+  "searchPlaceholder": "Search by name or address",
+  "filteredBy": "Showing results for “{query}”",
+  "clearFilter": "Show all",
+  "noMapped": "No properties are on the map yet. We locate them from their address; check back in a few minutes.",
+  "col": {
+    "name": "Name",
+    "location": "Address",
+    "units": "Units",
+    "jurisdiction": "Jurisdiction",
+    "activeLeases": "Active leases",
+    "expenses": "Expenses this year",
+    "net": "Estimated net"
+  },
+  "unitsCount": "{count, plural, one {# unit} other {# units}}",
+  "leasesOf": "{active} of {units}",
+  "bathsCount": "{count, plural, one {# bath} other {# baths}}",
+  "parking": "Parking",
+  "jurisdiction": {
+    "pr": "Puerto Rico",
+    "us_mainland": "US mainland",
+    "other": "Other"
+  },
+  "actions": {
+    "edit": "Edit {name}",
+    "coOwners": "Co-owners of {name}",
+    "menu": "Actions"
+  },
+  "form": {
+    "createTitle": "Add property",
+    "editTitle": "Edit property",
+    "createDescription": "The basics and address are used in your contracts.",
+    "editWarning": "Changes do not affect contracts that are already signed.",
+    "basics": "Basics",
+    "addressGroup": "Address",
+    "name": "Property name",
+    "namePlaceholder": "e.g. Sabana Gardens Apt 2",
+    "street": "Street address",
+    "streetPlaceholder": "123 Calle Luna",
+    "city": "Town or city",
+    "cityPlaceholder": "San Juan",
+    "state": "State",
+    "zip": "ZIP code",
+    "unitCount": "Units",
+    "bathrooms": "Bathrooms",
+    "parkingIncluded": "Parking included",
+    "parkingCount": "Parking spaces",
+    "save": "Save property",
+    "saveChanges": "Save changes",
+    "saving": "Saving…",
+    "seePlans": "See plans",
+    "created": "Property added",
+    "updated": "Changes saved"
+  },
+  "coOwners": {
+    "title": "Co-owners",
+    "current": "Current co-owners",
+    "none": "You haven't added any co-owners yet.",
+    "add": "Add co-owner",
+    "search": "Find a person",
+    "searchPlaceholder": "Search by @username or email",
+    "searching": "Searching…",
+    "results": "Results",
+    "selected": "Selected: {name}",
+    "pct": "Ownership percentage",
+    "pctPlaceholder": "e.g. 50",
+    "pctInvalid": "Enter a percentage between 1 and 100.",
+    "invite": "Send invite",
+    "invited": "Invite sent",
+    "inviteFailed": "Could not send the invite",
+    "remove": "Remove {name}",
+    "removed": "Co-owner removed",
+    "removeFailed": "Could not remove the co-owner",
+    "loadFailed": "Could not load co-owners",
+    "status": {
+      "accepted": "Active",
+      "declined": "Declined",
+      "pending": "Pending"
+    }
+  },
+  "map": {
+    "loading": "Loading map…",
+    "label": "Property map"
+  }
 }

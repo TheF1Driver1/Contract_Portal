@@ -1,1 +1,41 @@
-{}
+{
+  "home": "Ir a la página principal",
+  "tenant": {
+    "contextLabel": "Contrato de arrendamiento",
+    "context": "Te invitaron a firmar tu contrato de arrendamiento para <b>{property}</b>.",
+    "greeting": "Hola, {name}.",
+    "propertyFallback": "tu propiedad",
+    "titleSignup": "Crea tu cuenta para firmar",
+    "titleSignin": "Inicia sesión para firmar",
+    "description": "Usa el correo al que te llegó la invitación.",
+    "tabSignup": "Crear cuenta",
+    "tabSignin": "Ya tengo cuenta",
+    "fullName": "Nombre completo",
+    "fullNamePlaceholder": "Tu nombre completo",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "passwordHint": "Mínimo 6 caracteres.",
+    "submitSignup": "Crear cuenta y continuar",
+    "submitSignin": "Entrar y continuar",
+    "redeemFailed": "No pudimos activar tu invitación. Intenta de nuevo.",
+    "expiredTitle": "Este enlace ya no está disponible",
+    "expiredDescription": "La invitación venció o ya se usó. Pídele a tu arrendador un enlace nuevo."
+  },
+  "manager": {
+    "title": "Invitación para administrar propiedades",
+    "description": "<b>{owner}</b> invitó a <b>{email}</b> a administrar estas propiedades:",
+    "propertiesLabel": "Propiedades incluidas",
+    "loginNote": "Debes iniciar sesión como <b>{email}</b> para aceptar esta invitación.",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "ownerFallback": "Un arrendador",
+    "acceptedTitle": "Invitación aceptada",
+    "acceptedDescription": "Ya puedes administrar las propiedades de {owner}.",
+    "goDashboard": "Ir al panel",
+    "declinedTitle": "Invitación rechazada",
+    "declinedDescription": "Rechazaste esta invitación. Si fue un error, comunícate con {owner}.",
+    "unavailableTitle": "Invitación no disponible",
+    "unavailableDescription": "Este enlace ya se usó, se rechazó o se revocó. Pídele al dueño de la propiedad una invitación nueva.",
+    "genericError": "Algo salió mal. Intenta de nuevo."
+  }
+}

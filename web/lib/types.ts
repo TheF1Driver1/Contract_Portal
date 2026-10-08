@@ -80,6 +80,7 @@ export interface Tenant {
   monthly_income: number | null;
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
+  preferred_locale?: string | null;
   created_at: string | null;
 }
 

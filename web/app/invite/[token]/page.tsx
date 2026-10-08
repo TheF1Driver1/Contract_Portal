@@ -1,7 +1,11 @@
 import Link from "next/link";
 export const dynamic = 'force-dynamic';
 
+import { getTranslations } from "next-intl/server";
+import { XCircle } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase-server";
+import { Button } from "@/components/ui/button";
+import { AuthShell, AuthStatusIcon } from "@/components/auth/AuthShell";
 import InviteSignupClient from "./InviteSignupClient";
 
 interface InviteData {
@@ -14,6 +18,7 @@ interface InviteData {
 export default async function InvitePage(props: { params: Promise<{ token: string }> }) {
   const params = await props.params;
   const admin = createAdminClient();
+  const t = await getTranslations("invite");
 
   const { data: invite } = await admin
     .from("tenant_invites")
@@ -25,25 +30,19 @@ export default async function InvitePage(props: { params: Promise<{ token: strin
 
   if (expired) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-sm rounded-xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
-            <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <h1 className="text-lg font-semibold text-white">Link Expired</h1>
-          <p className="mt-2 text-sm text-neutral-400">
-            This invite link has expired or has already been used. Please contact your landlord for a new link.
-          </p>
-          <Link
-            href="/"
-            className="mt-6 inline-block text-sm text-neutral-500 hover:text-white transition-colors"
-          >
-            Go to homepage
-          </Link>
-        </div>
-      </div>
+      <AuthShell
+        media={
+          <AuthStatusIcon tone="danger">
+            <XCircle />
+          </AuthStatusIcon>
+        }
+        title={t("tenant.expiredTitle")}
+        description={t("tenant.expiredDescription")}
+      >
+        <Button asChild variant="outline" size="lg" className="w-full">
+          <Link href="/">{t("home")}</Link>
+        </Button>
+      </AuthShell>
     );
   }
 
@@ -53,12 +52,8 @@ export default async function InvitePage(props: { params: Promise<{ token: strin
     tenantEmail: invite.tenant_email,
     tenantName: invite.tenant_name,
     contractId: invite.contract_id,
-    propertyName: property?.name ?? "your property",
+    propertyName: property?.name ?? t("tenant.propertyFallback"),
   };
 
-  return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <InviteSignupClient {...data} token={params.token} />
-    </div>
-  );
+  return <InviteSignupClient {...data} token={params.token} />;
 }

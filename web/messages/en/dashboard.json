@@ -1,5 +1,5 @@
 {
-  "title": "Dashboard",
+  "title": "Home",
   "welcome": "Welcome back",
   "properties": "Properties",
   "contracts": "Contracts",
@@ -8,5 +8,53 @@
   "expiringLeases": "Expiring Soon",
   "monthlyRevenue": "Monthly Revenue",
   "noData": "No data yet",
-  "viewAll": "View All"
+  "viewAll": "View all",
+  "description": "What needs your attention today and how your portfolio is doing.",
+  "newContract": "New contract",
+  "today": {
+    "title": "Today",
+    "count": "{count, plural, one {# to do} other {# to do}}",
+    "allClear": "All caught up",
+    "allClearDescription": "No contracts to send, sign, or renew.",
+    "draft": "Draft not sent",
+    "unsigned": "Sent {days, plural, one {# day} other {# days}} ago, not signed",
+    "expiring": "Ends {days, plural, =0 {today} one {in # day} other {in # days}}",
+    "failed": "Reminder by {channel} failed",
+    "untitled": "Contract",
+    "action": {
+      "send": "Send",
+      "remind": "Remind",
+      "renew": "Renew",
+      "review": "Review"
+    },
+    "more": "{count, plural, one {and # more} other {and # more}}"
+  },
+  "kpi": {
+    "label": "Key numbers",
+    "expectedRent": "Expected rent this month",
+    "expectedRentSub": "{count, plural, =0 {No active leases} one {# active lease} other {# active leases}}",
+    "occupancy": "Occupancy",
+    "occupancySub": "{occupied} of {total, plural, one {# unit} other {# units}}",
+    "occupancyNone": "No units yet",
+    "expiring": "Leases ending soon",
+    "expiringSub": "In the next 60 days",
+    "drafts": "Drafts",
+    "draftsSub": "Ready to send"
+  },
+  "chart": {
+    "title": "Expected rent and expenses",
+    "description": "Last 12 months. Expected rent comes from signed leases; collected payments are coming soon.",
+    "rent": "Expected rent",
+    "expenses": "Expenses",
+    "month": "Month",
+    "summary": "Bar chart of the last 12 months: total expected rent {rent}, total expenses {expenses}.",
+    "empty": "No rent or expenses in the last 12 months yet."
+  },
+  "recent": {
+    "title": "Recent contracts",
+    "empty": "No contracts yet",
+    "emptyDescription": "Create your first lease to get started.",
+    "unknownTenant": "Unnamed tenant",
+    "noProperty": "No property"
+  }
 }
