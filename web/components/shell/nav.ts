@@ -31,7 +31,7 @@ export const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
   {
     key: "insights",
     items: [
-      { href: "/reports/schedule-e", key: "reports", icon: BarChart3 },
+      { href: "/reports", key: "reports", icon: BarChart3 },
       { href: "/market", key: "market", icon: Map, badge: "labs" },
       { href: "/watchlist", key: "watchlist", icon: Heart, badge: "labs" },
     ],

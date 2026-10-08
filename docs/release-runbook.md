@@ -1,6 +1,6 @@
 # Release runbook: `feature/roadmap-execution` → `dev` → `main`
 
-This branch carries Plans 24–32. The code expects database migrations 012–022,
+This branch carries Plans 24–40. The code expects database migrations 012–027,
 which are **not** in production yet (011 was applied on 2026-10-07). Deploy in
 the order below. Steps 1–3 can run before the code ships, because every migration
 is additive and backward compatible with the current `main`. The exception is
@@ -31,6 +31,10 @@ a copy of the production schema, together with role-based behavior checks.
 | 020 | `020_esign.sql` | E-sign tables, evidence log, signed-contract immutability, signing guard, `signed-documents` bucket, realtime | ⚠️ See below |
 | 021 | `021_lifecycle_emails.sql` | `profiles.lifecycle_emails`, `lifecycle_email_log` | |
 | 022 | `022_rent_ledger.sql` | `rent_ledgers`, `rent_charges`, `payments`, `contract_ledger` view | Rent tracking is opt-in per lease |
+| 023 | `023_messaging.sql` | `message_log`, `messaging_consents`, `profiles.digest_emails` | WhatsApp/SMS consent and delivery tracking |
+| 024 | `024_maintenance_inspections.sql` | Maintenance requests, updates and photos; move-in/move-out inspections; private `maintenance-photos` bucket | Completed inspections are frozen by a trigger |
+| 025 | `025_tax_pack.sql` | `profiles.tax_residency`, `property_crim`, `crim_bills` | |
+| 026 | `026_market_status.sql` | `rea.scrape_runs`, `market_data_updated_at()`, `zillow_market` view gains `rentZestimate`/`livingArea`, `zillow_historical` primary key, indexes, `unaccent` | Recreates the `zillow_market` view (columns appended, grants kept) |
 | 027 | `027_ai_usage.sql` | `ai_usage_events` (per-plan monthly AI quotas) | Stores no prompt or document content |
 
 **About 020.** After 020, only the server (service role) can mark a contract
@@ -69,6 +73,8 @@ New or changed on this branch. `web/.env.example` has the full list.
 | `UNSUBSCRIBE_SECRET` | Unsubscribe links in onboarding emails | Falls back to `CRON_SECRET`. Set it separately so `CRON_SECRET` can be rotated without breaking old links |
 | `STRIPE_PRICE_ENTERPRISE`, `STRIPE_PRICE_PROPIETARIO_YEARLY`, `STRIPE_PRICE_INVERSIONISTA_YEARLY` | Pricing page and checkout | Create these prices in Stripe first. The monthly/yearly toggle in Settings › Billing only appears once a yearly price is set. Also set the `yearly` amounts in `web/lib/pricing.ts` so the public pricing page shows them |
 | `STRIPE_TRIAL_DAYS` | Free trial on a first paid subscription | `0` or unset means no trial; the maximum is 60. Accounts that had a subscription before never get a trial |
+| `TWILIO_WHATSAPP_FROM`, `TWILIO_WA_TEMPLATE_*_ES/EN` | WhatsApp reminders and notices | Unset = WhatsApp is skipped and SMS/email is used. Templates must be approved by Meta first; the variable order is in `.env.example` |
+| `RESEND_WEBHOOK_SECRET` | Delivery/open tracking (`/api/webhooks/resend`) | Create the webhook in Resend for sent, delivered, opened, bounced, complained |
 | `ANTHROPIC_API_KEY` | AI receipt scanning in Expenses, lease Q&A | Unset hides every AI feature. Monthly quotas per plan are in `web/lib/ai/usage.ts` |
 | `AI_LEASE_HELP` | Tenant lease Q&A on the signing page | Set to `1` only after the attorney approves a sample of answers |
 | `CONTACT_EMAIL` | Enterprise contact form (`/contacto`) | Defaults to `hola@prcontract.online` |
@@ -77,9 +83,14 @@ New or changed on this branch. `web/.env.example` has the full list.
 
 Cron jobs (`web/vercel.json`) are created automatically on deploy:
 `/api/cron/rent` runs daily at 09:00 UTC (posts rent and late fees),
-`/api/cron/notify` at 10:00 UTC, and `/api/cron/lifecycle` at 14:00 UTC
-(10:00 AST). Each runs once a day, which fits Vercel's Hobby limits. Check
+`/api/cron/notify` at 10:00 UTC, `/api/cron/messages` at 13:00 UTC (rent
+reminders, overdue notices and the landlord digest, 9:00 AST) and
+`/api/cron/lifecycle` at 14:00 UTC (10:00 AST). Each runs once a day, which fits Vercel's Hobby limits. Check
 the cron count allowed on the current plan in Vercel → Settings → Cron Jobs.
+
+Twilio console: point the number's and WhatsApp sender's "A message comes in"
+webhook to `https://<app>/api/webhooks/twilio/inbound` (STOP/START/AYUDA are
+handled there).
 
 ## 4. Deploy
 
@@ -96,6 +107,10 @@ the cron count allowed on the current plan in Vercel → Settings → Cron Jobs.
 - [ ] **Request a signature.** Open the link on a phone, give consent, enter the code (SMS or email), sign, then sign as the landlord. The contract becomes `signed`, the sealed PDF downloads, and the certificate shows the SHA-256 hashes.
 - [ ] Try to edit the signed contract. It is blocked; use **Void and reissue**.
 - [ ] Stripe test-mode checkout (monthly and, if configured, yearly; with a trial if `STRIPE_TRIAL_DAYS` is set), then the customer portal. The webhook is recorded once in `stripe_events`.
+- [ ] Maintenance: as a tenant in `/portal`, file a repair request with a photo; the landlord gets an email and sees it in `/maintenance` and in Hoy.
+- [ ] Inspections: create a move-in inspection on a signed lease, complete it, and download the PDF.
+- [ ] Reports: `/reports/annual` loads for last year; CSV and PDF export work.
+- [ ] Send a test text to the Twilio number with "AYUDA"; you get the bilingual help reply.
 - [ ] Next morning, `select * from cron_runs order by started_at desc limit 5` shows `ok = true` for both jobs.
 
 ## 6. Rollback
@@ -112,4 +127,8 @@ the cron count allowed on the current plan in Vercel → Settings → Cron Jobs.
 - [ ] **Vercel Pro**, if you want custom analytics events (`trackEvent`). On Hobby they are dropped silently.
 - [ ] **Attorney review** of `/terminos`, `/privacidad`, the lease clauses in `lib/pdf-react.tsx`, and the e-sign consent text (Ley 148-2006 / ESIGN).
 - [ ] **iOS (Plan 38)**: branch `feature/esign-handoff` in Contract-Portal-iOS moves signing to the web flow. It was written without a compiler: build it in Xcode and test on a device against a backend with 020, then ship before 020 reaches production.
+- [ ] **Scraper (Plan 40)**: merge `feature/market-reliability` in Real-Estate-Search-Automation after adding the Action secrets/variables (`ZILLOW_2026_API_URL`, `RESEND_API_KEY`, `ALERT_EMAIL`, `REPORT_EMAIL`, optional `MAX_PAGES`). The current workflow never passed `ZILLOW_2026_API_URL`, so past runs likely scraped nothing while showing green.
+- [ ] **Revoke the Gmail app password** hardcoded in the scraper's `modules/email_integration.py` on `main` (sender jakotcontact@gmail.com). The branch removes it from the code; revoking it in the Google account is what makes it safe.
+- [ ] **Licensing review** of Zillow data and links shown in the app (listing photos are no longer displayed).
+- [ ] **CPA review** of the expense → Schedule E / Anejo N mapping (`web/lib/tax/mapping.ts`) and the year-end package.
 - [ ] **AI (Plan 39)**: build the eval set (50 anonymized receipts, 20 clauses) and check receipt accuracy before announcing the feature; attorney sign-off before `AI_LEASE_HELP=1`.
