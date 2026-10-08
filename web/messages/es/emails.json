@@ -42,5 +42,46 @@
     "body": "Todas las partes firmaron el contrato de arrendamiento de {property}. Descarga tu copia firmada con el certificado de firma.",
     "cta": "Descargar contrato firmado",
     "note": "Guarda el PDF. Su huella digital (SHA-256) es {hash}."
+  },
+  "lifecycle": {
+    "footer": "Recibes estos consejos porque creaste una cuenta en ContractOS.",
+    "welcome": {
+      "subject": "Bienvenido a ContractOS",
+      "heading": "Tu primer contrato en 10 minutos",
+      "body1": "Hola {name}:",
+      "body2": "ContractOS prepara contratos de arrendamiento de Puerto Rico en español, los envía a firmar desde el celular y te recuerda los vencimientos.",
+      "body3": "Empieza por añadir una propiedad; luego el contrato toma unos minutos.",
+      "cta": "Ir al panel"
+    },
+    "first_property": {
+      "subject": "Añade tu primera propiedad",
+      "heading": "Añade tu primera propiedad",
+      "body1": "Con la dirección y las unidades, tus contratos se llenan solos.",
+      "body2": "¿Tienes varias? Importa una hoja de Excel o Google Sheets en un paso.",
+      "cta": "Añadir propiedad"
+    },
+    "first_contract": {
+      "subject": "Prepara tu primer contrato",
+      "heading": "Prepara tu primer contrato",
+      "body1": "El asistente usa el Código Civil de Puerto Rico de 2020 e incluye depósito, cargos por atraso y cláusulas a tu medida.",
+      "body2": "Puedes guardar un borrador y terminarlo después.",
+      "cta": "Crear contrato"
+    },
+    "esign": {
+      "subject": "Firma sin imprimir",
+      "heading": "Que tu inquilino firme desde el celular",
+      "body1": "Envía el contrato a firmar: el inquilino recibe un enlace, confirma su identidad con un código y firma. No necesita cuenta.",
+      "body2": "Recibes el PDF sellado con el certificado de firma cuando todos firman.",
+      "cta": "Ver contratos"
+    },
+    "unsubscribe": "Dejar de recibirlos"
+  },
+  "unsubscribePage": {
+    "title": "Consejos por correo",
+    "confirm": "¿Dejar de recibir consejos de inicio de ContractOS? Seguirás recibiendo los avisos de tus contratos y recordatorios.",
+    "button": "Dejar de recibirlos",
+    "done": "Listo. No te enviaremos más consejos de inicio.",
+    "invalid": "Este enlace no es válido. Puedes cambiar tus preferencias en Ajustes › Recordatorios.",
+    "back": "Ir a ContractOS"
   }
 }

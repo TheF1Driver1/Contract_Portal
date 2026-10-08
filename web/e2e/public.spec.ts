@@ -64,3 +64,11 @@ test("health endpoint responds", async ({ request }) => {
   const res = await request.get("/api/health");
   expect(res.status()).toBeLessThan(600);
 });
+
+test("unsubscribe rejects a forged link", async ({ page, request }) => {
+  await page.goto("/unsubscribe?u=00000000-0000-4000-8000-000000000001&s=forged");
+  await expect(page.getByText("Este enlace no es válido")).toBeVisible();
+  await expect(page.getByRole("button")).toHaveCount(0);
+  const res = await request.post("/api/unsubscribe?u=00000000-0000-4000-8000-000000000001&s=forged");
+  expect(res.status()).toBe(400);
+});

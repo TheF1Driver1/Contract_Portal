@@ -87,7 +87,12 @@
     "loadError": "No se pudieron cargar los recordatorios",
     "deleteError": "No se pudo eliminar el recordatorio",
     "deleteTitle": "¿Eliminar este recordatorio?",
-    "deleteBody": "{count, plural, one {Ya no recibirás el aviso de # día.} other {Ya no recibirás el aviso de # días.}}"
+    "deleteBody": "{count, plural, one {Ya no recibirás el aviso de # día.} other {Ya no recibirás el aviso de # días.}}",
+    "tips": {
+      "title": "Consejos de inicio por correo",
+      "description": "Algunos correos durante tu primera semana para sacarle provecho a ContractOS.",
+      "failed": "No se pudo guardar la preferencia."
+    }
   },
   "managersPage": {
     "title": "Administradores de propiedad",

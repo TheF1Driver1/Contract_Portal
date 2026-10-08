@@ -1,6 +1,6 @@
 // Database type used by every Supabase client. database.types.ts is generated
 // from production; PendingTables covers tables created by migrations that are
-// applied at merge (012, 013, 018). Regenerate and delete entries once applied.
+// applied at merge (012, 013, 018, 020, 021). Regenerate and delete entries once applied.
 import type { Database as Generated } from "@/lib/database.types";
 
 type Table<Row, Insert = Partial<Row>> = {
@@ -86,6 +86,7 @@ type PendingTables = {
     { id: number; job: string; started_at: string; finished_at: string; ok: boolean; summary: Generated["public"]["Tables"]["contracts"]["Row"]["amenities"] },
     { job: string; started_at: string; finished_at: string; ok: boolean; summary?: unknown }
   >;
+  lifecycle_email_log: Table<{ user_id: string; step: string; sent_at: string }, { user_id: string; step: string }>;
   stripe_events: Table<{ id: string; type: string; processed_at: string }, { id: string; type: string }>;
   plan_entitlements: Table<{
     plan: string;
@@ -101,6 +102,13 @@ type PendingTables = {
 };
 
 type GenTables = Generated["public"]["Tables"];
+
+type ProfilesPatched = {
+  Row: GenTables["profiles"]["Row"] & { lifecycle_emails: boolean };
+  Insert: GenTables["profiles"]["Insert"] & { lifecycle_emails?: boolean };
+  Update: GenTables["profiles"]["Update"] & { lifecycle_emails?: boolean };
+  Relationships: GenTables["profiles"]["Relationships"];
+};
 
 // Columns added by merge-time migrations (019, 020).
 type ContractExtra = {
@@ -128,7 +136,11 @@ type TenantsPatched = {
 
 export type Database = Omit<Generated, "public"> & {
   public: Omit<Generated["public"], "Tables"> & {
-    Tables: Omit<GenTables, "tenants" | "contracts"> & { tenants: TenantsPatched; contracts: ContractsPatched } & PendingTables;
+    Tables: Omit<GenTables, "tenants" | "contracts" | "profiles"> & {
+      tenants: TenantsPatched;
+      contracts: ContractsPatched;
+      profiles: ProfilesPatched;
+    } & PendingTables;
   };
 };
 

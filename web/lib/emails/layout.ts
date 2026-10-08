@@ -17,6 +17,8 @@ export function emailLayout(opts: {
   cta?: { label: string; url: string };
   note?: string;
   footer: string;
+  /** Marketing-style emails must carry a visible unsubscribe link. */
+  unsubscribe?: { label: string; url: string };
 }): string {
   const p = (text: string) =>
     `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#334155;">${escapeHtml(text)}</p>`;
@@ -35,6 +37,6 @@ export function emailLayout(opts: {
 <tr><td style="padding:24px 32px 8px;"><p style="margin:0;font-size:14px;font-weight:700;color:#0f766e;">ContractOS</p></td></tr>
 <tr><td style="padding:8px 32px 8px;"><h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:#0f172a;">${escapeHtml(opts.heading)}</h1>${opts.paragraphs.map(p).join("")}</td></tr>
 ${cta}${note}
-<tr><td style="padding:16px 32px;border-top:1px solid #e2e6ec;"><p style="margin:0;font-size:12px;line-height:1.5;color:#64748b;">${escapeHtml(opts.footer)}</p></td></tr>
+<tr><td style="padding:16px 32px;border-top:1px solid #e2e6ec;"><p style="margin:0;font-size:12px;line-height:1.5;color:#64748b;">${escapeHtml(opts.footer)}${opts.unsubscribe ? ` <a href="${escapeHtml(opts.unsubscribe.url)}" style="color:#64748b;text-decoration:underline;">${escapeHtml(opts.unsubscribe.label)}</a>` : ""}</p></td></tr>
 </table></td></tr></table></body></html>`;
 }

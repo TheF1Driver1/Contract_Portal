@@ -42,5 +42,46 @@
     "body": "Everyone signed the lease for {property}. Download your signed copy with its signature certificate.",
     "cta": "Download signed lease",
     "note": "Keep the PDF. Its fingerprint (SHA-256) is {hash}."
+  },
+  "lifecycle": {
+    "footer": "You get these tips because you created a ContractOS account.",
+    "welcome": {
+      "subject": "Welcome to ContractOS",
+      "heading": "Your first lease in 10 minutes",
+      "body1": "Hi {name},",
+      "body2": "ContractOS drafts Puerto Rico leases, sends them for signature from any phone and reminds you before they expire.",
+      "body3": "Start by adding a property; the lease takes a few minutes after that.",
+      "cta": "Go to dashboard"
+    },
+    "first_property": {
+      "subject": "Add your first property",
+      "heading": "Add your first property",
+      "body1": "With the address and units on file, your leases fill themselves in.",
+      "body2": "Have several? Import an Excel or Google Sheets file in one step.",
+      "cta": "Add property"
+    },
+    "first_contract": {
+      "subject": "Draft your first lease",
+      "heading": "Draft your first lease",
+      "body1": "The builder follows Puerto Rico's 2020 Civil Code and covers the deposit, late fees and your own clauses.",
+      "body2": "You can save a draft and finish it later.",
+      "cta": "Create lease"
+    },
+    "esign": {
+      "subject": "Sign without printing",
+      "heading": "Let your tenant sign from their phone",
+      "body1": "Send the lease for signature: your tenant gets a link, confirms who they are with a code and signs. No account needed.",
+      "body2": "Once everyone signs, you get the sealed PDF with its signing certificate.",
+      "cta": "View leases"
+    },
+    "unsubscribe": "Unsubscribe"
+  },
+  "unsubscribePage": {
+    "title": "Email tips",
+    "confirm": "Stop receiving ContractOS getting-started tips? You'll still get notices about your leases and reminders.",
+    "button": "Unsubscribe",
+    "done": "Done. We won't send you more getting-started tips.",
+    "invalid": "This link isn't valid. You can change your preferences in Settings › Reminders.",
+    "back": "Go to ContractOS"
   }
 }

@@ -87,7 +87,12 @@
     "loadError": "Could not load reminders",
     "deleteError": "Could not delete the reminder",
     "deleteTitle": "Delete this reminder?",
-    "deleteBody": "{count, plural, one {You will stop getting the #-day notice.} other {You will stop getting the #-day notice.}}"
+    "deleteBody": "{count, plural, one {You will stop getting the #-day notice.} other {You will stop getting the #-day notice.}}",
+    "tips": {
+      "title": "Getting-started tips by email",
+      "description": "A few emails during your first week to help you get the most out of ContractOS.",
+      "failed": "Couldn't save the preference."
+    }
   },
   "managersPage": {
     "title": "Property managers",
