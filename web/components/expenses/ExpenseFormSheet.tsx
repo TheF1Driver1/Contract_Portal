@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, ScanLine, Sparkles } from "lucide-react";
 import type { Property, PropertyExpense } from "@/lib/types";
+import { EXPENSE_CATEGORIES } from "@/lib/expense-categories";
 import { FormSheet } from "@/components/app/FormSheet";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,18 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-export const EXPENSE_CATEGORIES = [
-  "maintenance",
-  "utilities",
-  "insurance",
-  "taxes",
-  "hoa",
-  "repairs",
-  "management",
-  "advertising",
-  "mortgage",
-  "other",
-] as const;
+export { EXPENSE_CATEGORIES };
 
 export type EditableExpense = Pick<
   PropertyExpense,
@@ -77,11 +67,14 @@ export function ExpenseFormSheet({
   onOpenChange,
   properties,
   expense,
+  aiScan = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   properties: Pick<Property, "id" | "name">[];
   expense?: EditableExpense | null;
+  /** Show "scan a receipt" (AI extraction) on new expenses. */
+  aiScan?: boolean;
 }) {
   const t = useTranslations("expenses");
   const tc = useTranslations("common");
@@ -89,17 +82,56 @@ export function ExpenseFormSheet({
   const editing = !!expense;
   const [form, setForm] = useState<FormState>(() => initialState(properties, expense));
   const [loading, setLoading] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanned, setScanned] = useState(false);
 
   // Reset the form each time the sheet opens (or switches to another expense).
   const openKey = open ? (expense?.id ?? "new") : null;
   const [lastKey, setLastKey] = useState(openKey);
   if (openKey !== lastKey) {
     setLastKey(openKey);
-    if (openKey) setForm(initialState(properties, expense));
+    if (openKey) {
+      setForm(initialState(properties, expense));
+      setScanned(false);
+    }
   }
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function scan(file: File | undefined) {
+    if (!file) return;
+    setScanning(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/ai/receipt", { method: "POST", body });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.draft) {
+        const key = typeof d.error === "string" && ["unsupported_type", "too_large", "quota_exceeded", "unreadable", "refused"].includes(d.error) ? d.error : "failed";
+        toast.error(t(`scan.errors.${key}`));
+        return;
+      }
+      const r = d.draft as { is_receipt: boolean; vendor: string | null; date: string | null; total: number | null; category: string; description: string | null };
+      if (!r.is_receipt) {
+        toast.error(t("scan.errors.notReceipt"));
+        return;
+      }
+      setForm((f) => ({
+        ...f,
+        vendor: r.vendor ?? f.vendor,
+        expense_date: r.date ?? f.expense_date,
+        amount: r.total !== null ? r.total.toFixed(2) : f.amount,
+        category: r.category,
+        description: r.description ?? f.description,
+      }));
+      setScanned(true);
+    } catch {
+      toast.error(t("scan.errors.failed"));
+    } finally {
+      setScanning(false);
+    }
   }
 
   async function submit(e: React.FormEvent) {
@@ -160,6 +192,40 @@ export function ExpenseFormSheet({
         </div>
       ) : (
         <form id={formId} onSubmit={submit} className="space-y-4">
+          {aiScan && !editing && (
+            <div className="rounded-xl border border-dashed bg-surface-muted p-3">
+              <label
+                htmlFor="expense-receipt"
+                className="flex cursor-pointer items-center gap-3 text-sm has-[:disabled]:cursor-wait has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring rounded-lg"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary-soft-foreground">
+                  {scanning ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <ScanLine className="size-4" aria-hidden />}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-medium text-foreground">{scanning ? t("scan.reading") : t("scan.title")}</span>
+                  <span className="block text-xs text-muted-foreground">{t("scan.hint")}</span>
+                </span>
+              </label>
+              <input
+                id="expense-receipt"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                className="sr-only"
+                disabled={scanning}
+                onChange={(e) => {
+                  void scan(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+              {scanned && (
+                <p role="status" className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+                  <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden />
+                  {t("scan.review")}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="expense-property">{t("form.property")}</Label>
             <Select value={form.property_id} onValueChange={(v) => set("property_id", v)}>

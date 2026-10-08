@@ -41,6 +41,7 @@ export default function ExpensesClient({
   years,
   canExport,
   openNew,
+  aiScan = false,
 }: {
   expenses: ExpenseRow[];
   properties: Pick<Property, "id" | "name">[];
@@ -48,6 +49,7 @@ export default function ExpensesClient({
   years: number[];
   canExport: boolean;
   openNew: boolean;
+  aiScan?: boolean;
 }) {
   const t = useTranslations("expenses");
   const tc = useTranslations("common");
@@ -397,7 +399,7 @@ export default function ExpensesClient({
         />
       </div>
 
-      <ExpenseFormSheet open={sheetOpen} onOpenChange={setSheetOpen} properties={properties} expense={editing} />
+      <ExpenseFormSheet open={sheetOpen} onOpenChange={setSheetOpen} properties={properties} expense={editing} aiScan={aiScan} />
 
       <Dialog open={!!toDelete} onOpenChange={(o) => !o && !deleting && setToDelete(null)}>
         <DialogContent>

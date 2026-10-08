@@ -82,5 +82,18 @@
     "title": "No podemos abrir este enlace",
     "help": "Si crees que es un error, comunícate con tu arrendador."
   },
-  "generic": "Algo salió mal. Inténtalo de nuevo."
+  "generic": "Algo salió mal. Inténtalo de nuevo.",
+  "help": {
+    "title": "¿Dudas sobre el contrato?",
+    "description": "Un asistente de IA te explica el contrato en palabras sencillas. Solo usa lo que dice este documento.",
+    "summary": "Resumir en lenguaje sencillo",
+    "questionLabel": "Haz una pregunta",
+    "questionPlaceholder": "Ej.: ¿Puedo tener mascotas?",
+    "ask": "Preguntar",
+    "disclaimer": "Respuesta generada con IA a partir del contrato. Puede contener errores y no es asesoría legal. Lo que vale es el texto del contrato.",
+    "errors": {
+      "limit": "El asistente no está disponible ahora. Lee el contrato o consulta con el arrendador.",
+      "failed": "No pudimos contestar. Inténtalo de nuevo."
+    }
+  }
 }

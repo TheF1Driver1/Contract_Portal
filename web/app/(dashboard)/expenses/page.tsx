@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { canExportExpenses } from "@/lib/subscription";
 import type { Property, SubscriptionPlan } from "@/lib/types";
+import { aiEnabled } from "@/lib/ai/client";
 import ExpensesClient, { type ExpenseRow } from "@/components/expenses/ExpensesClient";
 
 interface PageProps {
@@ -42,6 +43,7 @@ export default async function ExpensesPage(props: PageProps) {
       years={years.sort((a, b) => b - a)}
       canExport={canExportExpenses(plan)}
       openNew={searchParams.new === "1"}
+      aiScan={aiEnabled()}
     />
   );
 }

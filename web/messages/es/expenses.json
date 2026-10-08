@@ -78,5 +78,20 @@
   "deleteLabel": "Eliminar gasto: {name}",
   "csv": {
     "filename": "gastos-{year}.csv"
+  },
+  "scan": {
+    "title": "Escanear recibo",
+    "hint": "Sube una foto o PDF y llenamos los campos por ti.",
+    "reading": "Leyendo el recibo…",
+    "review": "Llenamos los campos con IA. Revísalos antes de guardar: puede equivocarse.",
+    "errors": {
+      "unsupported_type": "Usa una foto JPG, PNG o WebP, o un PDF.",
+      "too_large": "El archivo es muy grande (máximo 8 MB).",
+      "quota_exceeded": "Llegaste al límite de recibos escaneados de este mes en tu plan.",
+      "unreadable": "No pudimos leer el recibo. Intenta con una foto más clara.",
+      "refused": "No pudimos procesar este archivo.",
+      "notReceipt": "Ese archivo no parece un recibo o factura.",
+      "failed": "No pudimos escanear el recibo. Inténtalo de nuevo o llena los campos a mano."
+    }
   }
 }

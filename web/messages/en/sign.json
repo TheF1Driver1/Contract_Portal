@@ -82,5 +82,18 @@
     "title": "We can't open this link",
     "help": "If you think this is a mistake, contact your landlord."
   },
-  "generic": "Something went wrong. Try again."
+  "generic": "Something went wrong. Try again.",
+  "help": {
+    "title": "Questions about the lease?",
+    "description": "An AI assistant explains the lease in plain words. It only uses what this document says.",
+    "summary": "Summarize in plain language",
+    "questionLabel": "Ask a question",
+    "questionPlaceholder": "E.g.: Can I have pets?",
+    "ask": "Ask",
+    "disclaimer": "AI-generated answer based on the lease. It may contain mistakes and is not legal advice. The lease text is what counts.",
+    "errors": {
+      "limit": "The assistant isn't available right now. Read the lease or ask the landlord.",
+      "failed": "We couldn't answer. Try again."
+    }
+  }
 }

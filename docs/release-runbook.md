@@ -31,6 +31,7 @@ a copy of the production schema, together with role-based behavior checks.
 | 020 | `020_esign.sql` | E-sign tables, evidence log, signed-contract immutability, signing guard, `signed-documents` bucket, realtime | ⚠️ See below |
 | 021 | `021_lifecycle_emails.sql` | `profiles.lifecycle_emails`, `lifecycle_email_log` | |
 | 022 | `022_rent_ledger.sql` | `rent_ledgers`, `rent_charges`, `payments`, `contract_ledger` view | Rent tracking is opt-in per lease |
+| 027 | `027_ai_usage.sql` | `ai_usage_events` (per-plan monthly AI quotas) | Stores no prompt or document content |
 
 **About 020.** After 020, only the server (service role) can mark a contract
 `signed`, write `tenant_signature` or set sealing fields. This affects two things:
@@ -68,6 +69,8 @@ New or changed on this branch. `web/.env.example` has the full list.
 | `UNSUBSCRIBE_SECRET` | Unsubscribe links in onboarding emails | Falls back to `CRON_SECRET`. Set it separately so `CRON_SECRET` can be rotated without breaking old links |
 | `STRIPE_PRICE_ENTERPRISE`, `STRIPE_PRICE_PROPIETARIO_YEARLY`, `STRIPE_PRICE_INVERSIONISTA_YEARLY` | Pricing page and checkout | Create these prices in Stripe first. The monthly/yearly toggle in Settings › Billing only appears once a yearly price is set. Also set the `yearly` amounts in `web/lib/pricing.ts` so the public pricing page shows them |
 | `STRIPE_TRIAL_DAYS` | Free trial on a first paid subscription | `0` or unset means no trial; the maximum is 60. Accounts that had a subscription before never get a trial |
+| `ANTHROPIC_API_KEY` | AI receipt scanning in Expenses, lease Q&A | Unset hides every AI feature. Monthly quotas per plan are in `web/lib/ai/usage.ts` |
+| `AI_LEASE_HELP` | Tenant lease Q&A on the signing page | Set to `1` only after the attorney approves a sample of answers |
 | `CONTACT_EMAIL` | Enterprise contact form (`/contacto`) | Defaults to `hola@prcontract.online` |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Rate limiting | Without them the limiter is in-memory and per-instance only |
 | `FROM_EMAIL` | All email | Must be on a domain verified in Resend (SPF, DKIM, DMARC) |
@@ -108,4 +111,5 @@ the cron count allowed on the current plan in Vercel → Settings → Cron Jobs.
 - [ ] **Rotate the keys** that were in git history before the purge: Supabase service role, Stripe, Resend, Twilio and RapidAPI. The history rewrite does not revoke them.
 - [ ] **Vercel Pro**, if you want custom analytics events (`trackEvent`). On Hobby they are dropped silently.
 - [ ] **Attorney review** of `/terminos`, `/privacidad`, the lease clauses in `lib/pdf-react.tsx`, and the e-sign consent text (Ley 148-2006 / ESIGN).
-- [ ] **iOS (Plan 38)**: move signing to the web flow before 020 reaches production.
+- [ ] **iOS (Plan 38)**: branch `feature/esign-handoff` in Contract-Portal-iOS moves signing to the web flow. It was written without a compiler: build it in Xcode and test on a device against a backend with 020, then ship before 020 reaches production.
+- [ ] **AI (Plan 39)**: build the eval set (50 anonymized receipts, 20 clauses) and check receipt accuracy before announcing the feature; attorney sign-off before `AI_LEASE_HELP=1`.

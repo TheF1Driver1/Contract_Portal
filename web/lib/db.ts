@@ -125,6 +125,11 @@ type PendingTables = {
     { id: number; job: string; started_at: string; finished_at: string; ok: boolean; summary: Generated["public"]["Tables"]["contracts"]["Row"]["amenities"] },
     { job: string; started_at: string; finished_at: string; ok: boolean; summary?: unknown }
   >;
+  // Plan 39 (migration 027)
+  ai_usage_events: Table<
+    { id: number; owner_id: string; feature: string; model: string | null; input_tokens: number | null; output_tokens: number | null; created_at: string },
+    { owner_id: string; feature: string; model?: string | null; input_tokens?: number | null; output_tokens?: number | null }
+  >;
   lifecycle_email_log: Table<{ user_id: string; step: string; sent_at: string }, { user_id: string; step: string }>;
   stripe_events: Table<{ id: string; type: string; processed_at: string }, { id: string; type: string }>;
   plan_entitlements: Table<{

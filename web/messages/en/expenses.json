@@ -78,5 +78,20 @@
   "deleteLabel": "Delete expense: {name}",
   "csv": {
     "filename": "expenses-{year}.csv"
+  },
+  "scan": {
+    "title": "Scan a receipt",
+    "hint": "Upload a photo or PDF and we'll fill in the fields.",
+    "reading": "Reading the receipt…",
+    "review": "Fields were filled in with AI. Check them before saving: it can make mistakes.",
+    "errors": {
+      "unsupported_type": "Use a JPG, PNG or WebP photo, or a PDF.",
+      "too_large": "The file is too large (8 MB max).",
+      "quota_exceeded": "You've reached this month's receipt-scan limit for your plan.",
+      "unreadable": "We couldn't read the receipt. Try a clearer photo.",
+      "refused": "We couldn't process this file.",
+      "notReceipt": "That file doesn't look like a receipt or invoice.",
+      "failed": "We couldn't scan the receipt. Try again or fill in the fields yourself."
+    }
   }
 }

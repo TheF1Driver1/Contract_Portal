@@ -8,6 +8,7 @@ import { loadMessages } from "@/i18n/request";
 import { intlLocale, type Locale } from "@/i18n/locales";
 import { markViewed, SignError, signerFromToken } from "@/lib/esign/service";
 import { SIGN_ERROR_MESSAGES } from "@/lib/esign/http";
+import { leaseHelpEnabled } from "@/lib/ai/lease-help";
 import { SigningCeremony } from "@/components/sign/SigningCeremony";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,7 @@ export default async function SignPage(props: { params: Promise<{ token: string 
         token={token}
         lang={locale}
         inPerson={sp.p === "1" || signer.in_person}
+        leaseHelp={leaseHelpEnabled() && !agreement.contract.sealed_pdf_path}
         signer={{
           name: signer.name,
           role: signer.role,

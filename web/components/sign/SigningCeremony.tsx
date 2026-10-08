@@ -12,12 +12,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SignaturePad from "@/components/SignaturePad";
+import { LeaseHelp } from "./LeaseHelp";
 import { cn } from "@/lib/utils";
 
 type Props = {
   token: string;
   lang: "es" | "en";
   inPerson: boolean;
+  /** AI lease help on the review step (AI_LEASE_HELP). */
+  leaseHelp?: boolean;
   signer: { name: string; role: "tenant" | "co_tenant" | "guarantor"; status: string; consented: boolean; verified: boolean; email: string | null; phone: string | null };
   contract: { propertyLabel: string; landlord: string; leaseStart: string; leaseEnd: string; months: number; rent: number; deposit: number; sealed: boolean; status: string };
 };
@@ -43,7 +46,7 @@ function typedSignature(name: string): string {
   return canvas.toDataURL("image/png");
 }
 
-export function SigningCeremony({ token, lang, inPerson, signer, contract }: Props) {
+export function SigningCeremony({ token, lang, inPerson, leaseHelp = false, signer, contract }: Props) {
   const t = useTranslations("sign");
   const tc = useTranslations("common");
   const f = useFormatter();
@@ -247,6 +250,7 @@ export function SigningCeremony({ token, lang, inPerson, signer, contract }: Pro
                   <ExternalLink /> {t("review.open")}
                 </a>
               </Button>
+              {leaseHelp && <LeaseHelp token={token} lang={lang} />}
               <label className="flex min-h-11 items-start gap-3 text-sm">
                 <Checkbox checked={read} onCheckedChange={(v) => setRead(v === true)} className="mt-0.5" />
                 <span>{t("review.read")}</span>
