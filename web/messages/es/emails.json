@@ -83,5 +83,36 @@
     "done": "Listo. No te enviaremos más consejos de inicio.",
     "invalid": "Este enlace no es válido. Puedes cambiar tus preferencias en Ajustes › Recordatorios.",
     "back": "Ir a ContractOS"
+  },
+  "receipt": {
+    "subject": "Recibo de pago {number} · {property}",
+    "heading": "Recibimos tu pago",
+    "body": "Hola {name}: {landlord} registró un pago de {amount} el {date} para {property}. Adjuntamos el recibo.",
+    "balance": "Balance pendiente después de este pago: {balance}.",
+    "footer": "Enviado con ContractOS por tu arrendador.",
+    "pdf": {
+      "title": "Recibo de pago",
+      "number": "Recibo núm.",
+      "date": "Fecha de pago",
+      "receivedFrom": "Recibido de",
+      "receivedBy": "Recibido por",
+      "property": "Propiedad",
+      "amount": "Cantidad",
+      "method": "Método",
+      "reference": "Referencia",
+      "period": "Contrato",
+      "balance": "Balance pendiente",
+      "note": "Este recibo confirma el pago registrado por el arrendador. Generado por ContractOS.",
+      "voided": "ANULADO"
+    },
+    "method": {
+      "ath_movil": "ATH Móvil",
+      "ach": "Transferencia ACH",
+      "card": "Tarjeta",
+      "cash": "Efectivo",
+      "check": "Cheque",
+      "transfer": "Transferencia bancaria",
+      "other": "Otro"
+    }
   }
 }

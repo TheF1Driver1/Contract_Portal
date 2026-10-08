@@ -1,0 +1,98 @@
+{
+  "section": "Rent and payments",
+  "off": {
+    "title": "Track rent for this lease",
+    "body": "We post each month's rent, apply the lease's late fee, and you send receipts to the tenant in their language.",
+    "notSigned": "Available once the lease is signed.",
+    "start": "Start in",
+    "thisMonth": "This month ({month})",
+    "nextMonth": "Next month ({month})",
+    "lateFees": "Apply late fees automatically",
+    "lateFeesHint": "Per the lease: {policy}.",
+    "noPolicy": "The lease has no late fee.",
+    "enable": "Start rent tracking",
+    "enabled": "Rent tracking started",
+    "policyGrace": "{days, plural, one {# day} other {# days}} grace",
+    "policyFixed": "{amount} flat",
+    "policyDaily": "{amount} per day"
+  },
+  "kpi": {
+    "balance": "Balance",
+    "overdue": "Overdue",
+    "nextDue": "Next payment",
+    "none": "—",
+    "paid": "Paid up"
+  },
+  "actions": {
+    "record": "Record payment",
+    "charge": "Add charge",
+    "receipt": "Receipt",
+    "resend": "Resend receipt",
+    "void": "Void",
+    "more": "More actions"
+  },
+  "entries": {
+    "title": "Activity",
+    "empty": "No activity yet. Rent posts 5 days before each due date.",
+    "rent": "Rent for {month}",
+    "late_fee": "Late fee for {month}",
+    "payment": "Payment · {method}",
+    "voided": "Voided",
+    "due": "Due {date}",
+    "receiptSent": "Receipt sent"
+  },
+  "payment": {
+    "title": "Record payment",
+    "description": "For cash, check, ATH Móvil or bank transfers you received directly.",
+    "amount": "Amount",
+    "method": "Method",
+    "date": "Date received",
+    "reference": "Reference (optional)",
+    "referenceHint": "Check number or ATH Móvil confirmation number.",
+    "note": "Note (optional)",
+    "sendReceipt": "Email a receipt to the tenant",
+    "noEmail": "The tenant has no email; you can download the receipt.",
+    "save": "Record payment",
+    "saved": "Payment recorded"
+  },
+  "charge": {
+    "title": "Add charge",
+    "description": "Charges other than monthly rent: repairs, utilities, keys.",
+    "amount": "Amount",
+    "dueDate": "Due date",
+    "descriptionLabel": "Description",
+    "save": "Add charge",
+    "saved": "Charge added"
+  },
+  "void": {
+    "title": "Void entry",
+    "body": "The entry stays in the history as voided and no longer counts toward the balance.",
+    "reason": "Reason",
+    "confirm": "Void",
+    "done": "Entry voided"
+  },
+  "settings": {
+    "lateFees": "Automatic late fees",
+    "saved": "Preference saved"
+  },
+  "resent": "Receipt sent",
+  "overview": {
+    "title": "Rent",
+    "description": "Rent across all your leases: expected, collected and overdue.",
+    "expected": "Expected this month",
+    "collected": "Collected this month",
+    "overdue": "Overdue",
+    "leases": "Leases tracked",
+    "emptyTitle": "You're not tracking rent yet",
+    "emptyBody": "Open a signed lease and turn on “Rent and payments”.",
+    "goContracts": "View leases",
+    "col": {
+      "tenant": "Tenant",
+      "property": "Property",
+      "rent": "Rent",
+      "balance": "Balance",
+      "overdue": "Overdue",
+      "nextDue": "Next payment"
+    }
+  }
+}

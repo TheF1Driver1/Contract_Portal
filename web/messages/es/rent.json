@@ -1,0 +1,98 @@
+{
+  "section": "Renta y pagos",
+  "off": {
+    "title": "Lleva la cuenta de la renta",
+    "body": "Registramos la renta de cada mes, aplicamos el cargo por atraso del contrato y envías recibos al inquilino en su idioma.",
+    "notSigned": "Disponible cuando el contrato esté firmado.",
+    "start": "Empezar en",
+    "thisMonth": "Este mes ({month})",
+    "nextMonth": "El próximo mes ({month})",
+    "lateFees": "Aplicar cargos por atraso automáticamente",
+    "lateFeesHint": "Según el contrato: {policy}.",
+    "noPolicy": "El contrato no tiene cargo por atraso.",
+    "enable": "Activar cuenta de renta",
+    "enabled": "Cuenta de renta activada",
+    "policyGrace": "{days, plural, one {# día} other {# días}} de gracia",
+    "policyFixed": "{amount} fijo",
+    "policyDaily": "{amount} por día"
+  },
+  "kpi": {
+    "balance": "Balance",
+    "overdue": "Vencido",
+    "nextDue": "Próximo pago",
+    "none": "—",
+    "paid": "Al día"
+  },
+  "actions": {
+    "record": "Registrar pago",
+    "charge": "Añadir cargo",
+    "receipt": "Recibo",
+    "resend": "Reenviar recibo",
+    "void": "Anular",
+    "more": "Más acciones"
+  },
+  "entries": {
+    "title": "Movimientos",
+    "empty": "Aún no hay movimientos. La renta se registra 5 días antes de cada vencimiento.",
+    "rent": "Renta de {month}",
+    "late_fee": "Cargo por atraso de {month}",
+    "payment": "Pago · {method}",
+    "voided": "Anulado",
+    "due": "Vence {date}",
+    "receiptSent": "Recibo enviado"
+  },
+  "payment": {
+    "title": "Registrar pago",
+    "description": "Para pagos en efectivo, cheque, ATH Móvil o transferencia que recibiste directamente.",
+    "amount": "Cantidad",
+    "method": "Método",
+    "date": "Fecha recibido",
+    "reference": "Referencia (opcional)",
+    "referenceHint": "Número de cheque o de confirmación de ATH Móvil.",
+    "note": "Nota (opcional)",
+    "sendReceipt": "Enviar recibo al inquilino por correo",
+    "noEmail": "El inquilino no tiene correo; podrás descargar el recibo.",
+    "save": "Registrar pago",
+    "saved": "Pago registrado"
+  },
+  "charge": {
+    "title": "Añadir cargo",
+    "description": "Cargos que no son la renta mensual: reparaciones, utilidades, llaves.",
+    "amount": "Cantidad",
+    "dueDate": "Fecha de vencimiento",
+    "descriptionLabel": "Descripción",
+    "save": "Añadir cargo",
+    "saved": "Cargo añadido"
+  },
+  "void": {
+    "title": "Anular movimiento",
+    "body": "El movimiento queda en el historial como anulado y deja de contar en el balance.",
+    "reason": "Motivo",
+    "confirm": "Anular",
+    "done": "Movimiento anulado"
+  },
+  "settings": {
+    "lateFees": "Cargos por atraso automáticos",
+    "saved": "Preferencia guardada"
+  },
+  "resent": "Recibo enviado",
+  "overview": {
+    "title": "Cobros",
+    "description": "La renta de todos tus contratos: lo esperado, lo cobrado y lo vencido.",
+    "expected": "Esperado este mes",
+    "collected": "Cobrado este mes",
+    "overdue": "Vencido",
+    "leases": "Contratos con cuenta",
+    "emptyTitle": "Aún no llevas la cuenta de la renta",
+    "emptyBody": "Abre un contrato firmado y activa «Renta y pagos».",
+    "goContracts": "Ver contratos",
+    "col": {
+      "tenant": "Inquilino",
+      "property": "Propiedad",
+      "rent": "Renta",
+      "balance": "Balance",
+      "overdue": "Vencido",
+      "nextDue": "Próximo pago"
+    }
+  }
+}

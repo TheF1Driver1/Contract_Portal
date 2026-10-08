@@ -295,3 +295,40 @@ export const PropertyManagerInviteSchema = z.object({
     sign_contracts: z.boolean().default(false),
   }).optional(),
 });
+
+// ── Rent ledger (Plan 33) ─────────────────────────────────────────────────────
+
+const money = z.number().positive().max(1_000_000).transform((n) => Math.round(n * 100) / 100);
+
+export const LedgerEnableSchema = z.object({
+  contract_id: z.string().uuid(),
+  started_on: isoDate,
+  late_fees: z.boolean().default(true),
+});
+
+export const LedgerSettingsSchema = z.object({
+  contract_id: z.string().uuid(),
+  late_fees: z.boolean(),
+});
+
+export const PaymentCreateSchema = z.object({
+  contract_id: z.string().uuid(),
+  amount: money,
+  method: z.enum(["ath_movil", "ach", "card", "cash", "check", "transfer", "other"]),
+  received_on: isoDate,
+  reference: z.string().trim().max(100).optional().nullable(),
+  note: z.string().trim().max(500).optional().nullable(),
+  send_receipt: z.boolean().default(true),
+});
+
+export const ChargeCreateSchema = z.object({
+  contract_id: z.string().uuid(),
+  amount: money,
+  due_date: isoDate,
+  description: z.string().trim().min(1).max(200),
+});
+
+export const VoidSchema = z.object({
+  id: z.string().uuid(),
+  reason: z.string().trim().min(1).max(300),
+});

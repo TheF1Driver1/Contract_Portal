@@ -69,7 +69,31 @@ const contract = (n, p, t, extra) => ({
   ...extra,
 });
 
+// Rent ledger on lease 1: three months posted, the latest one unpaid and late.
+const monthStart = (back) => {
+  const d = new Date();
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - back, 1)).toISOString().slice(0, 10);
+};
+const C1 = "30000000-0000-4000-8000-000000000001";
+const charge = (n, kind, back, amount, due = monthStart(back)) => ({
+  id: `a0000000-0000-4000-8000-00000000000${n}`, contract_id: C1, owner_id: USER.id, kind, period: monthStart(back),
+  due_date: due, amount, description: null, voided_at: null, void_reason: null, created_at: ts(-30 * back),
+});
+const payment = (n, back, amount, method, reference = null) => ({
+  id: `b0000000-0000-4000-8000-00000000000${n}`, number: 1040 + n, contract_id: C1, owner_id: USER.id, amount, method,
+  received_on: monthStart(back).slice(0, 8) + "03", reference, note: null, source: "manual", external_id: null,
+  receipt_sent_at: ts(-30 * back), voided_at: null, void_reason: null, created_at: ts(-30 * back),
+});
+
 export const TABLES = {
+  rent_ledgers: [{ contract_id: C1, owner_id: USER.id, started_on: monthStart(2), late_fees: true, created_at: ts(-70) }],
+  rent_charges: [
+    charge(1, "rent", 2, 1150),
+    charge(2, "rent", 1, 1150),
+    charge(3, "rent", 0, 1150),
+    charge(4, "late_fee", 0, 50, monthStart(0).slice(0, 8) + "07"),
+  ],
+  payments: [payment(1, 2, 1150, "ath_movil", "ATH-48213"), payment(2, 1, 1150, "check", "Cheque 1187")],
   profiles: [{ id: USER.id, email: USER.email, full_name: "María Rivera", username: "mrivera", company_name: "Rivera Propiedades", phone: "+17875550100", role: "landlord", locale: "es", plan: "propietario", created_at: ts(-200) }],
   properties: [P1, P2, P3],
   tenants: [T1, T2, T3],

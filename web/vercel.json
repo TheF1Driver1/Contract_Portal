@@ -9,9 +9,16 @@
     },
     "app/api/cron/lifecycle/route.ts": {
       "maxDuration": 60
+    },
+    "app/api/cron/rent/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
+    {
+      "path": "/api/cron/rent",
+      "schedule": "0 9 * * *"
+    },
     {
       "path": "/api/cron/notify",
       "schedule": "0 10 * * *"

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { ArrowLeft, Bell, Building2, Calendar, FileText, PenLine, Users } from "lucide-react";
+import { ArrowLeft, Bell, Building2, Calendar, FileText, PenLine, Users, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import { daysUntil } from "@/lib/utils";
 import type { Contract, ContractNotificationLog, ContractOccupant } from "@/lib/types";
@@ -13,6 +13,8 @@ import ContractActions from "./ContractActions";
 import NotificationPanel from "./NotificationPanel";
 import ContractSignatures from "./ContractSignatures";
 import { SignersPanel } from "@/components/contracts/SignersPanel";
+import { LedgerPanel } from "@/components/rent/LedgerPanel";
+import { loadLedger, todayPR } from "@/lib/rent/service";
 
 const AMENITY_KEYS = [
   "ac",
@@ -37,6 +39,7 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
   const params = await props.params;
   const t = await getTranslations("contracts.detail");
   const tr = await getTranslations("contracts.renewal");
+  const tRent = await getTranslations("rent");
   const f = await getFormatter();
   const supabase = await createClient();
   const {
@@ -64,6 +67,8 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
   ]);
 
   if (error || !contract) notFound();
+  const today = todayPR();
+  const ledger = await loadLedger(supabase, params.id, today);
 
   const c = contract as Contract;
   const daysLeft = daysUntil(c.lease_end);
@@ -211,6 +216,24 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
                 </div>
               ))}
             </div>
+          </Section>
+
+          {/* Rent ledger */}
+          <Section icon={<Wallet />} title={tRent("section")}>
+            <LedgerPanel
+              contractId={c.id}
+              status={c.status}
+              tenantHasEmail={!!c.tenant?.email}
+              rentAmount={Number(c.rent_amount) || 0}
+              today={today}
+              lateFee={{
+                type: c.late_fee_type ?? "fixed",
+                grace: c.late_fee_grace_period_days ?? 0,
+                fixed: Number(c.late_fee_fixed_amount) || 0,
+                daily: Number(c.late_fee_daily_amount) || 0,
+              }}
+              {...ledger}
+            />
           </Section>
 
           {/* Documents */}

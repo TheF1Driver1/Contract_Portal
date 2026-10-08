@@ -1,6 +1,6 @@
 // Database type used by every Supabase client. database.types.ts is generated
 // from production; PendingTables covers tables created by migrations that are
-// applied at merge (012, 013, 018, 020, 021). Regenerate and delete entries once applied.
+// applied at merge (012, 013, 018, 020–022). Regenerate and delete entries once applied.
 import type { Database as Generated } from "@/lib/database.types";
 
 type Table<Row, Insert = Partial<Row>> = {
@@ -69,7 +69,46 @@ type SignatureEvent = {
   created_at: string;
 };
 
+type RentLedger = { contract_id: string; owner_id: string; started_on: string; late_fees: boolean; created_at: string };
+type RentCharge = {
+  id: string;
+  contract_id: string;
+  owner_id: string;
+  kind: "rent" | "late_fee" | "other";
+  period: string | null;
+  due_date: string;
+  amount: number;
+  description: string | null;
+  voided_at: string | null;
+  void_reason: string | null;
+  created_at: string;
+};
+type PaymentMethod = "ath_movil" | "ach" | "card" | "cash" | "check" | "transfer" | "other";
+type Payment = {
+  id: string;
+  number: number;
+  contract_id: string;
+  owner_id: string;
+  amount: number;
+  method: PaymentMethod;
+  received_on: string;
+  reference: string | null;
+  note: string | null;
+  source: "manual" | "ath_movil" | "stripe";
+  external_id: string | null;
+  receipt_sent_at: string | null;
+  voided_at: string | null;
+  void_reason: string | null;
+  created_at: string;
+};
+
 type PendingTables = {
+  rent_ledgers: Table<RentLedger, Partial<RentLedger> & Pick<RentLedger, "contract_id" | "owner_id" | "started_on">>;
+  rent_charges: Table<RentCharge, Partial<RentCharge> & Pick<RentCharge, "contract_id" | "owner_id" | "kind" | "due_date" | "amount">>;
+  payments: Table<
+    Payment,
+    Partial<Omit<Payment, "id" | "number">> & Pick<Payment, "contract_id" | "owner_id" | "amount" | "method" | "received_on">
+  >;
   contract_signers: Table<
     ContractSigner,
     Partial<ContractSigner> & Pick<ContractSigner, "contract_id" | "owner_id" | "role" | "name" | "token_hash" | "token_expires_at">
@@ -144,6 +183,6 @@ export type Database = Omit<Generated, "public"> & {
   };
 };
 
-export type { ContractSigner, SignatureEvent };
+export type { ContractSigner, SignatureEvent, RentLedger, RentCharge, Payment, PaymentMethod };
 
 export type Row<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];

@@ -8,6 +8,7 @@ import {
   Receipt,
   Settings,
   Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ export const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
       { href: "/contracts", key: "contracts", icon: FileText },
       { href: "/properties", key: "properties", icon: Building2 },
       { href: "/tenants", key: "tenants", icon: Users },
+      { href: "/rent", key: "rent", icon: Wallet },
       { href: "/expenses", key: "expenses", icon: Receipt },
     ],
   },

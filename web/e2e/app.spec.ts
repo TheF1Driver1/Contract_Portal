@@ -13,6 +13,8 @@ const PAGES = [
   { path: "/properties", heading: "Propiedades" },
   { path: "/tenants", heading: "Inquilinos" },
   { path: "/expenses", heading: "Gastos" },
+  { path: "/rent", heading: "Cobros" },
+  { path: "/contracts/30000000-0000-4000-8000-000000000001", heading: "José Martínez · Edificio Las Palmas 2B" },
 ];
 
 test.describe("signed-in app", () => {
@@ -60,5 +62,22 @@ test.describe("signing ceremony (no account)", () => {
   test("an unknown link explains itself", async ({ page }) => {
     await page.goto("/sign/not-a-real-token");
     await expect(page.getByRole("heading", { name: "No podemos abrir este enlace" })).toBeVisible();
+  });
+});
+
+test.describe("rent ledger", () => {
+  test.skip(!MOCK_URL, "MOCK_SUPABASE_URL not set");
+
+  test("shows the balance and opens the payment form", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/contracts/30000000-0000-4000-8000-000000000001");
+    const section = page.locator("section", { has: page.getByRole("heading", { name: "Renta y pagos" }) });
+    await expect(section.getByText("Vencido")).toBeVisible();
+    await expect(section.getByText("$1,200").first()).toBeVisible();
+    await expect(section.getByText(/Pago · Cheque · Cheque 1187/)).toBeVisible();
+    await section.getByRole("button", { name: "Registrar pago" }).click();
+    const sheet = page.getByRole("dialog", { name: "Registrar pago" });
+    await expect(sheet.getByLabel("Cantidad")).toHaveValue("1200");
+    await expect(sheet.getByLabel("Enviar recibo al inquilino por correo")).toBeChecked();
   });
 });
