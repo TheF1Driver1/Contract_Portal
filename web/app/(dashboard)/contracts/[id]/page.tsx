@@ -18,6 +18,7 @@ import { loadLedger, todayPR } from "@/lib/rent/service";
 import { MessagesPanel, type MessageRow } from "@/components/messaging/MessagesPanel";
 import { InspectionsSection } from "@/components/inspections/InspectionsSection";
 import type { InspectionSummary } from "@/components/inspections/types";
+import { revealPii } from "@/lib/crypto/fields";
 
 const AMENITY_KEYS = [
   "ac",
@@ -92,7 +93,12 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
     return { ...i, rated: items.filter((it) => it.condition).length, total: items.length };
   });
 
-  const c = contract as Contract;
+  // License numbers and birth dates are stored encrypted; decrypt for display only.
+  const c = {
+    ...(contract as Contract),
+    tenant: revealPii((contract as Contract).tenant ?? null) ?? undefined,
+    occupants: ((contract as Contract).occupants ?? []).map((o) => revealPii(o)),
+  } as Contract;
   const daysLeft = daysUntil(c.lease_end);
   const coTenants = (c.occupants ?? []).filter((o) => o.role === "co_tenant") as ContractOccupant[];
   const logs = (notifLogs ?? []) as ContractNotificationLog[];

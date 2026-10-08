@@ -1,6 +1,6 @@
 # Release runbook: `feature/roadmap-execution` → `dev` → `main`
 
-This branch carries Plans 24–40. The code expects database migrations 012–027,
+This branch carries Plans 24–40. The code expects database migrations 012–028,
 which are **not** in production yet (011 was applied on 2026-10-07). Deploy in
 the order below. Steps 1–3 can run before the code ships, because every migration
 is additive and backward compatible with the current `main`. The exception is
@@ -36,6 +36,7 @@ a copy of the production schema, together with role-based behavior checks.
 | 025 | `025_tax_pack.sql` | `profiles.tax_residency`, `property_crim`, `crim_bills` | |
 | 026 | `026_market_status.sql` | `rea.scrape_runs`, `market_data_updated_at()`, `zillow_market` view gains `rentZestimate`/`livingArea`, `zillow_historical` primary key, indexes, `unaccent` | Recreates the `zillow_market` view (columns appended, grants kept) |
 | 027 | `027_ai_usage.sql` | `ai_usage_events` (per-plan monthly AI quotas) | Stores no prompt or document content |
+| 028 | `028_tenant_pii_encryption.sql` | `date_of_birth_enc` on `tenants` and `contract_occupants` | Then set `FIELD_ENCRYPTION_KEY` and run the backfill (§3) |
 
 **About 020.** After 020, only the server (service role) can mark a contract
 `signed`, write `tenant_signature` or set sealing fields. This affects two things:
@@ -75,6 +76,7 @@ New or changed on this branch. `web/.env.example` has the full list.
 | `STRIPE_TRIAL_DAYS` | Free trial on a first paid subscription | `0` or unset means no trial; the maximum is 60. Accounts that had a subscription before never get a trial |
 | `TWILIO_WHATSAPP_FROM`, `TWILIO_WA_TEMPLATE_*_ES/EN` | WhatsApp reminders and notices | Unset = WhatsApp is skipped and SMS/email is used. Templates must be approved by Meta first; the variable order is in `.env.example` |
 | `RESEND_WEBHOOK_SECRET` | Delivery/open tracking (`/api/webhooks/resend`) | Create the webhook in Resend for sent, delivered, opened, bounced, complained |
+| `FIELD_ENCRYPTION_KEY` (+ `FIELD_ENCRYPTION_KEY_PREVIOUS` when rotating) | Encrypts tenant license/ID numbers and birth dates | `openssl rand -base64 32`. **Keep a copy in a password manager**: losing it makes those fields unreadable. After deploying with it set, run `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://<app>/api/cron/encrypt-pii` until it returns `"done": true`. Sent and signed leases keep their snapshot as signed |
 | `ANTHROPIC_API_KEY` | AI receipt scanning in Expenses, lease Q&A | Unset hides every AI feature. Monthly quotas per plan are in `web/lib/ai/usage.ts` |
 | `AI_LEASE_HELP` | Tenant lease Q&A on the signing page | Set to `1` only after the attorney approves a sample of answers |
 | `CONTACT_EMAIL` | Enterprise contact form (`/contacto`) | Defaults to `hola@prcontract.online` |

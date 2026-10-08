@@ -6,6 +6,7 @@ import type {
   Property,
   PropertySnapshot,
 } from "@/lib/types";
+import { revealPii } from "@/lib/crypto/fields";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -222,7 +223,7 @@ export function buildPdfHtml(contract: Contract, profile: Profile | null): strin
     | (PropertySnapshot | Property)
     | null;
 
-  const ten  = tenant  as Record<string, unknown> | null;
+  const ten  = revealPii(tenant as Record<string, unknown> | null);
   const prop = property as Record<string, unknown> | null;
 
   const today    = new Date();

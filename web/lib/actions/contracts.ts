@@ -3,6 +3,7 @@
 import { trackEvent } from "@/lib/analytics";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase-server";
+import { revealPii, sealPii } from "@/lib/crypto/fields";
 import { ContractCreateSchema } from "@/lib/schemas";
 import { planLimitMessage } from "@/lib/plan-errors";
 import type { Json } from "@/lib/database.types";
@@ -48,7 +49,7 @@ export type SaveContractResult = { ok: true; id: string } | { ok: false; error: 
 
 const TENANT_SNAPSHOT_FIELDS = [
   "full_name", "email", "phone", "ssn_last4", "license_number", "current_address",
-  "date_of_birth", "employer_name", "employer_phone", "monthly_income",
+  "date_of_birth", "date_of_birth_enc", "employer_name", "employer_phone", "monthly_income",
   "emergency_contact_name", "emergency_contact_phone",
 ] as const;
 
@@ -158,6 +159,7 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
           license_number: t.license_number,
           current_address: t.current_address,
           date_of_birth: t.date_of_birth,
+          date_of_birth_enc: t.date_of_birth_enc,
           signature: null,
           signed_at: null,
           snapshot: pick(t, TENANT_SNAPSHOT_FIELDS),
@@ -179,4 +181,66 @@ export async function saveContract(raw: SaveContractInput): Promise<SaveContract
   }
 
   return { ok: true, id: contractId };
+}
+
+// ── Renewal PII (Plan 31) ─────────────────────────────────────────────────────
+
+type PiiSource = { full_name?: string | null; license_number?: string | null; date_of_birth?: string | null; date_of_birth_enc?: string | null };
+
+/** Freshly sealed PII copied from a stored row (encrypted or legacy plaintext). */
+function piiFrom(src: PiiSource | null | undefined) {
+  const r = revealPii(src ?? {});
+  return sealPii({ license_number: r?.license_number ?? null, date_of_birth: r?.date_of_birth ?? null });
+}
+
+/**
+ * Renewals are created in the browser without license numbers or birth dates;
+ * this fills them server-side from the tenant rows (or the previous lease), so
+ * the values stay encrypted and never round-trip through the client.
+ */
+export async function fillRenewalPii(contractId: string): Promise<{ ok: boolean }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || !z.string().uuid().safeParse(contractId).success) return { ok: false };
+
+  const { data: contract } = await supabase
+    .from("contracts")
+    .select("id, status, tenant_id, tenant_snapshot, parent_contract_id")
+    .eq("id", contractId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!contract || contract.status !== "draft") return { ok: false };
+
+  const { data: occupants } = await supabase
+    .from("contract_occupants")
+    .select("id, tenant_id, full_name, snapshot")
+    .eq("contract_id", contractId);
+  const tenantIds = [contract.tenant_id, ...(occupants ?? []).map((o) => o.tenant_id)].filter((v): v is string => !!v);
+  const [{ data: tenants }, { data: parent }, { data: parentOccupants }] = await Promise.all([
+    supabase.from("tenants").select("id, license_number, date_of_birth, date_of_birth_enc").in("id", tenantIds.length ? tenantIds : ["00000000-0000-0000-0000-000000000000"]),
+    contract.parent_contract_id
+      ? supabase.from("contracts").select("tenant_snapshot").eq("id", contract.parent_contract_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    contract.parent_contract_id
+      ? supabase.from("contract_occupants").select("full_name, license_number, date_of_birth, date_of_birth_enc").eq("contract_id", contract.parent_contract_id)
+      : Promise.resolve({ data: [] as PiiSource[] }),
+  ]);
+  const byTenant = new Map((tenants ?? []).map((t) => [t.id, t as PiiSource]));
+
+  const primary = piiFrom(
+    (contract.tenant_id && byTenant.get(contract.tenant_id)) || (parent?.tenant_snapshot as PiiSource | null)
+  );
+  const snapshot = { ...((contract.tenant_snapshot as Record<string, unknown> | null) ?? {}), ...primary };
+  const { error } = await supabase.from("contracts").update({ tenant_snapshot: snapshot as Json }).eq("id", contractId);
+  if (error) return { ok: false };
+
+  for (const o of occupants ?? []) {
+    const src = (o.tenant_id && byTenant.get(o.tenant_id)) || (parentOccupants ?? []).find((p) => p.full_name === o.full_name);
+    const pii = piiFrom(src);
+    await supabase
+      .from("contract_occupants")
+      .update({ ...pii, snapshot: { ...((o.snapshot as Record<string, unknown> | null) ?? {}), ...pii } as Json })
+      .eq("id", o.id);
+  }
+  return { ok: true };
 }

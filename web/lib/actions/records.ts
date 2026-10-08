@@ -1,5 +1,6 @@
 "use server";
 
+import { sealPii } from "@/lib/crypto/fields";
 import { trackEvent } from "@/lib/analytics";
 import type { z } from "zod";
 import { createClient } from "@/lib/supabase-server";
@@ -74,7 +75,7 @@ export async function updateProperty(id: string, input: Record<string, unknown>)
 export async function createTenant(input: Record<string, unknown>): Promise<ActionResult> {
   const parsed = TenantCreateSchema.safeParse(blanksToNull(input));
   if (!parsed.success) return invalid(parsed.error);
-  const values = parsed.data;
+  const values = sealPii(parsed.data);
   const result = await withSession("el inquilino", ({ supabase, userId }) =>
     supabase.from("tenants").insert({ ...values, owner_id: userId }).select("id").single()
   );
@@ -85,7 +86,7 @@ export async function createTenant(input: Record<string, unknown>): Promise<Acti
 export async function updateTenant(id: string, input: Record<string, unknown>): Promise<ActionResult> {
   const parsed = TenantUpdateSchema.safeParse(blanksToNull(input));
   if (!parsed.success) return invalid(parsed.error);
-  const values = parsed.data;
+  const values = sealPii(parsed.data);
   return withSession("el inquilino", ({ supabase }) =>
     supabase.from("tenants").update(values).eq("id", id).select("id")
   );

@@ -7,6 +7,7 @@ import React from "react";
 import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import type { Contract, Profile, Tenant, TenantSnapshot, Property, PropertySnapshot } from "@/lib/types";
 import { buildContext, MONTHS_ES } from "@/lib/contract-context";
+import { revealPii } from "@/lib/crypto/fields";
 
 // ─── formatting ─────────────────────────────────────────────────────────────
 
@@ -94,7 +95,7 @@ function LeaseDocument({
   const tenant = (contract.tenant_snapshot ?? contract.tenant ?? null) as (TenantSnapshot | Tenant) | null;
   const property = (contract.property_snapshot ?? contract.property ?? null) as (PropertySnapshot | Property) | null;
   const prop = property as Record<string, unknown> | null;
-  const ten = tenant as Record<string, unknown> | null;
+  const ten = revealPii(tenant as Record<string, unknown> | null);
 
   const landlordName = (profile?.company_name || profile?.full_name || "").trim() || "________________";
   const tenantName = String(ten?.full_name ?? "") || "________________";

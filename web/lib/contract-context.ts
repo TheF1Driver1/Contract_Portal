@@ -1,4 +1,5 @@
 import type { Contract, Property, Tenant, TenantSnapshot, PropertySnapshot } from "@/lib/types";
+import { revealPii } from "@/lib/crypto/fields";
 
 export const MONTHS_ES = [
   "", "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -37,7 +38,7 @@ export function buildContext(contract: Contract) {
   }
 
   const prop = property as { bathroom_count?: number; parking_available?: boolean; parking_count?: number | null; name?: string; address?: string; city?: string; state?: string } | null;
-  const ten  = tenant  as { full_name?: string; ssn_last4?: string | null; license_number?: string | null; current_address?: string | null; date_of_birth?: string | null; employer_name?: string | null } | null;
+  const ten  = revealPii(tenant  as { full_name?: string; ssn_last4?: string | null; license_number?: string | null; current_address?: string | null; date_of_birth?: string | null; employer_name?: string | null } | null);
 
   return {
     // ── Document date ──

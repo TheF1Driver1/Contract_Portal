@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import type { Tenant } from "@/lib/types";
 import { TenantsView } from "@/components/tenants/TenantsView";
+import { revealPii } from "@/lib/crypto/fields";
 
 export default async function TenantsPage(props: {
   searchParams: Promise<{ q?: string; new?: string; import?: string }>;
@@ -22,7 +23,7 @@ export default async function TenantsPage(props: {
 
   return (
     <TenantsView
-      tenants={(tenants ?? []) as Tenant[]}
+      tenants={(tenants ?? []).map((t) => revealPii(t)) as Tenant[]}
       initialQuery={searchParams.q}
       openNew={searchParams.new === "1"}
       openImport={searchParams.import === "1"}

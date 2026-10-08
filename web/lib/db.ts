@@ -338,9 +338,10 @@ type ContractsPatched = {
 };
 
 type TenantsPatched = {
-  Row: GenTables["tenants"]["Row"] & { preferred_locale: string };
-  Insert: GenTables["tenants"]["Insert"] & { preferred_locale?: string };
-  Update: GenTables["tenants"]["Update"] & { preferred_locale?: string };
+  // date_of_birth_enc: migration 028 (Plan 31, encrypted PII)
+  Row: GenTables["tenants"]["Row"] & { preferred_locale: string; date_of_birth_enc: string | null };
+  Insert: GenTables["tenants"]["Insert"] & { preferred_locale?: string; date_of_birth_enc?: string | null };
+  Update: GenTables["tenants"]["Update"] & { preferred_locale?: string; date_of_birth_enc?: string | null };
   Relationships: GenTables["tenants"]["Relationships"];
 };
 
@@ -354,14 +355,22 @@ type ZillowMarketPatched = {
   Update: GenViews["zillow_market"]["Update"] & Partial<ZillowMarketExtra>;
   Relationships: GenViews["zillow_market"]["Relationships"];
 };
+type OccupantsPatched = {
+  Row: GenTables["contract_occupants"]["Row"] & { date_of_birth_enc: string | null };
+  Insert: GenTables["contract_occupants"]["Insert"] & { date_of_birth_enc?: string | null };
+  Update: GenTables["contract_occupants"]["Update"] & { date_of_birth_enc?: string | null };
+  Relationships: GenTables["contract_occupants"]["Relationships"];
+};
+
 type PendingFunctions = {
   market_data_updated_at: { Args: Record<PropertyKey, never>; Returns: string | null };
 };
 
 export type Database = Omit<Generated, "public"> & {
   public: Omit<Generated["public"], "Tables" | "Views" | "Functions"> & {
-    Tables: Omit<GenTables, "tenants" | "contracts" | "profiles"> & {
+    Tables: Omit<GenTables, "tenants" | "contracts" | "profiles" | "contract_occupants"> & {
       tenants: TenantsPatched;
+      contract_occupants: OccupantsPatched;
       contracts: ContractsPatched;
       profiles: ProfilesPatched;
     } & PendingTables &
