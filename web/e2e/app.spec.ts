@@ -81,3 +81,42 @@ test.describe("rent ledger", () => {
     await expect(sheet.getByLabel("Enviar recibo al inquilino por correo")).toBeChecked();
   });
 });
+
+test.describe("messaging", () => {
+  test.skip(!MOCK_URL, "MOCK_SUPABASE_URL not set");
+
+  test("contract shows the message timeline with delivery status", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/contracts/30000000-0000-4000-8000-000000000001");
+    const section = page.locator("section", { has: page.getByRole("heading", { name: "Mensajes" }) });
+    await expect(section.getByText("Aviso de renta vencida")).toBeVisible();
+    await expect(section.getByText("Leído")).toBeVisible();
+    await expect(section.getByText("Buenas, ya envié el pago por ATH Móvil.")).toBeVisible();
+    await expect(section.getByText("Motivo: sin consentimiento para este medio")).toBeVisible();
+  });
+
+  test("tenant form records WhatsApp/SMS consent and respects STOP", async ({ page, context, baseURL }) => {
+    await signInMock(context, baseURL!, MOCK_URL!);
+    await page.goto("/tenants");
+    await page.getByRole("button", { name: "Editar José Martínez" }).first().click();
+    const sheet = page.getByRole("dialog");
+    const wa = sheet.getByRole("checkbox", { name: "El inquilino aceptó recibir mensajes por WhatsApp" });
+    await expect(wa).toBeChecked();
+    await expect(sheet.getByRole("checkbox", { name: "El inquilino aceptó recibir mensajes de texto (SMS)" })).toBeDisabled();
+    await expect(sheet.getByText(/Respondió STOP/)).toBeVisible();
+    await wa.click();
+    await expect(wa).not.toBeChecked();
+  });
+
+  for (const scheme of ["light", "dark"] as const) {
+    test(`reminder settings with the digest toggle are accessible (${scheme})`, async ({ page, context, baseURL }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      await signInMock(context, baseURL!, MOCK_URL!);
+      await page.goto("/settings/notifications");
+      await expect(page.getByRole("switch", { name: "Resumen diario por correo" })).toBeVisible();
+      const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+      const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(", ")}`)).toEqual([]);
+    });
+  }
+});

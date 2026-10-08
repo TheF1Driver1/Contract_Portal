@@ -123,5 +123,16 @@ export const TABLES = {
     { id: 3, contract_id: "30000000-0000-4000-8000-000000000002", signer_id: "80000000-0000-4000-8000-000000000001", event: "viewed", actor: "Ana Colón", ip: null, created_at: ts(-2), detail: {} },
   ],
   contract_custom_sections: [],
+  // Messaging (Plan 34): newest first, as the app orders them.
+  message_log: [
+    { id: "c0000000-0000-4000-8000-000000000001", owner_id: USER.id, contract_id: C1, direction: "inbound", recipient_kind: "tenant", recipient_id: T1.id, channel: "whatsapp", template: "inbound", locale: "es", to_address: "+17875550101", body: "Buenas, ya envié el pago por ATH Móvil.", idempotency_key: null, provider: "twilio", provider_id: "SMin1", status: "received", error: null, sent_at: null, delivered_at: null, read_at: null, created_at: ts(-0.2) },
+    { id: "c0000000-0000-4000-8000-000000000002", owner_id: USER.id, contract_id: C1, direction: "outbound", recipient_kind: "tenant", recipient_id: T1.id, channel: "whatsapp", template: "rent_overdue", locale: "es", to_address: "+17875550101", body: null, idempotency_key: `rent:${C1}:${monthStart(0)}:overdue`, provider: "twilio", provider_id: "SMwa2", status: "read", error: null, sent_at: ts(-1), delivered_at: ts(-1), read_at: ts(-0.9), created_at: ts(-1) },
+    { id: "c0000000-0000-4000-8000-000000000003", owner_id: USER.id, contract_id: C1, direction: "outbound", recipient_kind: "tenant", recipient_id: T1.id, channel: "sms", template: "rent_reminder", locale: "es", to_address: "+17875550101", body: null, idempotency_key: null, provider: null, provider_id: null, status: "skipped", error: "no_consent", sent_at: null, delivered_at: null, read_at: null, created_at: ts(-9) },
+    { id: "c0000000-0000-4000-8000-000000000004", owner_id: USER.id, contract_id: C1, direction: "outbound", recipient_kind: "tenant", recipient_id: T1.id, channel: "email", template: "receipt", locale: "es", to_address: T1.email, body: null, idempotency_key: "receipt:b0000000-0000-4000-8000-000000000002", provider: "resend", provider_id: "re_demo2", status: "delivered", error: null, sent_at: ts(-28), delivered_at: ts(-28), read_at: null, created_at: ts(-28) },
+  ],
+  messaging_consents: [
+    { id: "d0000000-0000-4000-8000-000000000001", owner_id: USER.id, subject_kind: "tenant", subject_id: T1.id, channel: "whatsapp", address: "+17875550101", status: "opted_in", source: "landlord_attested", consented_at: ts(-40), updated_at: ts(-40) },
+    { id: "d0000000-0000-4000-8000-000000000002", owner_id: USER.id, subject_kind: "tenant", subject_id: T1.id, channel: "sms", address: "+17875550101", status: "opted_out", source: "inbound_stop", consented_at: ts(-12), updated_at: ts(-12) },
+  ],
   subscriptions: [{ id: "70000000-0000-4000-8000-000000000001", owner_id: USER.id, plan: "propietario", status: "active", stripe_customer_id: "cus_demo", stripe_subscription_id: "sub_demo", current_period_end: ts(20), created_at: ts(-60), updated_at: ts(-1) }],
 };

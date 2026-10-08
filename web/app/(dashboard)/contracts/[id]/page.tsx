@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { ArrowLeft, Bell, Building2, Calendar, FileText, PenLine, Users, Wallet } from "lucide-react";
+import { ArrowLeft, Bell, Building2, Calendar, FileText, MessageSquare, PenLine, Users, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import { daysUntil } from "@/lib/utils";
 import type { Contract, ContractNotificationLog, ContractOccupant } from "@/lib/types";
@@ -15,6 +15,7 @@ import ContractSignatures from "./ContractSignatures";
 import { SignersPanel } from "@/components/contracts/SignersPanel";
 import { LedgerPanel } from "@/components/rent/LedgerPanel";
 import { loadLedger, todayPR } from "@/lib/rent/service";
+import { MessagesPanel, type MessageRow } from "@/components/messaging/MessagesPanel";
 
 const AMENITY_KEYS = [
   "ac",
@@ -40,6 +41,7 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
   const t = await getTranslations("contracts.detail");
   const tr = await getTranslations("contracts.renewal");
   const tRent = await getTranslations("rent");
+  const tMsg = await getTranslations("messaging");
   const f = await getFormatter();
   const supabase = await createClient();
   const {
@@ -48,7 +50,7 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
 
   if (!user) redirect("/login");
 
-  const [{ data: contract, error }, { data: tenantsData }, { data: notifLogs }, { data: profile }] = await Promise.all([
+  const [{ data: contract, error }, { data: tenantsData }, { data: notifLogs }, { data: profile }, { data: messageData }] = await Promise.all([
     supabase
       .from("contracts")
       .select("*, property:properties(*), tenant:tenants(*), occupants:contract_occupants(*)")
@@ -64,6 +66,12 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
       .order("sent_at", { ascending: false })
       .limit(20),
     supabase.from("profiles").select("email").eq("id", user.id).single(),
+    supabase
+      .from("message_log")
+      .select("id, direction, channel, template, to_address, body, status, error, created_at")
+      .eq("contract_id", params.id)
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
 
   if (error || !contract) notFound();
@@ -275,6 +283,11 @@ export default async function ContractDetailPage(props: { params: Promise<{ id: 
               initialSuppressed={c.suppress_notifications ?? false}
               initialLogs={logs}
             />
+          </Section>
+
+          {/* Messages (email, SMS, WhatsApp) */}
+          <Section icon={<MessageSquare />} title={tMsg("panel.title")}>
+            <MessagesPanel rows={(messageData ?? []) as MessageRow[]} />
           </Section>
         </div>
       </div>

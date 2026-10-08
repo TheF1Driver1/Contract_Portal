@@ -332,3 +332,11 @@ export const VoidSchema = z.object({
   id: z.string().uuid(),
   reason: z.string().trim().min(1).max(300),
 });
+
+// ── Messaging (Plan 34) ───────────────────────────────────────────────────────
+
+export const TenantConsentSchema = z.object({
+  tenant_id: z.string().uuid(),
+  channel: z.enum(["sms", "whatsapp"]),
+  opted_in: z.boolean(),
+});

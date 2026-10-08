@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/app/EmptyState";
 import { SectionHeader } from "@/components/settings/SectionHeader";
 import { ConfirmDialog } from "@/components/settings/ConfirmDialog";
 import { LifecycleEmailsCard } from "@/components/settings/LifecycleEmailsCard";
+import { DigestEmailsCard } from "@/components/settings/DigestEmailsCard";
 
 export default function NotificationsSettingsPage() {
   const t = useTranslations("settings.notificationsPage");
@@ -298,6 +299,7 @@ export default function NotificationsSettingsPage() {
         )}
       </section>
 
+      <DigestEmailsCard />
       <LifecycleEmailsCard />
 
       <ConfirmDialog
