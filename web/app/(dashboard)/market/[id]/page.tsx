@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase-server"
+import { getMarketDataUpdatedAt } from "@/lib/market/status"
 import Link from "next/link"
 import { getFormatter, getTranslations } from "next-intl/server"
-import { ArrowLeft, Bed, Bath, Clock, ExternalLink, SearchX, TrendingDown } from "lucide-react"
+import { ArrowLeft, Bed, Bath, Clock, ExternalLink, Home, SearchX, TrendingDown } from "lucide-react"
 import WatchlistButton from "@/components/WatchlistButton"
 import { EmptyState } from "@/components/app/EmptyState"
 import { LabsBadge } from "@/components/market/LabsBadge"
+import { MarketFreshness } from "@/components/market/MarketFreshness"
 import { MotivationGauge } from "@/components/market/MotivationGauge"
 import { MOTIVATION_TONE, motivationLevel } from "@/components/market/motivation"
 import { Button } from "@/components/ui/button"
@@ -17,8 +19,10 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data } = await supabase
-    .from("zillow_market").select("*").eq("id", Number(params.id)).maybeSingle()
+  const [{ data }, updatedAt] = await Promise.all([
+    supabase.from("zillow_market").select("*").eq("id", Number(params.id)).maybeSingle(),
+    getMarketDataUpdatedAt(supabase),
+  ])
 
   const back = (
     <Button asChild variant="ghost" size="sm" className="-ml-2 min-h-10 text-muted-foreground">
@@ -71,17 +75,16 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
         </div>
         {user && <WatchlistButton property={data} saved={!!saved} />}
       </div>
-      <p className="-mt-3 text-xs text-subtle-foreground">{t("labsNote")}</p>
+      <div className="-mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <p className="text-xs text-subtle-foreground">{t("labsNote")}</p>
+        <MarketFreshness updatedAt={updatedAt} />
+      </div>
 
-      {/* Hero image */}
-      {data.imgSrc && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={data.imgSrc}
-          alt={data.street ?? t("detail.property")}
-          className="h-64 w-full rounded-xl border object-cover"
-        />
-      )}
+      {/* Listing photos are not hotlinked (Zillow licensing); point to the listing instead. */}
+      <div className="flex h-28 flex-col items-center justify-center gap-2 rounded-xl border bg-surface-muted text-center">
+        <Home className="size-7 text-subtle-foreground" strokeWidth={1.5} aria-hidden />
+        <p className="px-4 text-xs text-muted-foreground">{t("detail.noPhotos")}</p>
+      </div>
 
       {/* Stats */}
       <dl className="grid grid-cols-3 gap-3">
@@ -138,6 +141,15 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
         <dl className="space-y-2">
           <InfoRow label={t("detail.status")} value={humanize(data.homeStatus)} capitalize />
           <InfoRow label={t("detail.type")} value={humanize(data.homeType)} capitalize />
+          {data.rentZestimate != null && data.rentZestimate > 0 && (
+            <InfoRow label={t("detail.rentEstimate")} value={f.number(data.rentZestimate, "money")} />
+          )}
+          {data.homeStatus === "FOR_SALE" && data.price && data.rentZestimate != null && data.rentZestimate > 0 && (
+            <InfoRow
+              label={t("detail.grossYield")}
+              value={`${f.number(((data.rentZestimate * 12) / data.price) * 100, { maximumFractionDigits: 1 })}%`}
+            />
+          )}
         </dl>
       </section>
 
@@ -157,9 +169,12 @@ export default async function MarketPropertyPage(props: { params: Promise<{ id: 
 function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string | number; label: string }) {
   return (
     <div className="flex flex-col items-center gap-1 rounded-xl border bg-surface p-4 text-center">
-      <span className="text-primary">{icon}</span>
-      <dt className="order-last text-xs text-muted-foreground">{label}</dt>
-      <dd className="tabular text-xl font-semibold text-foreground">{value}</dd>
+      {/* Only dt/dd may sit in a <dl> group, so the icon lives inside the dd. */}
+      <dd className="tabular order-first flex flex-col items-center gap-1 text-xl font-semibold text-foreground">
+        <span className="text-primary">{icon}</span>
+        {value}
+      </dd>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
     </div>
   )
 }

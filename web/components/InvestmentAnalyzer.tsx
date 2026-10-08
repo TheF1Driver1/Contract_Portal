@@ -13,7 +13,6 @@ import { LabsTitle } from "@/components/market/LabsTitle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function pct(n: number) {
@@ -139,9 +138,10 @@ function Summary({ label, value }: { label: string; value: string }) {
   );
 }
 
-function MetricRow({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+// `divided` draws the rule above a row; a <Separator> is not allowed inside <dl>.
+function MetricRow({ label, value, strong, divided }: { label: string; value: string; strong?: boolean; divided?: boolean }) {
   return (
-    <div className="flex items-center justify-between py-1.5 text-sm">
+    <div className={cn("flex items-center justify-between py-1.5 text-sm", divided && "mt-2 border-t pt-3.5")}>
       <dt className={strong ? "font-medium text-foreground" : "text-muted-foreground"}>{label}</dt>
       <dd className={cn("tabular", strong ? "font-semibold text-foreground" : "text-foreground")}>{value}</dd>
     </div>
@@ -198,7 +198,7 @@ export default function InvestmentAnalyzer({ item, existing }: Props) {
   const [form, setForm] = useState<FormState>(() => defaultForm(item, existing));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [crimInfo, setCrimInfo] = useState<{ municipality: string; inmueble_rate: number } | null>(null);
+  const [crimInfo, setCrimInfo] = useState<{ municipality: string; inmueble_rate: number; fiscal_year: string } | null>(null);
 
   useEffect(() => {
     if (item.state?.toUpperCase() !== "PR" || !item.city || existing) return;
@@ -206,7 +206,7 @@ export default function InvestmentAnalyzer({ item, existing }: Props) {
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (!data) return;
-        setCrimInfo({ municipality: data.municipality, inmueble_rate: data.inmueble_rate });
+        setCrimInfo({ municipality: data.municipality, inmueble_rate: data.inmueble_rate, fiscal_year: data.fiscal_year });
         setForm((f) => ({ ...f, annual_tax_pct: crimEffectiveAnnualPct(data.inmueble_rate) }));
       })
       .catch(() => null);
@@ -251,7 +251,7 @@ export default function InvestmentAnalyzer({ item, existing }: Props) {
   const signed = (n: number) => `${n >= 0 ? "+" : ""}${fmt(n)}`;
   const stateKey = item.state?.toUpperCase();
   const taxHint = crimInfo
-    ? t("taxHintCrim", { municipality: crimInfo.municipality, rate: crimInfo.inmueble_rate.toFixed(2) })
+    ? t("taxHintCrim", { municipality: crimInfo.municipality, rate: crimInfo.inmueble_rate.toFixed(2), year: crimInfo.fiscal_year })
     : stateKey && STATE_TAX_RATES[stateKey] != null
       ? t("taxHintState", { state: stateKey, rate: STATE_TAX_RATES[stateKey].toFixed(2) })
       : undefined;
@@ -381,11 +381,9 @@ export default function InvestmentAnalyzer({ item, existing }: Props) {
               <MetricRow label={t("breakdown.maintenance")} value={fmt(metrics.monthly_maintenance)} />
               <MetricRow label={t("breakdown.hoa")} value={fmt(metrics.monthly_hoa)} />
               <MetricRow label={t("breakdown.utilities")} value={fmt(metrics.monthly_utilities)} />
-              <Separator className="my-2" />
-              <MetricRow label={t("breakdown.totalExpenses")} value={fmt(metrics.total_monthly_expenses)} strong />
+              <MetricRow label={t("breakdown.totalExpenses")} value={fmt(metrics.total_monthly_expenses)} strong divided />
               <MetricRow label={t("effectiveRent")} value={fmt(metrics.effective_monthly_rent)} strong />
-              <Separator className="my-2" />
-              <div className="flex items-center justify-between py-1.5 text-sm">
+              <div className="mt-2 flex items-center justify-between border-t py-1.5 pt-3.5 text-sm">
                 <dt className="font-medium text-foreground">{t("breakdown.net")}</dt>
                 <dd className={cn("tabular inline-flex items-center gap-1 font-semibold", cashFlowPos ? "text-success" : "text-danger")}>
                   {cashFlowPos ? <TrendingUp className="size-4" aria-hidden /> : <TrendingDown className="size-4" aria-hidden />}
@@ -401,8 +399,7 @@ export default function InvestmentAnalyzer({ item, existing }: Props) {
               <MetricRow label={t("upfront.downPayment")} value={fmt(metrics.down_payment)} />
               <MetricRow label={t("upfront.closingCosts")} value={fmt(metrics.closing_costs)} />
               <MetricRow label={t("upfront.loanAmount")} value={fmt(metrics.loan_amount)} />
-              <Separator className="my-2" />
-              <MetricRow label={t("upfront.cashRequired")} value={fmt(metrics.total_upfront)} strong />
+              <MetricRow label={t("upfront.cashRequired")} value={fmt(metrics.total_upfront)} strong divided />
             </dl>
           </section>
 

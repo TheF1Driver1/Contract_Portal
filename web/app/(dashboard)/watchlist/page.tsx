@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
-import Image from "next/image";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Heart, ArrowRight, ExternalLink, Calculator, Home } from "lucide-react";
 import type { WatchlistItem } from "@/lib/types";
@@ -76,19 +75,10 @@ export default async function WatchlistPage() {
           {items.map((item) => (
             <li key={item.id} className="flex flex-col overflow-hidden rounded-xl border bg-surface">
               <div className="relative h-40 bg-surface-muted">
-                {item.img_src ? (
-                  <Image
-                    src={item.img_src}
-                    alt={item.street ?? t("detail.property")}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <Home className="size-8 text-subtle-foreground" strokeWidth={1.5} aria-hidden />
-                  </div>
-                )}
+                {/* Listing photos are not hotlinked (Zillow licensing). */}
+                <div className="flex h-full w-full items-center justify-center">
+                  <Home className="size-8 text-subtle-foreground" strokeWidth={1.5} aria-hidden />
+                </div>
                 <div className="absolute left-3 top-3">
                   <MotivationBadge score={scoreMap[item.zillow_id]} compact className="shadow-sm" />
                 </div>

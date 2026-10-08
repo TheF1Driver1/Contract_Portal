@@ -58,13 +58,33 @@
     "avgPrice": "Average price",
     "avgDays": "{count, plural, one {# day avg} other {# days avg}}"
   },
-  "rentVsMarket": {
-    "title": "Your rent vs. the market",
-    "subtitle": "Monthly rent from your signed contracts compared with the average sale price in each town. The chart shows gross yield (rent × 12 ÷ price).",
-    "yield": "Gross yield",
-    "city": "Town",
+  "freshness": {
+    "updated": "{count, plural, =0 {Data updated today} =1 {Data updated yesterday} other {Data updated # days ago}}",
+    "stale": "Data is {count, plural, one {# day} other {# days}} old and may be out of date",
+    "title": "Last updated: {date}"
+  },
+  "rentComps": {
+    "title": "Your rent vs. market rent",
+    "subtitle": "Rent from your signed contracts compared with the median Zillow rent estimate (Rent Zestimate) in the same town.",
     "yourRent": "Your rent",
-    "marketPrice": "Sale price"
+    "market": "Median {amount}",
+    "sample": "{count, plural, one {# comparable} other {# comparables}}",
+    "tooFew": "Not enough data ({count, plural, one {# comparable} other {# comparables}}; {min} minimum)",
+    "above": "{pct}% above market",
+    "below": "{pct}% below market",
+    "inLine": "In line with the market",
+    "note": "The rent estimate is Zillow's calculation, not an appraisal. Use it as a reference."
+  },
+  "yields": {
+    "title": "Yield by town",
+    "subtitle": "Median of for-sale listings with a rent estimate. Gross yield = estimated rent × 12 ÷ price, before expenses.",
+    "city": "Town",
+    "price": "Price",
+    "rent": "Est. rent",
+    "grossYield": "Gross yield",
+    "priceToRent": "Price/rent",
+    "sample": "{count, plural, one {# listing} other {# listings}}",
+    "priceToRentValue": "{value}×"
   },
   "detail": {
     "notFound": "We couldn't find this listing",
@@ -86,6 +106,9 @@
     "details": "Details",
     "status": "Status",
     "type": "Type",
+    "rentEstimate": "Estimated rent (Zillow)",
+    "grossYield": "Estimated gross yield",
+    "noPhotos": "Photos are on the original listing.",
     "viewListing": "View original listing"
   },
   "watchlistButton": {
@@ -151,7 +174,7 @@
       "vacancy": "Vacancy rate"
     },
     "years": "{count, plural, one {# year} other {# years}}",
-    "taxHintCrim": "CRIM {municipality}: {rate}% of assessed value",
+    "taxHintCrim": "CRIM estimate for {municipality} ({year}): {rate}% of assessed value, which we assume is 45% of the price. Check with your CPA.",
     "taxHintState": "{state} average: {rate}%",
     "breakdown": {
       "title": "Monthly breakdown",

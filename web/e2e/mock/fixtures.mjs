@@ -198,3 +198,36 @@ export const TABLES = {
   ],
   ...P36,
 };
+
+// ── Plan 40: market data ────────────────────────────────────────────────────
+// Zillow listings (public.zillow_market) with rentZestimate for comps/yields.
+// Bayamón appears with and without the accent to exercise matching.
+const zl = (n, city, price, rentZestimate, extra = {}) => ({
+  id: 4100000 + n, price, beds: 3, baths: 2, street: `Calle Demo ${n}`, city, state: "PR", zipcode: "00900",
+  latitude: 18.4 + n / 1000, longitude: -66.1 - n / 1000, imgSrc: "https://photos.zillowstatic.com/demo.jpg",
+  detailUrl: `https://www.zillow.com/homedetails/${4100000 + n}_zpid/`, homeType: "SINGLE_FAMILY", homeStatus: "FOR_SALE",
+  daysOnZillow: 10 + n, last_updated_date: ts(-3), original_price: price, num_price_cuts: 0, total_price_cut: 0,
+  price_cut_pct: 0, daily_price_cut_rate: 0, last_cut_date: null, desperation_score: n % 4 === 0 ? 42 : 0,
+  rentZestimate, livingArea: 1200, ...extra,
+});
+const ZILLOW_MARKET = [
+  ...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => zl(n, "San Juan", 240000 + n * 15000, 1250 + n * 50)),
+  ...[9, 10, 11].map((n) => zl(n, "Bayamón", 180000 + n * 5000, 1100 + n * 20)),
+  ...[12, 13, 14].map((n) => zl(n, "Bayamon", 175000 + n * 5000, 1050 + n * 20)),
+  ...[15, 16, 17, 18, 19].map((n) => zl(n, "Ponce", 120000 + n * 3000, 850 + n * 10)),
+  ...[20, 21].map((n) => zl(n, "Dorado", 650000, 3200)),
+  zl(22, "San Juan", 1900, 1850, { homeStatus: "FOR_RENT" }),
+];
+const crim = (municipality, inmueble_rate, mueble_rate) =>
+  ["2025-2026", "2026-2027"].map((fiscal_year) => ({ municipality, fiscal_year, inmueble_rate, mueble_rate, source_url: "https://www.colegiocpa.com/colegiados/tipos-contributivos/" }));
+TABLES.zillow_market = ZILLOW_MARKET;
+TABLES.crim_tax_rates = [...crim("Bayamón", 9.58, 7.58), ...crim("San Juan", 10.83, 8.83), ...crim("Ponce", 10.33, 8.33)];
+TABLES.watchlist = [
+  { id: "90000000-0000-4000-8000-000000000001", owner_id: USER.id, zillow_id: String(ZILLOW_MARKET[8].id), price: 225000, beds: 3, baths: 2, street: "Calle Demo 9", city: "Bayamon", state: "PR", img_src: "https://photos.zillowstatic.com/demo.jpg", detail_url: ZILLOW_MARKET[8].detailUrl, home_type: "SINGLE_FAMILY", home_status: "FOR_SALE", saved_at: ts(-4) },
+];
+TABLES.investment_analyses = [];
+
+// RPC results (POST /rest/v1/rpc/<name>).
+export const RPCS = {
+  market_data_updated_at: ts(-3),
+};

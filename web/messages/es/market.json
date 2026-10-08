@@ -58,13 +58,33 @@
     "avgPrice": "Precio promedio",
     "avgDays": "{count, plural, one {# día promedio} other {# días promedio}}"
   },
-  "rentVsMarket": {
-    "title": "Tu renta vs. el mercado",
-    "subtitle": "Renta mensual de tus contratos firmados comparada con el precio promedio de venta en cada pueblo. La gráfica muestra el rendimiento bruto (renta × 12 ÷ precio).",
-    "yield": "Rendimiento bruto",
-    "city": "Pueblo",
+  "freshness": {
+    "updated": "{count, plural, =0 {Datos actualizados hoy} =1 {Datos actualizados ayer} other {Datos actualizados hace # días}}",
+    "stale": "Datos de hace {count, plural, one {# día} other {# días}}: pueden estar desactualizados",
+    "title": "Última actualización: {date}"
+  },
+  "rentComps": {
+    "title": "Tu renta vs. la renta del mercado",
+    "subtitle": "Renta de tus contratos firmados comparada con la mediana de la renta estimada por Zillow (Rent Zestimate) en el mismo pueblo.",
     "yourRent": "Tu renta",
-    "marketPrice": "Precio de venta"
+    "market": "Mediana {amount}",
+    "sample": "{count, plural, one {# comparable} other {# comparables}}",
+    "tooFew": "Pocos datos ({count, plural, one {# comparable} other {# comparables}}; mínimo {min})",
+    "above": "{pct}% sobre el mercado",
+    "below": "{pct}% bajo el mercado",
+    "inLine": "En línea con el mercado",
+    "note": "La renta estimada es un cálculo de Zillow, no una tasación. Úsala como referencia."
+  },
+  "yields": {
+    "title": "Rendimiento por pueblo",
+    "subtitle": "Mediana de propiedades a la venta con renta estimada. Rendimiento bruto = renta estimada × 12 ÷ precio, antes de gastos.",
+    "city": "Pueblo",
+    "price": "Precio",
+    "rent": "Renta est.",
+    "grossYield": "Rend. bruto",
+    "priceToRent": "Precio/renta",
+    "sample": "{count, plural, one {# anuncio} other {# anuncios}}",
+    "priceToRentValue": "{value}×"
   },
   "detail": {
     "notFound": "No encontramos este anuncio",
@@ -86,6 +106,9 @@
     "details": "Detalles",
     "status": "Estado",
     "type": "Tipo",
+    "rentEstimate": "Renta estimada (Zillow)",
+    "grossYield": "Rendimiento bruto estimado",
+    "noPhotos": "Las fotos están en el anuncio original.",
     "viewListing": "Ver anuncio original"
   },
   "watchlistButton": {
@@ -151,7 +174,7 @@
       "vacancy": "Tasa de desocupación"
     },
     "years": "{count, plural, one {# año} other {# años}}",
-    "taxHintCrim": "CRIM {municipality}: {rate}% sobre el valor tasado",
+    "taxHintCrim": "Estimado CRIM {municipality} ({year}): {rate}% sobre el valor tasado, que suponemos en 45% del precio. Verifícalo con tu CPA.",
     "taxHintState": "Promedio de {state}: {rate}%",
     "breakdown": {
       "title": "Desglose mensual",
