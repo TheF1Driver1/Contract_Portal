@@ -152,4 +152,4 @@ handled there).
 - [ ] **Attorney review** of the new Terms section "Programa de referidos", the AI clause-translation glossary (`web/lib/ai/glossary.ts`, then set `reviewed: true`), and notice templates before any automatic sending is added.
 - [ ] **Licensing review** of Zillow data and links shown in the app (listing photos are no longer displayed).
 - [ ] **CPA review** of the expense → Schedule E / Anejo N mapping (`web/lib/tax/mapping.ts`) and the year-end package.
-- [ ] **AI (Plan 39)**: build the eval set (50 anonymized receipts, 20 clauses) and check receipt accuracy before announcing the feature; attorney sign-off before `AI_LEASE_HELP=1`.
+- [ ] **AI (Plan 39)**: put 50 anonymized receipts plus an `expected.json` in a folder and run `RECEIPT_EVAL_DIR=<folder> ANTHROPIC_API_KEY=... npm run eval:receipts` (in `web/`); it writes `results-*.json` there and fails below 90% field accuracy. Do this before announcing the feature; attorney sign-off before `AI_LEASE_HELP=1`.

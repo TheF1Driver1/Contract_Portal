@@ -16,7 +16,7 @@ import type { Inspection, MaintenanceRequest, MaintenanceUpdate } from "@/lib/db
 import { PortalLeaseExtras, type PortalInspection, type PortalRequest } from "@/components/maintenance/PortalMaintenance";
 import { AthPay } from "@/components/portal/AthPay";
 import { ATH_TIMEOUT_SECONDS, normalizeAthPhone } from "@/lib/athmovil/client";
-import { athPendingSince } from "@/lib/athmovil/service";
+import { athPendingSince, syncAthPayment } from "@/lib/athmovil/service";
 
 interface PortalContract {
   id: string;
@@ -97,6 +97,16 @@ export default async function PortalPage() {
   const owners = [...new Set(contracts.filter((c) => c.status === "signed" && ledgers.has(c.id)).map((c) => c.owner_id))];
   if (owners.length > 0) {
     const since = athPendingSince();
+    // A payment confirmed in the ATH app after the tab was closed is authorized
+    // and posted now, instead of waiting for the daily cron (ATH may expire it).
+    const { data: mine } = await admin
+      .from("ath_movil_payments")
+      .select("id")
+      .eq("payer_user_id", user.id)
+      .in("status", ["open", "confirm"])
+      .gte("created_at", since)
+      .limit(3);
+    await Promise.allSettled((mine ?? []).map((p) => syncAthPayment(admin, p.id)));
     const [{ data: accounts }, { data: landlords }, { data: inflight }] = await Promise.all([
       admin.from("ath_movil_accounts").select("owner_id, business_name").in("owner_id", owners),
       admin.from("profiles").select("id, full_name, company_name").in("id", owners),
