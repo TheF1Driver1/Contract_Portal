@@ -52,3 +52,18 @@ export function summarize(results: { file: string; score: Record<ReceiptField, b
   for (const f of RECEIPT_FIELDS) byField[f] = byField[f] / n;
   return { receipts: results.length, fieldAccuracy: right / (n * RECEIPT_FIELDS.length), byField, failures };
 }
+
+// ── Lease Q&A eval ────────────────────────────────────────────────────────────
+// Each case: a question, facts the answer must state, and phrases it must not
+// contain (e.g. legal conclusions). Matching is accent- and case-insensitive.
+
+export type LeaseQaCase = { question: string; mustInclude: string[]; mustNotInclude?: string[] };
+
+const fold = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+
+export function scoreLeaseAnswer(answer: string | null, c: LeaseQaCase): { pass: boolean; missing: string[]; forbidden: string[] } {
+  const a = fold(answer ?? "");
+  const missing = c.mustInclude.filter((x) => !a.includes(fold(x)));
+  const forbidden = (c.mustNotInclude ?? []).filter((x) => a.includes(fold(x)));
+  return { pass: !!answer && missing.length === 0 && forbidden.length === 0, missing, forbidden };
+}

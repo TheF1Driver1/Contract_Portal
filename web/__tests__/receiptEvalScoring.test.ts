@@ -24,3 +24,14 @@ describe("receipt eval scoring", () => {
     expect(s.failures).toEqual([{ file: "b.pdf", fields: ["date", "category"] }]);
   });
 });
+
+import { scoreLeaseAnswer } from "@/lib/ai/eval";
+
+describe("lease Q&A eval scoring", () => {
+  it("requires every fact and no forbidden phrase, ignoring accents and case", () => {
+    const c = { question: "¿Mascotas?", mustInclude: ["no se permiten mascotas", "cláusula 12"], mustNotInclude: ["es ilegal"] };
+    expect(scoreLeaseAnswer("No se permiten MASCOTAS (clausula 12).", c)).toEqual({ pass: true, missing: [], forbidden: [] });
+    expect(scoreLeaseAnswer("No se permiten mascotas; eso es ilegal.", c)).toMatchObject({ pass: false, missing: ["cláusula 12"], forbidden: ["es ilegal"] });
+    expect(scoreLeaseAnswer(null, c).pass).toBe(false);
+  });
+});
