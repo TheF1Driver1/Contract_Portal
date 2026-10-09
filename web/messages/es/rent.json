@@ -29,7 +29,8 @@
     "receipt": "Recibo",
     "resend": "Reenviar recibo",
     "void": "Anular",
-    "more": "Más acciones"
+    "more": "Más acciones",
+    "athRefund": "Reembolsar por ATH Móvil"
   },
   "entries": {
     "title": "Movimientos",
@@ -122,5 +123,21 @@
     "disconnectBody": "Tus inquilinos dejarán de ver «Pagar con ATH Móvil». Los pagos ya registrados se quedan en la cuenta de renta.",
     "connected": "ATH Móvil conectado",
     "disconnected": "ATH Móvil desconectado"
+  },
+  "athRefund": {
+    "title": "Reembolsar por ATH Móvil",
+    "body": "El dinero vuelve a la cuenta ATH Móvil del inquilino desde tu ATH Business. Un reembolso completo anula el pago; uno parcial se anota como cargo en el balance.",
+    "loading": "Cargando…",
+    "amount": "Cantidad (hasta ${max})",
+    "message": "Mensaje para el inquilino (opcional)",
+    "messagePlaceholder": "Ej.: Pago duplicado",
+    "confirm": "Entiendo que este dinero se devuelve al inquilino y no se puede deshacer.",
+    "submit": "Reembolsar",
+    "cancel": "Cancelar",
+    "doneFull": "Reembolso hecho. El pago quedó anulado.",
+    "donePartial": "Reembolso hecho y anotado en el balance.",
+    "noPrivateToken": "Para reembolsar, agrega el token privado de ATH Business en Cobros → ATH Móvil Business.",
+    "unknown": "Un reembolso anterior de este pago no recibió respuesta de ATH Móvil. Revisa en ATH Business si se hizo. Si no aparece allí, márcalo como no realizado para intentarlo de nuevo.",
+    "clearUnknown": "No se hizo: permitir otro intento"
   }
 }

@@ -29,7 +29,8 @@
     "receipt": "Receipt",
     "resend": "Resend receipt",
     "void": "Void",
-    "more": "More actions"
+    "more": "More actions",
+    "athRefund": "Refund via ATH Móvil"
   },
   "entries": {
     "title": "Activity",
@@ -122,5 +123,21 @@
     "disconnectBody": "Your tenants will no longer see “Pay with ATH Móvil”. Payments already recorded stay in the rent ledger.",
     "connected": "ATH Móvil connected",
     "disconnected": "ATH Móvil disconnected"
+  },
+  "athRefund": {
+    "title": "Refund via ATH Móvil",
+    "body": "The money goes back to the tenant's ATH Móvil account from your ATH Business. A full refund voids the payment; a partial one is added to the balance as a charge.",
+    "loading": "Loading…",
+    "amount": "Amount (up to ${max})",
+    "message": "Message for the tenant (optional)",
+    "messagePlaceholder": "E.g.: Duplicate payment",
+    "confirm": "I understand this money goes back to the tenant and can't be undone.",
+    "submit": "Refund",
+    "cancel": "Cancel",
+    "doneFull": "Refund done. The payment was voided.",
+    "donePartial": "Refund done and recorded in the balance.",
+    "noPrivateToken": "To refund, add the ATH Business private token in Collections → ATH Móvil Business.",
+    "unknown": "An earlier refund of this payment got no answer from ATH Móvil. Check in ATH Business whether it went through. If it isn't there, mark it as not done to try again.",
+    "clearUnknown": "It didn't go through: allow another try"
   }
 }

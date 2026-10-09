@@ -1,6 +1,6 @@
 # Release runbook: `feature/roadmap-execution` → `dev` → `main`
 
-This branch carries Plans 24–40. The code expects database migrations 012–033,
+This branch carries Plans 24–40. The code expects database migrations 012–034,
 which are **not** in production yet (011 was applied on 2026-10-07). Deploy in
 the order below. Steps 1–3 can run before the code ships, because every migration
 is additive and backward compatible with the current `main`. The exception is
@@ -42,6 +42,7 @@ a copy of the production schema, together with role-based behavior checks.
 | 031 | `031_ath_movil.sql` | `ath_movil_accounts` (encrypted tokens only), `ath_movil_payments`, `ath_movil_status()` | Needs `FIELD_ENCRYPTION_KEY` set before landlords connect |
 | 032 | `032_security_hardening.sql` | Locks `tenant_invites` to server writes, adds WITH CHECK on contract children and photo/attachment paths, server-only tenant evidence | **Apply to production now, ahead of the release** (see note below) |
 | 033 | `033_dashboard_summary.sql` | `dashboard_summary()` RPC with the dashboard KPIs (security invoker) | Used by the iOS app; the web keeps its own query for now |
+| 034 | `034_ath_movil_refunds.sql` | `ath_movil_refunds` (one open refund per payment, server-only writes) | Refunds need the landlord's ATH Business private token |
 
 **About 032 (urgent).** The tenant-invite and contract-children policies it
 fixes are already live in production: today any signed-in user can insert a
@@ -148,7 +149,7 @@ handled there).
 - [ ] **iOS (Plan 38)**: branch `feature/esign-handoff` in Contract-Portal-iOS moves signing to the web flow. It was written without a compiler: build it in Xcode and test on a device against a backend with 020, then ship before 020 reaches production.
 - [ ] **Scraper (Plan 40)**: merge `feature/market-reliability` in Real-Estate-Search-Automation after adding the Action secrets/variables (`ZILLOW_2026_API_URL`, `RESEND_API_KEY`, `ALERT_EMAIL`, `REPORT_EMAIL`, optional `MAX_PAGES`). The current workflow never passed `ZILLOW_2026_API_URL`, so past runs likely scraped nothing while showing green.
 - [ ] **Revoke the Gmail app password** hardcoded in the scraper's `modules/email_integration.py` on `main` (sender jakotcontact@gmail.com). The branch removes it from the code; revoking it in the Google account is what makes it safe.
-- [ ] **ATH Móvil (Plan 33)**: each landlord pastes their public token (and optionally the private token, only needed for refunds) from ATH Business → Configuración → Integración con API into Cobros → ATH Móvil Business. There is no sandbox: do a $1 payment from a tenant account first and confirm it reaches the ATH Business account and the ledger.
+- [ ] **ATH Móvil (Plan 33)**: each landlord pastes their public token (and optionally the private token, only needed for refunds) from ATH Business → Configuración → Integración con API into Cobros → ATH Móvil Business. There is no sandbox: do a $1 payment from a tenant account first and confirm it reaches the ATH Business account and the ledger, then refund it from the ledger (⋯ → Reembolsar por ATH Móvil) and confirm the money returns and the payment shows as voided.
 - [ ] **Attorney review** of the new Terms section "Programa de referidos", the AI clause-translation glossary (`web/lib/ai/glossary.ts`, then set `reviewed: true`), and notice templates before any automatic sending is added.
 - [ ] **Licensing review** of Zillow data and links shown in the app (listing photos are no longer displayed).
 - [ ] **CPA review** of the expense → Schedule E / Anejo N mapping (`web/lib/tax/mapping.ts`) and the year-end package.

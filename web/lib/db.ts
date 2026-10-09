@@ -279,7 +279,21 @@ type AthMovilPayment = {
   created_at: string;
   updated_at: string;
 };
+type AthRefundStatus = "pending" | "completed" | "failed" | "unknown";
+type AthMovilRefund = {
+  id: string;
+  owner_id: string;
+  payment_id: string;
+  amount: number;
+  message: string | null;
+  status: AthRefundStatus;
+  refund_reference: string | null;
+  error: string | null;
+  created_at: string;
+  completed_at: string | null;
+};
 type AthTables = {
+  ath_movil_refunds: Table<AthMovilRefund, Partial<Omit<AthMovilRefund, "id">> & Pick<AthMovilRefund, "owner_id" | "payment_id" | "amount">>;
   ath_movil_accounts: Table<AthMovilAccount, Partial<AthMovilAccount> & Pick<AthMovilAccount, "owner_id" | "public_token_enc">>;
   ath_movil_payments: Table<
     AthMovilPayment,
@@ -456,7 +470,7 @@ export type Database = Omit<Generated, "public"> & {
 export type { ContractSigner, SignatureEvent, RentLedger, RentCharge, Payment, PaymentMethod };
 export type { MessageLog, MessageChannel, MessageStatus, MessagingConsent, ConsentSource };
 export type { TaxResidency, PropertyCrim, CrimBill };
-export type { AthMovilAccount, AthMovilPayment, AthPaymentStatus };
+export type { AthMovilAccount, AthMovilPayment, AthPaymentStatus, AthMovilRefund, AthRefundStatus };
 export type { Referral, ReferralCode, ReferralStatus };
 export type {
   MaintenanceCategory,

@@ -184,5 +184,7 @@ export async function refundPayment(
     },
     opts
   );
-  return toTransaction(data);
+  // The response nests the refund (with its own reference) under `refund`.
+  const refund = (data as { refund?: Record<string, unknown> } | null)?.refund;
+  return toTransaction(refund ?? data);
 }

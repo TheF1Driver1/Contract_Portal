@@ -537,3 +537,11 @@ export const PartnerApplicationSchema = z.object({
   // Honeypot: real people never see or fill this field.
   website: z.string().max(0).optional().default(""),
 });
+
+// ── ATH Móvil refunds (Plan 33, migration 034) ────────────────────────────────
+export const AthRefundSchema = z.object({
+  payment_id: uuid,
+  amount: z.number().min(0.01).max(1500).transform((n) => Math.round(n * 100) / 100),
+  message: z.string().trim().max(50).optional().nullable(),
+  confirm: z.literal(true),
+});

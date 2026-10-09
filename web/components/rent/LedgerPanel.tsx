@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Ban, CheckCircle2, FileDown, Loader2, MoreHorizontal, Plus, Send, Wallet } from "lucide-react";
+import { Ban, CheckCircle2, FileDown, Loader2, MoreHorizontal, Plus, Send, Undo2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { PaymentSheet } from "./PaymentSheet";
 import { ChargeSheet } from "./ChargeSheet";
 import { VoidDialog } from "./VoidDialog";
+import { AthRefundDialog } from "./AthRefundDialog";
 import type { LedgerProps } from "./types";
 
 type Entry = {
@@ -41,6 +42,7 @@ export function LedgerPanel(props: LedgerProps) {
   const [paying, setPaying] = useState(false);
   const [charging, setCharging] = useState(false);
   const [voiding, setVoiding] = useState<{ id: string; kind: "payment" | "charge" } | null>(null);
+  const [refunding, setRefunding] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
   const money = (n: number) => f.number(n, { style: "currency", currency: "USD", maximumFractionDigits: Number.isInteger(n) ? 0 : 2 });
@@ -145,6 +147,11 @@ export function LedgerPanel(props: LedgerProps) {
                               <Send /> {t("actions.resend")}
                             </DropdownMenuItem>
                           )}
+                          {e.viaAth && (
+                            <DropdownMenuItem onSelect={() => setRefunding(e.id)}>
+                              <Undo2 /> {t("actions.athRefund")}
+                            </DropdownMenuItem>
+                          )}
                         </>
                       )}
                       <DropdownMenuItem variant="destructive" onSelect={() => setVoiding({ id: e.id, kind: e.kind === "payment" ? "payment" : "charge" })}>
@@ -173,6 +180,7 @@ export function LedgerPanel(props: LedgerProps) {
       />
       <ChargeSheet open={charging} onOpenChange={setCharging} contractId={props.contractId} today={props.today} />
       <VoidDialog target={voiding} onClose={() => setVoiding(null)} />
+      <AthRefundDialog key={refunding ?? "none"} paymentId={refunding} onClose={() => setRefunding(null)} />
     </div>
   );
 }

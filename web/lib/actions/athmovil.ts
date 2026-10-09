@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { createAdminClient, createClient } from "@/lib/supabase-server";
-import { AthConnectSchema, AthPaymentCreateSchema, AthPaymentIdSchema } from "@/lib/schemas";
+import { AthConnectSchema, AthPaymentCreateSchema, AthPaymentIdSchema, AthRefundSchema } from "@/lib/schemas";
 import { encryptField, fieldEncryptionEnabled } from "@/lib/crypto/fields";
 import { rateLimitRead, rateLimitWrite } from "@/lib/rate-limit";
 import { tenantHasLease } from "@/lib/maintenance/service";
@@ -12,6 +12,7 @@ import { summarize } from "@/lib/rent/schedule";
 import { todayPR } from "@/lib/rent/service";
 import { ATH_MAX_TOTAL, ATH_TIMEOUT_SECONDS, AthMovilError, cancelPayment, createPayment } from "@/lib/athmovil/client";
 import { cancelAthPayment as cancelAth, loadAthAccount, syncAthPayment, type AthView } from "@/lib/athmovil/service";
+import { clearUnknownRefund, refundableAmount, refundAthPayment } from "@/lib/athmovil/refund";
 
 export type AthActionResult = { ok: true } | { ok: false; error: string };
 export type AthStartResult =
@@ -217,4 +218,55 @@ export async function cancelAthPayment(id: unknown): Promise<AthCheckResult> {
   const v = await cancelAth(createAdminClient(), r.row.id);
   if (!v) return { ok: false, error: "Pago no encontrado." };
   return { ok: true, status: v.status, amount: v.amount, error: v.error };
+}
+
+// ── Landlord: refunds (migration 034) ───────────────────────────────────────
+
+export type AthRefundInfo =
+  | { ok: true; refundable: number; hasPrivateToken: boolean; unknownRefundId: string | null }
+  | { ok: false; error: string };
+
+/** What the refund dialog needs: how much is left, and whether a refund is unresolved. */
+export async function athRefundInfo(paymentId: string): Promise<AthRefundInfo> {
+  if (!AthPaymentIdSchema.safeParse(paymentId).success) return { ok: false, error: "Pago inválido." };
+  const { supabase, user } = await session();
+  if (!user) return EXPIRED;
+  // RLS: only the owner's own payment comes back.
+  const { data: payment } = await supabase.from("payments").select("id, amount, source, voided_at").eq("id", paymentId).maybeSingle();
+  if (!payment || payment.source !== "ath_movil" || payment.voided_at) return { ok: false, error: "Solo se pueden reembolsar pagos de ATH Móvil vigentes." };
+  const admin = createAdminClient();
+  const [refundable, account, { data: unknown }] = await Promise.all([
+    refundableAmount(admin, payment.id, Number(payment.amount)),
+    loadAthAccount(admin, user.id),
+    supabase.from("ath_movil_refunds").select("id").eq("payment_id", payment.id).eq("status", "unknown").maybeSingle(),
+  ]);
+  return { ok: true, refundable, hasPrivateToken: !!account?.privateToken, unknownRefundId: unknown?.id ?? null };
+}
+
+/** Refunds (part of) an ATH Móvil payment to the tenant. */
+export async function refundAth(input: unknown): Promise<AthActionResult & { fullyRefunded?: boolean }> {
+  const parsed = AthRefundSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Revisa la cantidad y confirma el reembolso." };
+  const { user } = await session();
+  if (!user) return EXPIRED;
+  if (await rateLimitWrite(user.id)) return TOO_MANY;
+  const res = await refundAthPayment(createAdminClient(), {
+    ownerId: user.id,
+    paymentId: parsed.data.payment_id,
+    amount: parsed.data.amount,
+    message: parsed.data.message,
+  });
+  if (!res.ok) return { ok: false, error: res.error };
+  revalidatePath("/rent");
+  revalidatePath("/contracts/[id]", "page");
+  return { ok: true, fullyRefunded: res.fullyRefunded };
+}
+
+/** After checking ATH Business: the unanswered refund did not happen. */
+export async function clearAthRefund(refundId: string): Promise<AthActionResult> {
+  if (!AthPaymentIdSchema.safeParse(refundId).success) return { ok: false, error: "Reembolso inválido." };
+  const { user } = await session();
+  if (!user) return EXPIRED;
+  const ok = await clearUnknownRefund(createAdminClient(), user.id, refundId);
+  return ok ? { ok: true } : { ok: false, error: "No se pudo actualizar el reembolso." };
 }
